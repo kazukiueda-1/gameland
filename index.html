@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>パパのわくわくランド</title>
+    <!-- フォント: ぜんまるゴシック -->
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['"Zen Maru Gothic"', 'sans-serif'] },
+                    colors: { 
+                        sky: { 300: '#7DD3FC', 100: '#E0F2FE' }, 
+                        grass: { 100: '#DCFCE7' }, 
+                        paper: '#FFF7ED' 
+                    },
+                    animation: { 
+                        'float': 'float 6s ease-in-out infinite', 
+                        'cloud': 'cloud 60s linear infinite', 
+                        'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
+                        'pop': 'pop 0.3s ease-out forwards',
+                        'spin-slow': 'spin 3s linear infinite'
+                    },
+                    keyframes: {
+                        float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-10px)' } },
+                        cloud: { '0%': { backgroundPosition: '0 0' }, '100%': { backgroundPosition: '1000px 0' } },
+                        shake: { '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' }, '20%, 80%': { transform: 'translate3d(2px, 0, 0)' }, '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' }, '40%, 60%': { transform: 'translate3d(4px, 0, 0)' } },
+                        pop: { '0%': { transform: 'scale(0.8)', opacity: '0' }, '100%': { transform: 'scale(1)', opacity: '1' } }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { 
+            font-family: "Zen Maru Gothic", sans-serif; 
+            background-color: #7DD3FC; 
+            overflow-x: hidden; 
+            touch-action: manipulation; /* スマホでのダブルタップ拡大防止 */
+        }
+        /* 雲の背景パターン */
+        .bg-clouds { 
+            background-image: radial-gradient(circle at 50% 50%, white 20%, transparent 20%), radial-gradient(circle at 60% 60%, white 20%, transparent 20%); 
+            background-size: 100px 100px; 
+            opacity: 0.4; 
+        }
+        /* ロック画面用 */
+        #lock-screen { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: #7DD3FC; z-index: 9999; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+        }
+        /* スクロールバー装飾 */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.5); border-radius: 4px; }
+    </style>
+</head>
+<body class="h-screen flex flex-col text-gray-800">
+
+    <!-- ▼▼▼ 1. ロック画面 (セキュリティ) ▼▼▼ -->
+    <div id="lock-screen">
+        <div class="bg-white p-8 rounded-3xl shadow-xl max-w-sm w-full text-center mx-4 border-b-8 border-blue-200">
+            <div class="text-6xl mb-4">🔐</div>
+            <h2 class="text-2xl font-black text-gray-700 mb-4">かりいろらんど</h2>
+            <p class="text-gray-500 mb-6 font-bold text-sm">あいことば をいれてね</p>
+            
+            <input type="text" id="pass-input" placeholder="ひらがな" autocomplete="off"
+                class="w-full bg-gray-100 border-2 border-gray-300 rounded-full py-3 px-6 text-center text-xl font-bold mb-4 focus:outline-none focus:border-blue-400 text-gray-700 placeholder-gray-400">
+            
+            <button onclick="checkPass()" class="w-full bg-blue-400 hover:bg-blue-500 text-white font-bold py-3 rounded-full shadow-md active:scale-95 transition text-lg">
+                あける！
+            </button>
+            <p id="error-msg" class="text-red-400 font-bold mt-4 hidden">ちがうみたい...</p>
+        </div>
+    </div>
+
+    <!-- ▼▼▼ 2. ナビゲーションバー (常時表示) ▼▼▼ -->
+    <nav class="bg-white/95 backdrop-blur-sm sticky top-0 z-50 px-4 py-3 shadow-md border-b-4 border-yellow-400 flex justify-between items-center">
+        <div class="flex items-center gap-2 cursor-pointer select-none" onclick="AppSystem.loadHome()">
+            <span class="text-2xl">🎡</span>
+            <h1 class="font-black text-lg md:text-xl text-blue-500 tracking-wider">パパのわくわくランド</h1>
+        </div>
+        <div class="bg-yellow-400 text-white px-4 py-1.5 rounded-full font-black shadow-inner flex items-center gap-2 select-none">
+            <span class="text-xl">⭐</span>
+            <span id="star-count" class="text-xl">0</span>
+        </div>
+    </nav>
+
+    <!-- ▼▼▼ 3. メインエリア (ここにアプリやメニューが表示される) ▼▼▼ -->
+    <main id="app-container" class="flex-1 overflow-y-auto relative scroll-smooth">
+        <!-- 初期ロード中は何も表示しないか、ローディングを表示 -->
+    </main>
+
+    <!-- ▼▼▼ 4. システムロジック ▼▼▼ -->
+    <script>
+        // --- 設定: 合言葉 ---
+        const SECRET_WORD = "ぱぱだいすき"; 
+        const LOCK_KEY = "papa_app_unlocked_v1";
+
+        // --- ロック解除処理 ---
+        window.addEventListener('DOMContentLoaded', () => { 
+            // すでに解除済みかチェック
+            if(localStorage.getItem(LOCK_KEY) === 'true') {
+                unlockApp(); 
+            }
+            // Enterキー対応
+            document.getElementById('pass-input').addEventListener('keypress', (e)=>{
+                if(e.key==='Enter') checkPass();
+            });
+        });
+
+        function checkPass() {
+            const input = document.getElementById('pass-input');
+            const errorMsg = document.getElementById('error-msg');
+            
+            if(input.value === SECRET_WORD) {
+                localStorage.setItem(LOCK_KEY, 'true');
+                unlockApp();
+            } else {
+                errorMsg.classList.remove('hidden');
+                // 揺れるアニメーション
+                const box = input.parentElement;
+                box.classList.remove('animate-shake');
+                void box.offsetWidth; // リフロー
+                box.classList.add('animate-shake');
+                input.value = '';
+                input.focus();
+            }
+        }
+
+        function unlockApp() {
+            const ls = document.getElementById('lock-screen');
+            ls.style.transition = "opacity 0.5s ease"; 
+            ls.style.opacity = "0";
+            // フェードアウト後にシステム起動
+            setTimeout(()=>{ 
+                ls.style.display="none"; 
+                AppSystem.init(); 
+            }, 500);
+        }
+
+        // --- アプリケーションシステム ---
+        const AppSystem = {
+            registry: [], 
+            currentAppCleanup: null,
+
+            // 初期化: データ読み込み
+            async init() {
+                this.updateStars();
+                try {
+                    // キャッシュ回避のタイムスタンプ付きで取得
+                    const res = await fetch(`./apps/registry.json?t=${Date.now()}`);
+                    if(!res.ok) throw new Error("File not found");
+                    this.registry = await res.json();
+                    this.loadHome();
+                } catch(e) { 
+                    console.error(e);
+                    document.getElementById('app-container').innerHTML = `
+                        <div class="flex flex-col items-center justify-center h-full text-white text-center p-4">
+                            <div class="text-6xl mb-4">😢</div>
+                            <p class="font-bold text-xl">データの読み込みにしっぱいしたよ</p>
+                            <p class="text-sm mt-2 opacity-80">パソコンの設定を確認してね</p>
+                            <p class="text-xs mt-4 opacity-50 font-mono">${e.message}</p>
+                        </div>`; 
+                }
+            },
+
+            // ホーム画面（メニュー）の描画
+            loadHome() {
+                // 前のアプリの後片付け
+                if(this.currentAppCleanup) { 
+                    this.currentAppCleanup(); 
+                    this.currentAppCleanup = null; 
+                }
+                
+                // カード生成ヘルパー関数
+                const renderCards = (apps, colorTheme) => {
+                    if(apps.length === 0) return '<div class="col-span-full text-gray-400 font-bold p-8 text-center bg-white/50 rounded-xl">まだ アプリがないよ 🚧</div>';
+                    
+                    return apps.map(app => `
+                    <div onclick="AppSystem.launchApp('${app.file}', '${app.title}')" 
+                         class="bg-white rounded-3xl p-6 shadow-lg border-b-8 border-${app.color} flex flex-col items-center cursor-pointer transform transition-all duration-200 hover:scale-105 hover:-translate-y-1 active:scale-95 group relative overflow-hidden">
+                        
+                        <!-- 背景のキラキラ装飾（ホバー時） -->
+                        <div class="absolute inset-0 bg-gradient-to-b from-transparent to-${app.color}/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        
+                        <div class="bg-${app.color.split('-')[0]}-50 w-24 h-24 rounded-full flex items-center justify-center text-5xl mb-4 group-hover:scale-110 group-hover:rotate-12 transition-transform duration-300 shadow-inner z-10">
+                            ${app.icon}
+                        </div>
+                        <h4 class="text-xl font-black text-gray-700 mb-1 z-10 text-center leading-tight">${app.title}</h4>
+                        <p class="text-sm text-gray-500 font-bold opacity-70 mb-4 z-10 text-center">${app.desc}</p>
+                        
+                        <div class="mt-auto bg-${app.color} text-white font-bold py-2 px-8 rounded-full text-sm shadow-md group-hover:shadow-lg z-10">
+                            あそぶ！
+                        </div>
+                    </div>`).join('');
+                };
+
+                const studyApps = this.registry.filter(a => a.category === 'study');
+                const playApps = this.registry.filter(a => a.category === 'play');
+
+                document.getElementById('app-container').innerHTML = `
+                    <!-- ヒーローエリア -->
+                    <div class="relative pt-12 pb-24 px-4 text-center overflow-hidden">
+                        <div class="absolute inset-0 bg-clouds animate-cloud pointer-events-none"></div>
+                        <div class="relative z-10 animate-float">
+                            <h2 class="text-4xl md:text-6xl font-black text-white drop-shadow-lg mb-4 text-stroke-sm">
+                                きょうは<br>なにをしてあそぶ？
+                            </h2>
+                            <div class="inline-block bg-white/20 backdrop-blur-md rounded-full px-6 py-2 border border-white/50 shadow-sm">
+                                <p class="text-white font-bold drop-shadow-md">
+                                    スターをあつめて パパにみせよう！
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- エリア1: まなびの森 (Study) -->
+                    <div class="bg-grass-100 rounded-t-[40px] -mt-10 pt-12 px-4 pb-16 shadow-[0_-10px_30px_rgba(0,0,0,0.1)] relative z-20">
+                        <div class="max-w-5xl mx-auto">
+                            <div class="flex items-center justify-center gap-3 mb-8">
+                                <span class="text-4xl filter drop-shadow-sm">✏️</span>
+                                <h3 class="text-2xl md:text-3xl font-black text-green-600 tracking-widest">まなびの もり</h3>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                                ${renderCards(studyApps, 'green')}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- エリア2: あそびの広場 (Play) -->
+                    <div class="bg-paper rounded-t-[40px] -mt-8 pt-12 px-4 pb-32 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] relative z-30 min-h-[50vh]">
+                        <div class="max-w-5xl mx-auto">
+                            <div class="flex items-center justify-center gap-3 mb-8">
+                                <span class="text-4xl filter drop-shadow-sm">🎮</span>
+                                <h3 class="text-2xl md:text-3xl font-black text-orange-500 tracking-widest">あそびの ひろば</h3>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                                ${renderCards(playApps, 'orange')}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- フッター -->
+                    <footer class="absolute bottom-0 w-full text-center py-6 text-gray-400 text-xs font-bold z-40">
+                        &copy; Papa's Web Land
+                    </footer>
+                `;
+            },
+
+            // アプリ起動処理
+            async launchApp(filename, title) {
+                const container = document.getElementById('app-container');
+                // ローディング画面
+                container.innerHTML = `
+                    <div class="h-full min-h-[80vh] bg-white flex flex-col items-center justify-center font-bold text-gray-400 animate-pulse">
+                        <div class="text-6xl mb-4 animate-spin-slow">🎡</div>
+                        <p class="text-xl text-blue-400">じゅんびしているよ...</p>
+                        <p class="text-sm mt-2 opacity-50">${title}</p>
+                    </div>`;
+                
+                try {
+                    // 動的インポート
+                    const module = await import(`./apps/${filename}?t=${Date.now()}`);
+                    
+                    // 画面クリア＆コンテナ作成
+                    container.innerHTML = '';
+                    const appRoot = document.createElement('div');
+                    // 全画面フィットさせるスタイル
+                    appRoot.className = "w-full h-full min-h-[calc(100vh-80px)] bg-white md:rounded-t-3xl shadow-sm md:p-4 animate-pop overflow-hidden";
+                    container.appendChild(appRoot);
+                    
+                    // アプリ実行
+                    this.currentAppCleanup = module.default.launch(appRoot, {
+                        addScore: (points) => { 
+                            const current = parseInt(localStorage.getItem('kids_stars') || '0');
+                            const newScore = current + points;
+                            localStorage.setItem('kids_stars', newScore); 
+                            this.updateStars(); 
+                        },
+                        goHome: () => this.loadHome(),
+                        playSound: (type) => console.log('Playing sound:', type) // 将来的に音声ファイルを実装可能
+                    });
+
+                } catch(e) { 
+                    console.error(e);
+                    // エラー時は少し待ってホームに戻す（一瞬だと気づかないため）
+                    setTimeout(() => {
+                        alert(`「${title}」を開けませんでした。\nファイルがあるか確認してね。`);
+                        this.loadHome(); 
+                    }, 500);
+                }
+            },
+
+            // スター表示更新
+            updateStars() { 
+                const count = localStorage.getItem('kids_stars') || '0';
+                const el = document.getElementById('star-count');
+                // 数字が増えたときのアニメーション用クラス付け替え
+                el.classList.remove('scale-125');
+                void el.offsetWidth;
+                el.textContent = count;
+                el.classList.add('transition', 'transform', 'duration-300', 'scale-125');
+                setTimeout(() => el.classList.remove('scale-125'), 300);
+            }
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+[
+    {
+        "id": "shopping_memo_01",
+        "title": "おかいものメモ",
+        "desc": "かぞくの かいものリスト",
+        "icon": "🛒",
+        "file": "shopping_v1.js",
+        "color": "orange-400",
+        "category": "play"
+    },
+    {
+        "id": "kanji_master_01",
+        "title": "かんじマスター",
+        "desc": "1ねんせいの かんじ 80もん",
+        "icon": "💮",
+        "file": "kanji_v1.js",
+        "color": "orange-400",
+        "category": "study"
+    },
+    {
+        "id": "english_fun_01",
+        "title": "English Fun!",
+        "desc": "えいご で あそぼう",
+        "icon": "🦄",
+        "file": "english_v1.js",
+        "color": "pink-400",
+        "category": "study"
+    }
+]
