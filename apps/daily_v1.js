@@ -155,6 +155,8 @@ export default {
         let selectedTaskIds = new Set();
         let todayLog = null;
         let showSettingsModal = false;
+        let showHistoryModal = false;
+        let historyLogs = [];
         let newTaskTitle = '';
         let newTaskIcon = '⭐';
         let showEmojiPicker = false;
@@ -186,7 +188,7 @@ export default {
                 const docSnap = await getDoc(docRef);
                 if (docSnap.exists()) {
                     todayLog = docSnap.data();
-                    selectedTaskIds = new Set(todayLog.completedTasks || []);
+                    selectedTaskIds = new Set((todayLog.completedTasks || []).map(t => typeof t === 'string' ? t : t.id));
                 } else {
                     todayLog = null;
                     selectedTaskIds = new Set();
@@ -195,6 +197,32 @@ export default {
             } catch (e) {
                 console.error('ログ読み込みエラー:', e);
             }
+        };
+
+        // 履歴ログを取得（過去30日分）
+        const loadHistoryLogs = async () => {
+            try {
+                const q = query(
+                    collection(db, 'task_logs'),
+                    orderBy('date', 'desc')
+                );
+                const snapshot = await getDocs(q);
+                historyLogs = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                render();
+            } catch (e) {
+                console.error('履歴読み込みエラー:', e);
+            }
+        };
+
+        // 日付を見やすい形式に変換
+        const formatDateDisplay = (dateStr) => {
+            const [year, month, day] = dateStr.split('-').map(Number);
+            const date = new Date(year, month - 1, day);
+            const weekdays = ['にち', 'げつ', 'か', 'すい', 'もく', 'きん', 'ど'];
+            return `${month}/${day}(${weekdays[date.getDay()]})`;
         };
 
         // タスク完了を保存
@@ -206,10 +234,15 @@ export default {
 
             try {
                 const points = selectedTaskIds.size * 10;
+                // タスクの詳細情報も一緒に保存（履歴表示用）
+                const completedTaskDetails = Array.from(selectedTaskIds).map(id => {
+                    const task = tasks.find(t => t.id === id);
+                    return task ? { id: task.id, title: task.title, icon: task.icon } : { id, title: '？', icon: '❓' };
+                });
                 const docRef = doc(db, 'task_logs', getTodayString());
                 await setDoc(docRef, {
                     date: getTodayString(),
-                    completedTasks: Array.from(selectedTaskIds),
+                    completedTasks: completedTaskDetails,
                     points: points,
                     updatedAt: serverTimestamp()
                 });
@@ -444,6 +477,11 @@ export default {
                             <button id="btn-complete" class="bg-gradient-to-r from-pink-400 via-purple-400 to-cyan-400 hover:from-pink-500 hover:via-purple-500 hover:to-cyan-500 text-white font-black text-2xl py-5 px-6 rounded-3xl shadow-xl active:scale-95 transition border-b-6 border-purple-500 flex items-center justify-center gap-3 ${selectedTaskIds.size === 0 ? 'opacity-50' : ''}">
                                 🎉 きょうの おしまい！
                             </button>
+
+                            <!-- 履歴ボタン -->
+                            <button id="btn-history" class="bg-gradient-to-r from-purple-300 to-indigo-300 hover:from-purple-400 hover:to-indigo-400 text-white font-black text-xl py-4 px-6 rounded-2xl shadow-lg active:scale-95 transition flex items-center justify-center gap-2">
+                                📖 きろくを みる
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -507,6 +545,68 @@ export default {
                         </div>
                     </div>
                 ` : ''}
+
+                <!-- 履歴モーダル -->
+                ${showHistoryModal ? `
+                    <div class="modal-overlay" id="history-modal-overlay">
+                        <div class="modal-content" style="max-width: 600px;">
+                            <div class="flex justify-between items-center mb-6">
+                                <h3 class="text-2xl font-black text-purple-600 flex items-center gap-2">
+                                    📖 がんばりの きろく
+                                </h3>
+                                <button id="btn-close-history" class="text-3xl text-gray-400 hover:text-gray-600">×</button>
+                            </div>
+
+                            <div class="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                                ${historyLogs.length === 0 ? `
+                                    <div class="text-center py-8 text-gray-400">
+                                        <span class="text-5xl block mb-3">📝</span>
+                                        <p class="font-bold">まだ きろくが ないよ</p>
+                                        <p class="text-sm mt-1">タスクを おわらせると ここに のるよ！</p>
+                                    </div>
+                                ` : historyLogs.map(log => `
+                                    <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-4 border-2 border-purple-200 shadow-sm">
+                                        <!-- 日付とポイント -->
+                                        <div class="flex justify-between items-center mb-3">
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-2xl">📅</span>
+                                                <span class="font-black text-xl text-purple-700">${formatDateDisplay(log.date)}</span>
+                                                ${log.date === getTodayString() ? '<span class="bg-pink-400 text-white text-xs font-bold px-2 py-1 rounded-full">きょう</span>' : ''}
+                                            </div>
+                                            <div class="bg-yellow-100 px-4 py-2 rounded-full border-2 border-yellow-300">
+                                                <span class="font-black text-yellow-600 text-lg">⭐ ${log.points || 0}</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- 完了タスク一覧 -->
+                                        <div class="flex flex-wrap gap-2">
+                                            ${(log.completedTasks || []).map(task => {
+                                                // 新形式（オブジェクト）と旧形式（文字列ID）の両方に対応
+                                                if (typeof task === 'object') {
+                                                    return `<span class="bg-white px-3 py-1 rounded-full text-sm font-bold text-gray-700 border border-purple-200 shadow-sm flex items-center gap-1">
+                                                        <span>${task.icon}</span> ${task.title}
+                                                    </span>`;
+                                                } else {
+                                                    // 旧形式: IDから現在のタスクを検索
+                                                    const foundTask = tasks.find(t => t.id === task);
+                                                    if (foundTask) {
+                                                        return `<span class="bg-white px-3 py-1 rounded-full text-sm font-bold text-gray-700 border border-purple-200 shadow-sm flex items-center gap-1">
+                                                            <span>${foundTask.icon}</span> ${foundTask.title}
+                                                        </span>`;
+                                                    } else {
+                                                        return `<span class="bg-gray-100 px-3 py-1 rounded-full text-sm font-bold text-gray-400 border border-gray-200">
+                                                            ❓ (けされたタスク)
+                                                        </span>`;
+                                                    }
+                                                }
+                                            }).join('')}
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                ` : ''}
             `;
 
             setupEventListeners();
@@ -527,6 +627,12 @@ export default {
 
             // 完了ボタン
             container.querySelector('#btn-complete')?.addEventListener('click', saveCompletedTasks);
+
+            // 履歴ボタン
+            container.querySelector('#btn-history')?.addEventListener('click', async () => {
+                showHistoryModal = true;
+                await loadHistoryLogs();
+            });
 
             // タスクカードのクリック
             container.querySelectorAll('.task-card').forEach(card => {
@@ -580,6 +686,21 @@ export default {
                     btn.addEventListener('click', () => {
                         deleteTask(btn.dataset.deleteId);
                     });
+                });
+            }
+
+            // 履歴モーダル関連
+            if (showHistoryModal) {
+                container.querySelector('#btn-close-history')?.addEventListener('click', () => {
+                    showHistoryModal = false;
+                    render();
+                });
+
+                container.querySelector('#history-modal-overlay')?.addEventListener('click', (e) => {
+                    if (e.target.id === 'history-modal-overlay') {
+                        showHistoryModal = false;
+                        render();
+                    }
                 });
             }
         };
