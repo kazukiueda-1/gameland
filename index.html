@@ -296,11 +296,16 @@
             },
 
             // ホーム画面（メニュー）の描画
-            loadHome() {
+            async loadHome() {
                 // 前のアプリの後片付け
-                if(this.currentAppCleanup) { 
-                    this.currentAppCleanup(); 
-                    this.currentAppCleanup = null; 
+                if(this.currentAppCleanup) {
+                    this.currentAppCleanup();
+                    this.currentAppCleanup = null;
+                }
+
+                // 表示設定を再読み込み
+                if (window.getVisibleAppIds) {
+                    this.visibleAppIds = await window.getVisibleAppIds();
                 }
                 
                 // カード生成ヘルパー関数
