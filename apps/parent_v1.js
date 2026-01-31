@@ -97,9 +97,12 @@ export default {
         // アプリ一覧を取得
         const loadAppRegistry = async () => {
             try {
-                const res = await fetch('./registry.json?t=' + Date.now());
+                const res = await fetch('./apps/registry.json?t=' + Date.now());
                 if (res.ok) {
                     allApps = await res.json();
+                } else {
+                    console.error('registry.json取得失敗:', res.status);
+                    allApps = [];
                 }
             } catch (e) {
                 console.error('アプリ一覧取得エラー:', e);
