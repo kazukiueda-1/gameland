@@ -119,9 +119,6 @@
         </div>
     </div>
 
-    <!-- ▼▼▼ 浮かぶ装飾（メイン画面用） ▼▼▼ -->
-    <div class="floating-decorations" id="floating-deco"></div>
-
     <!-- ▼▼▼ 2. ナビゲーションバー (常時表示) ▼▼▼ -->
     <nav class="bg-white/90 backdrop-blur-md sticky top-0 z-50 px-4 py-3 shadow-lg border-b-4 border-pink-300 flex justify-between items-center">
         <div class="flex items-center gap-2 cursor-pointer select-none" onclick="AppSystem.loadHome()">
@@ -311,6 +308,9 @@
                 const playApps = this.registry.filter(a => a.category === 'play');
 
                 document.getElementById('app-container').innerHTML = `
+                    <!-- 浮かぶ装飾（トップページ専用） -->
+                    <div class="floating-decorations" id="floating-deco"></div>
+
                     <!-- エリア1: まなびの森 (Study) -->
                     <div class="bg-gradient-to-b from-green-50 to-emerald-100 rounded-t-[40px] pt-8 px-4 pb-12 shadow-[0_-10px_30px_rgba(0,0,0,0.1)] relative z-20 overflow-hidden">
                         <div class="absolute top-4 left-4 text-2xl opacity-30 animate-float">🌿</div>
@@ -349,6 +349,9 @@
                         ✨ わくわくランド ✨
                     </footer>
                 `;
+
+                // 浮かぶ装飾を生成
+                createFloatingDecorations();
             },
 
             // アプリ起動処理
@@ -414,7 +417,7 @@
             }
         };
 
-        // 浮かぶ装飾を生成
+        // 浮かぶ装飾を生成（トップページ専用）
         function createFloatingDecorations() {
             const container = document.getElementById('floating-deco');
             if (!container) return;
@@ -431,9 +434,6 @@
                 container.appendChild(span);
             }
         }
-
-        // ページ読み込み時に装飾を生成
-        window.addEventListener('DOMContentLoaded', createFloatingDecorations);
     </script>
 </body>
 </html>
