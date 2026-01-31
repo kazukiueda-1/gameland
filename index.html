@@ -144,7 +144,7 @@
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getFirestore, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getFirestore, collection, addDoc, serverTimestamp, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
         // Firebase設定
         const firebaseConfig = {
@@ -194,6 +194,21 @@
             return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
         }
         window.getTodayString = getTodayString;
+
+        // 表示するアプリIDを取得
+        window.getVisibleAppIds = async () => {
+            try {
+                const docRef = doc(db, 'settings', 'visible_apps');
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    return docSnap.data().appIds || null;
+                }
+                return null; // 設定がない場合は全表示
+            } catch (e) {
+                console.error('表示設定取得エラー:', e);
+                return null;
+            }
+        };
     </script>
 
     <!-- ▼▼▼ 4. システムロジック ▼▼▼ -->
@@ -249,7 +264,8 @@
 
         // --- アプリケーションシステム ---
         const AppSystem = {
-            registry: [], 
+            registry: [],
+            visibleAppIds: null,
             currentAppCleanup: null,
 
             // 初期化: データ読み込み
@@ -260,8 +276,14 @@
                     const res = await fetch(`./apps/registry.json?t=${Date.now()}`);
                     if(!res.ok) throw new Error("File not found");
                     this.registry = await res.json();
+
+                    // 表示設定を取得
+                    if (window.getVisibleAppIds) {
+                        this.visibleAppIds = await window.getVisibleAppIds();
+                    }
+
                     this.loadHome();
-                } catch(e) { 
+                } catch(e) {
                     console.error(e);
                     document.getElementById('app-container').innerHTML = `
                         <div class="flex flex-col items-center justify-center h-full text-white text-center p-4">
@@ -269,7 +291,7 @@
                             <p class="font-bold text-xl">データの読み込みにしっぱいしたよ</p>
                             <p class="text-sm mt-2 opacity-80">パソコンの設定を確認してね</p>
                             <p class="text-xs mt-4 opacity-50 font-mono">${e.message}</p>
-                        </div>`; 
+                        </div>`;
                 }
             },
 
@@ -304,7 +326,10 @@
                     </div>`).join('');
                 };
 
-                const allApps = this.registry;
+                // 表示設定でフィルタリング
+                const allApps = this.visibleAppIds
+                    ? this.registry.filter(app => this.visibleAppIds.includes(app.id))
+                    : this.registry;
 
                 document.getElementById('app-container').innerHTML = `
                     <!-- 浮かぶ装飾（トップページ専用） -->

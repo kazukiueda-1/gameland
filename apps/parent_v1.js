@@ -11,7 +11,10 @@ import {
     orderBy,
     getDocs,
     where,
-    limit
+    limit,
+    doc,
+    getDoc,
+    setDoc
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
 // Firebase設定
@@ -32,8 +35,11 @@ export default {
         let usageLogs = [];
         let quizLogs = [];
         let selectedDate = null;
-        let viewMode = 'usage'; // 'usage' or 'quiz'
+        let viewMode = 'usage'; // 'usage', 'quiz', or 'apps'
         let isLoading = true;
+        let allApps = [];
+        let visibleAppIds = [];
+        let isSaving = false;
 
         // 日付リストを取得（過去30日分）
         const getDateList = () => {
@@ -86,6 +92,65 @@ export default {
                 console.error('クイズ履歴取得エラー:', e);
                 quizLogs = [];
             }
+        };
+
+        // アプリ一覧を取得
+        const loadAppRegistry = async () => {
+            try {
+                const res = await fetch('./registry.json?t=' + Date.now());
+                if (res.ok) {
+                    allApps = await res.json();
+                }
+            } catch (e) {
+                console.error('アプリ一覧取得エラー:', e);
+                allApps = [];
+            }
+        };
+
+        // 表示設定を取得
+        const loadVisibilitySettings = async () => {
+            try {
+                const docRef = doc(db, 'settings', 'visible_apps');
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    visibleAppIds = docSnap.data().appIds || [];
+                } else {
+                    // 初期状態：全アプリを表示
+                    visibleAppIds = allApps.map(app => app.id);
+                }
+            } catch (e) {
+                console.error('表示設定取得エラー:', e);
+                visibleAppIds = allApps.map(app => app.id);
+            }
+        };
+
+        // 表示設定を保存
+        const saveVisibilitySettings = async () => {
+            isSaving = true;
+            render();
+            try {
+                const docRef = doc(db, 'settings', 'visible_apps');
+                await setDoc(docRef, {
+                    appIds: visibleAppIds,
+                    updatedAt: new Date()
+                });
+                alert('保存しました！');
+            } catch (e) {
+                console.error('表示設定保存エラー:', e);
+                alert('保存に失敗しました');
+            }
+            isSaving = false;
+            render();
+        };
+
+        // アプリの表示/非表示を切り替え
+        const toggleAppVisibility = (appId) => {
+            if (visibleAppIds.includes(appId)) {
+                visibleAppIds = visibleAppIds.filter(id => id !== appId);
+            } else {
+                visibleAppIds.push(appId);
+            }
+            render();
         };
 
         // 日付でフィルタ
@@ -165,10 +230,13 @@ export default {
                     <!-- タブ切り替え -->
                     <div class="bg-white border-b flex">
                         <button class="tab-btn flex-1 py-3 font-bold text-sm ${viewMode === 'usage' ? 'active' : 'text-gray-500'}" data-mode="usage">
-                            📱 アプリ使用履歴
+                            📱 使用履歴
                         </button>
                         <button class="tab-btn flex-1 py-3 font-bold text-sm ${viewMode === 'quiz' ? 'active' : 'text-gray-500'}" data-mode="quiz">
-                            📝 クイズ詳細
+                            📝 クイズ
+                        </button>
+                        <button class="tab-btn flex-1 py-3 font-bold text-sm ${viewMode === 'apps' ? 'active' : 'text-gray-500'}" data-mode="apps">
+                            ⚙️ アプリ設定
                         </button>
                     </div>
 
@@ -224,7 +292,7 @@ export default {
                                     `).join('')}
                                 </div>
                             `}
-                        ` : `
+                        ` : viewMode === 'quiz' ? `
                             <!-- クイズ詳細 -->
                             ${Object.keys(quizSummary).length === 0 ? `
                                 <div class="text-center text-gray-400 py-8">
@@ -285,6 +353,42 @@ export default {
                                     `).join('')}
                                 </div>
                             `}
+                        ` : `
+                            <!-- アプリ設定 -->
+                            <div class="space-y-4">
+                                <div class="bg-blue-50 rounded-xl p-4 border border-blue-200">
+                                    <p class="text-blue-700 font-bold text-sm">
+                                        💡 トップページに表示するアプリを選択できます。<br>
+                                        チェックを外すとトップページから非表示になります。
+                                    </p>
+                                </div>
+
+                                <div class="space-y-3">
+                                    ${allApps.map(app => `
+                                        <div class="bg-white rounded-xl p-4 shadow-sm flex items-center justify-between">
+                                            <div class="flex items-center gap-4">
+                                                <span class="text-3xl">${app.icon}</span>
+                                                <div>
+                                                    <h3 class="font-bold text-gray-700">${app.title}</h3>
+                                                    <p class="text-sm text-gray-500">${app.desc}</p>
+                                                </div>
+                                            </div>
+                                            <label class="relative inline-flex items-center cursor-pointer">
+                                                <input type="checkbox" class="sr-only peer app-toggle" data-app-id="${app.id}" ${visibleAppIds.includes(app.id) ? 'checked' : ''}>
+                                                <div class="w-14 h-8 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-pink-400"></div>
+                                            </label>
+                                        </div>
+                                    `).join('')}
+                                </div>
+
+                                <button id="btn-save-settings" class="w-full bg-gradient-to-r from-pink-400 to-purple-400 text-white font-bold py-4 rounded-xl shadow-lg hover:from-pink-500 hover:to-purple-500 transition ${isSaving ? 'opacity-50' : ''}">
+                                    ${isSaving ? '保存中...' : '💾 設定を保存'}
+                                </button>
+
+                                <p class="text-center text-gray-400 text-sm">
+                                    現在 ${visibleAppIds.length} / ${allApps.length} 個のアプリが表示されています
+                                </p>
+                            </div>
                         `}
                     </div>
                 </div>
@@ -310,12 +414,22 @@ export default {
                     render();
                 });
             });
+
+            // アプリ設定用
+            container.querySelectorAll('.app-toggle').forEach(toggle => {
+                toggle.addEventListener('change', () => {
+                    toggleAppVisibility(toggle.dataset.appId);
+                });
+            });
+
+            container.querySelector('#btn-save-settings')?.addEventListener('click', saveVisibilitySettings);
         };
 
         // 初期化
         const init = async () => {
             render();
-            await Promise.all([loadUsageLogs(), loadQuizLogs()]);
+            await loadAppRegistry();
+            await Promise.all([loadUsageLogs(), loadQuizLogs(), loadVisibilitySettings()]);
             isLoading = false;
             render();
         };
