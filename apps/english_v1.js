@@ -352,13 +352,24 @@ export default {
             if (isProcessing) return;
             const selectedText = btn.dataset.text;
             const messageArea = container.querySelector('#message-area');
+            const q = quizQueue[quizIndex];
+            const isCorrect = selectedText === correctText;
 
-            if (selectedText === correctText) {
+            // クイズログを記録
+            if (system.logQuizResult) {
+                system.logQuizResult('English Fun!', q.t, isCorrect, {
+                    emoji: q.e,
+                    selected: selectedText,
+                    level: levels[currentLevelIndex].name
+                });
+            }
+
+            if (isCorrect) {
                 // CORRECT
                 isProcessing = true;
                 btn.classList.remove('bg-white', 'border-teal-200', 'text-gray-600');
                 btn.classList.add('bg-teal-400', 'border-teal-500', 'text-white');
-                
+
                 system.playSound('correct');
                 score += 10;
                 triggerConfetti();
@@ -381,7 +392,7 @@ export default {
                 // WRONG
                 btn.classList.add('animate-shake', 'bg-red-100', 'border-red-300', 'text-red-500');
                 messageArea.textContent = "Try again!";
-                
+
                 // 間違った単語を読み上げ
                 speak(selectedText, 0.9);
                 system.playSound('wrong');

@@ -85,9 +85,14 @@
             <span class="text-2xl">🎡</span>
             <h1 class="font-black text-lg md:text-xl text-blue-500 tracking-wider">わくわくランド</h1>
         </div>
-        <div class="bg-yellow-400 text-white px-4 py-1.5 rounded-full font-black shadow-inner flex items-center gap-2 select-none">
-            <span class="text-xl">⭐</span>
-            <span id="star-count" class="text-xl">0</span>
+        <div class="flex items-center gap-3">
+            <div class="bg-yellow-400 text-white px-4 py-1.5 rounded-full font-black shadow-inner flex items-center gap-2 select-none">
+                <span class="text-xl">⭐</span>
+                <span id="star-count" class="text-xl">0</span>
+            </div>
+            <button onclick="AppSystem.launchApp('parent_v1.js', 'ほごしゃよう')" class="text-gray-400 hover:text-gray-600 text-sm font-bold px-2 py-1 rounded transition" title="保護者用">
+                👤
+            </button>
         </div>
     </nav>
 
@@ -96,11 +101,69 @@
         <!-- 初期ロード中は何も表示しないか、ローディングを表示 -->
     </main>
 
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        // Firebase設定
+        const firebaseConfig = {
+            apiKey: "AIzaSyCcM38mjkSVXJDFJaxqZ8PXCuLr-bwNfsU",
+            authDomain: "family-app-1006.firebaseapp.com",
+            projectId: "family-app-1006",
+            storageBucket: "family-app-1006.firebasestorage.app",
+            messagingSenderId: "516894951381",
+            appId: "1:516894951381:web:76d0b88cb8c406d6791f5c"
+        };
+
+        const firebaseApp = initializeApp(firebaseConfig, 'main-app');
+        const db = getFirestore(firebaseApp);
+
+        // グローバルに公開
+        window.logAppUsage = async (appTitle, appFile) => {
+            try {
+                await addDoc(collection(db, 'app_usage_logs'), {
+                    appTitle,
+                    appFile,
+                    date: getTodayString(),
+                    timestamp: serverTimestamp()
+                });
+            } catch (e) {
+                console.error('使用ログ記録エラー:', e);
+            }
+        };
+
+        window.logQuizResult = async (appTitle, question, isCorrect, details = {}) => {
+            try {
+                await addDoc(collection(db, 'quiz_logs'), {
+                    appTitle,
+                    question,
+                    isCorrect,
+                    details,
+                    date: getTodayString(),
+                    timestamp: serverTimestamp()
+                });
+            } catch (e) {
+                console.error('クイズログ記録エラー:', e);
+            }
+        };
+
+        // 今日の日付を取得
+        function getTodayString() {
+            const now = new Date();
+            return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        }
+        window.getTodayString = getTodayString;
+    </script>
+
     <!-- ▼▼▼ 4. システムロジック ▼▼▼ -->
     <script>
         // --- 設定: 合言葉 ---
-        const SECRET_WORD = "ぱぱだいすき"; 
+        const SECRET_WORD = "ぱぱだいすき";
         const LOCK_KEY = "papa_app_unlocked_v1";
+
+        // --- 日付ごとのスター管理 ---
+        const getStarKey = () => `kids_stars_${window.getTodayString ? window.getTodayString() : new Date().toISOString().split('T')[0]}`;
 
         // --- ロック解除処理 ---
         window.addEventListener('DOMContentLoaded', () => { 
@@ -260,16 +323,22 @@
                     appRoot.className = "w-full h-full min-h-[calc(100vh-80px)] bg-white md:rounded-t-3xl shadow-sm md:p-4 animate-pop overflow-hidden";
                     container.appendChild(appRoot);
                     
+                    // 使用ログを記録
+                    if (window.logAppUsage) {
+                        window.logAppUsage(title, filename);
+                    }
+
                     // アプリ実行
                     this.currentAppCleanup = module.default.launch(appRoot, {
-                        addScore: (points) => { 
-                            const current = parseInt(localStorage.getItem('kids_stars') || '0');
+                        addScore: (points) => {
+                            const current = parseInt(localStorage.getItem(getStarKey()) || '0');
                             const newScore = current + points;
-                            localStorage.setItem('kids_stars', newScore); 
-                            this.updateStars(); 
+                            localStorage.setItem(getStarKey(), newScore);
+                            this.updateStars();
                         },
                         goHome: () => this.loadHome(),
-                        playSound: (type) => console.log('Playing sound:', type) // 将来的に音声ファイルを実装可能
+                        playSound: (type) => console.log('Playing sound:', type),
+                        logQuizResult: window.logQuizResult || (() => {})
                     });
 
                 } catch(e) { 
@@ -282,9 +351,9 @@
                 }
             },
 
-            // スター表示更新
-            updateStars() { 
-                const count = localStorage.getItem('kids_stars') || '0';
+            // スター表示更新（日付ごとにリセット）
+            updateStars() {
+                const count = localStorage.getItem(getStarKey()) || '0';
                 const el = document.getElementById('star-count');
                 // 数字が増えたときのアニメーション用クラス付け替え
                 el.classList.remove('scale-125');

@@ -241,8 +241,19 @@ export default {
             if (!overlay || overlay.style.display === 'flex') return; // 連打防止
 
             overlay.style.display = 'flex'; // 表示
+            const q = quizQuestions[quizIndex];
+            const isCorrect = selectedReading === correctReading;
 
-            if (selectedReading === correctReading) {
+            // クイズログを記録
+            if (system.logQuizResult) {
+                system.logQuizResult('かんじマスター', q.k, isCorrect, {
+                    reading: q.r,
+                    selected: selectedReading,
+                    level: currentLevel + 1
+                });
+            }
+
+            if (isCorrect) {
                 // 正解
                 fbMark.textContent = '◎';
                 fbMark.className = 'text-9xl font-black mb-4 text-red-500';
