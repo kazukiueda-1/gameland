@@ -170,21 +170,21 @@ export default {
         // ★ Level Selection Screen
         const renderLevelSelect = () => {
             const buttonsHtml = levels.map((level, index) => `
-                <button class="level-btn bg-white border-4 border-indigo-200 hover:bg-indigo-50 text-gray-600 font-bold p-4 rounded-3xl shadow-md transition transform active:scale-95 flex flex-col items-center gap-2" data-index="${index}">
-                    <span class="text-4xl filter drop-shadow-sm">${level.emoji}</span>
-                    <span class="text-sm md:text-base">${level.name}</span>
+                <button class="level-btn bg-white border-3 border-indigo-200 hover:bg-indigo-50 text-gray-600 font-bold p-2 md:p-3 rounded-2xl shadow-md transition transform active:scale-95 flex flex-col items-center gap-1" data-index="${index}">
+                    <span class="text-3xl md:text-4xl filter drop-shadow-sm">${level.emoji}</span>
+                    <span class="text-xs md:text-sm">${level.name}</span>
                 </button>
             `).join('');
 
             container.innerHTML = `
-                <div class="h-full flex flex-col items-center justify-center p-4 relative overflow-hidden">
-                    <button id="btn-quit" class="absolute top-4 left-4 bg-gray-100 text-gray-400 font-bold py-2 px-4 rounded-full text-sm hover:bg-gray-200">✕ Exit</button>
-                    
-                    <h2 class="text-3xl font-black text-pink-400 mb-2 drop-shadow-sm">🦄 English Fun!</h2>
-                    <p class="text-gray-400 font-bold mb-6">Choose a Level!</p>
-                    
-                    <div class="w-full max-w-4xl flex-1 overflow-y-auto p-2">
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 pb-4">
+                <div class="h-full flex flex-col items-center justify-center p-3 relative overflow-hidden">
+                    <button id="btn-quit" class="absolute top-3 left-3 bg-gray-100 text-gray-400 font-bold py-1.5 px-3 rounded-full text-sm hover:bg-gray-200">✕ Exit</button>
+
+                    <h2 class="text-2xl md:text-3xl font-black text-pink-400 mb-1 drop-shadow-sm">🦄 English Fun!</h2>
+                    <p class="text-gray-400 font-bold mb-3 text-sm">Choose a Level!</p>
+
+                    <div class="w-full max-w-4xl overflow-y-auto p-1">
+                        <div class="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-3">
                             ${buttonsHtml}
                         </div>
                     </div>
@@ -204,21 +204,21 @@ export default {
         const renderModeSelect = () => {
             const level = levels[currentLevelIndex];
             container.innerHTML = `
-                <div class="h-full flex flex-col items-center justify-center p-6 animate-pop">
-                    <div class="text-6xl mb-4">${level.emoji}</div>
-                    <h2 class="text-2xl font-black text-gray-700 mb-2">${level.name}</h2>
-                    <p class="text-gray-400 font-bold mb-8">What do you want to do?</p>
-                    
-                    <div class="flex flex-col w-full max-w-sm gap-4">
-                        <button id="btn-study" class="bg-indigo-200 hover:bg-indigo-300 text-white text-xl font-bold py-5 rounded-2xl shadow-lg active:scale-95 transition flex items-center justify-center gap-3">
+                <div class="h-full flex flex-col items-center justify-center p-3 animate-pop">
+                    <div class="text-5xl mb-2">${level.emoji}</div>
+                    <h2 class="text-xl md:text-2xl font-black text-gray-700 mb-1">${level.name}</h2>
+                    <p class="text-gray-400 font-bold mb-4 text-sm">What do you want to do?</p>
+
+                    <div class="flex flex-col w-full max-w-sm gap-3">
+                        <button id="btn-study" class="bg-indigo-200 hover:bg-indigo-300 text-white text-lg md:text-xl font-bold py-4 rounded-xl shadow-lg active:scale-95 transition flex items-center justify-center gap-2">
                             <span>📖</span> Learn (Study)
                         </button>
-                        <button id="btn-quiz" class="bg-pink-300 hover:bg-pink-400 text-white text-xl font-bold py-5 rounded-2xl shadow-lg active:scale-95 transition flex items-center justify-center gap-3">
+                        <button id="btn-quiz" class="bg-pink-300 hover:bg-pink-400 text-white text-lg md:text-xl font-bold py-4 rounded-xl shadow-lg active:scale-95 transition flex items-center justify-center gap-2">
                             <span>🎮</span> Play (Quiz)
                         </button>
                     </div>
 
-                    <button id="btn-back" class="mt-8 border-2 border-gray-200 text-gray-400 font-bold py-2 px-6 rounded-full hover:bg-gray-50 transition">
+                    <button id="btn-back" class="mt-5 border-2 border-gray-200 text-gray-400 font-bold py-1.5 px-5 rounded-full hover:bg-gray-50 transition text-sm">
                         ⬅ Back
                     </button>
                 </div>
@@ -303,9 +303,9 @@ export default {
             const options = shuffle([q, ...distractors]);
 
             container.innerHTML = `
-                <div class="h-full flex flex-col p-4 relative">
+                <div class="h-full flex flex-col p-3 relative">
                     <!-- Progress -->
-                    <div class="flex justify-between items-center mb-4">
+                    <div class="flex justify-between items-center mb-2">
                         <button id="btn-quit-quiz" class="text-gray-400 font-bold text-sm bg-gray-100 px-3 py-1 rounded-full">✕ Stop</button>
                         <div class="bg-indigo-100 text-indigo-500 px-3 py-1 rounded-full font-bold text-sm">
                             ${quizIndex + 1} / ${quizQueue.length}
@@ -313,20 +313,20 @@ export default {
                     </div>
 
                     <!-- Question Area -->
-                    <div class="flex-1 flex flex-col items-center justify-center mb-6">
-                        <div class="text-8xl md:text-9xl mb-6 animate-pop filter drop-shadow-md" id="question-emoji">${q.e}</div>
-                        
-                        <button id="btn-speak" class="bg-indigo-200 text-white w-20 h-20 rounded-full flex items-center justify-center text-3xl shadow-lg active:scale-95 transition hover:bg-indigo-300">
+                    <div class="flex-1 flex flex-col items-center justify-center mb-2">
+                        <div class="text-7xl md:text-8xl mb-3 animate-pop filter drop-shadow-md" id="question-emoji">${q.e}</div>
+
+                        <button id="btn-speak" class="bg-indigo-200 text-white w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center text-2xl md:text-3xl shadow-lg active:scale-95 transition hover:bg-indigo-300">
                             🔊
                         </button>
-                        <p class="text-gray-400 mt-4 font-bold text-sm">Listen & Look!</p>
-                        <div id="message-area" class="h-8 mt-2 text-xl font-bold text-pink-400 transition-all"></div>
+                        <p class="text-gray-400 mt-2 font-bold text-xs md:text-sm">Listen & Look!</p>
+                        <div id="message-area" class="h-6 mt-1 text-lg font-bold text-pink-400 transition-all"></div>
                     </div>
 
                     <!-- Options -->
-                    <div class="grid grid-cols-1 gap-3 w-full max-w-md mx-auto mb-4">
+                    <div class="grid grid-cols-1 gap-2 w-full max-w-md mx-auto mb-2">
                         ${options.map(opt => `
-                            <button class="option-btn bg-white border-4 border-teal-200 text-gray-600 text-xl font-bold py-4 rounded-2xl shadow-sm hover:bg-teal-50 transition active:scale-95" data-text="${opt.t}">
+                            <button class="option-btn bg-white border-3 border-teal-200 text-gray-600 text-lg md:text-xl font-bold py-3 rounded-xl shadow-sm hover:bg-teal-50 transition active:scale-95" data-text="${opt.t}">
                                 ${opt.t}
                             </button>
                         `).join('')}
@@ -406,17 +406,17 @@ export default {
         // ★ Result Screen
         const renderResult = () => {
             let emoji = score === 100 ? "🏆" : (score >= 80 ? "🥈" : "🍀");
-            
+
             container.innerHTML = `
-                <div class="h-full flex flex-col items-center justify-center p-6 text-center animate-pop">
-                    <div class="text-8xl mb-4">${emoji}</div>
-                    <h2 class="text-3xl font-black text-pink-400 mb-2">Great Job!</h2>
-                    <p class="text-gray-500 font-bold text-xl mb-8">Score: ${score}</p>
-                    
-                    <button id="btn-retry" class="w-full max-w-xs bg-teal-400 text-white font-bold py-3 rounded-full shadow-md mb-4 text-lg hover:bg-teal-500 transition">
+                <div class="h-full flex flex-col items-center justify-center p-3 text-center animate-pop">
+                    <div class="text-6xl md:text-7xl mb-2">${emoji}</div>
+                    <h2 class="text-2xl md:text-3xl font-black text-pink-400 mb-1">Great Job!</h2>
+                    <p class="text-gray-500 font-bold text-lg mb-4">Score: ${score}</p>
+
+                    <button id="btn-retry" class="w-full max-w-xs bg-teal-400 text-white font-bold py-2.5 rounded-full shadow-md mb-2 text-base hover:bg-teal-500 transition">
                         Play Again
                     </button>
-                    <button id="btn-back-level" class="w-full max-w-xs bg-gray-200 text-gray-600 font-bold py-3 rounded-full shadow-sm text-lg hover:bg-gray-300 transition">
+                    <button id="btn-back-level" class="w-full max-w-xs bg-gray-200 text-gray-600 font-bold py-2.5 rounded-full shadow-sm text-base hover:bg-gray-300 transition">
                         Select Level
                     </button>
                 </div>

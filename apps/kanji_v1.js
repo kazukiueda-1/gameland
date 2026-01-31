@@ -62,20 +62,20 @@ export default {
             let buttonsHtml = '';
             for (let i = 0; i < NUM_LEVELS; i++) {
                 buttonsHtml += `
-                    <button class="level-btn bg-orange-400 hover:bg-orange-500 text-white font-bold py-4 rounded-2xl shadow-md active:scale-95 transition text-xl" data-level="${i}">
+                    <button class="level-btn bg-orange-400 hover:bg-orange-500 text-white font-bold py-3 md:py-4 rounded-xl md:rounded-2xl shadow-md active:scale-95 transition text-lg md:text-xl" data-level="${i}">
                         レベル ${i + 1}
                     </button>
                 `;
             }
 
             container.innerHTML = `
-                <div class="h-full flex flex-col items-center justify-center p-4">
-                    <button id="btn-quit-app" class="absolute top-4 left-4 bg-gray-100 text-gray-500 font-bold py-2 px-4 rounded-full text-sm">✕ やめる</button>
-                    
-                    <h2 class="text-3xl md:text-4xl font-black text-blue-500 mb-2 text-center">かんじマスター</h2>
-                    <p class="text-gray-500 font-bold mb-8">どの レベル に チャレンジ する？</p>
-                    
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-2xl">
+                <div class="h-full flex flex-col items-center justify-center p-3">
+                    <button id="btn-quit-app" class="absolute top-3 left-3 bg-gray-100 text-gray-500 font-bold py-1.5 px-3 rounded-full text-sm">✕ やめる</button>
+
+                    <h2 class="text-2xl md:text-3xl font-black text-blue-500 mb-1 text-center">かんじマスター</h2>
+                    <p class="text-gray-500 font-bold mb-4 md:mb-6 text-sm">どの レベル に チャレンジ する？</p>
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 w-full max-w-2xl">
                         ${buttonsHtml}
                     </div>
                 </div>
@@ -93,20 +93,20 @@ export default {
         // ★ モード選択画面 (べんきょう or クイズ)
         const renderModeSelect = () => {
             container.innerHTML = `
-                <div class="h-full flex flex-col items-center justify-center p-4 animate-pop">
-                    <h2 class="text-3xl font-black text-orange-400 mb-2">レベル ${currentLevel + 1}</h2>
-                    <p class="text-gray-500 font-bold mb-8">なに を する？</p>
-                    
-                    <div class="flex flex-col md:flex-row gap-6 w-full max-w-lg justify-center">
-                        <button id="btn-study" class="bg-green-400 hover:bg-green-500 text-white text-2xl font-bold py-6 px-8 rounded-3xl shadow-lg active:scale-95 transition flex-1">
+                <div class="h-full flex flex-col items-center justify-center p-3 animate-pop">
+                    <h2 class="text-2xl md:text-3xl font-black text-orange-400 mb-1">レベル ${currentLevel + 1}</h2>
+                    <p class="text-gray-500 font-bold mb-4 md:mb-6 text-sm">なに を する？</p>
+
+                    <div class="flex flex-col md:flex-row gap-4 w-full max-w-lg justify-center">
+                        <button id="btn-study" class="bg-green-400 hover:bg-green-500 text-white text-xl md:text-2xl font-bold py-4 md:py-5 px-6 rounded-2xl shadow-lg active:scale-95 transition flex-1">
                             📖 べんきょう
                         </button>
-                        <button id="btn-quiz" class="bg-blue-400 hover:bg-blue-500 text-white text-2xl font-bold py-6 px-8 rounded-3xl shadow-lg active:scale-95 transition flex-1">
+                        <button id="btn-quiz" class="bg-blue-400 hover:bg-blue-500 text-white text-xl md:text-2xl font-bold py-4 md:py-5 px-6 rounded-2xl shadow-lg active:scale-95 transition flex-1">
                             🔥 クイズ
                         </button>
                     </div>
 
-                    <button id="btn-back" class="mt-12 bg-gray-200 text-gray-600 font-bold py-3 px-8 rounded-full">
+                    <button id="btn-back" class="mt-6 md:mt-8 bg-gray-200 text-gray-600 font-bold py-2 px-6 rounded-full text-sm">
                         レベルをえらぶ
                     </button>
                 </div>
@@ -189,34 +189,34 @@ export default {
             const choices = shuffle([q, ...distractors]);
 
             container.innerHTML = `
-                <div class="h-full flex flex-col p-4 relative">
+                <div class="h-full flex flex-col p-3 relative">
                     <!-- ヘッダー -->
-                    <div class="flex justify-between items-center mb-4">
-                        <button id="btn-quit-quiz" class="bg-gray-100 text-gray-400 font-bold py-2 px-4 rounded-full text-sm">やめる</button>
-                        <div class="bg-blue-100 text-blue-500 px-4 py-1 rounded-full font-bold">
+                    <div class="flex justify-between items-center mb-2 md:mb-3">
+                        <button id="btn-quit-quiz" class="bg-gray-100 text-gray-400 font-bold py-1.5 px-3 rounded-full text-sm">やめる</button>
+                        <div class="bg-blue-100 text-blue-500 px-3 py-1 rounded-full font-bold text-sm">
                             あと ${quizQuestions.length - quizIndex} もん
                         </div>
-                        <div class="font-bold text-orange-400">てんすう: ${score}</div>
+                        <div class="font-bold text-orange-400 text-sm">てんすう: ${score}</div>
                     </div>
 
                     <!-- 問題エリア -->
-                    <div class="flex-1 flex flex-col items-center justify-center mb-4 relative">
-                        <div class="bg-yellow-50 border-4 border-yellow-200 rounded-3xl p-8 w-full max-w-md text-center shadow-sm relative z-10">
-                            <p class="text-brown-500 font-bold text-sm mb-2">この かんじ の よみかた は？</p>
-                            <h2 class="text-8xl md:text-9xl font-black text-gray-800">${q.k}</h2>
+                    <div class="flex-1 flex flex-col items-center justify-center mb-2 md:mb-3 relative">
+                        <div class="bg-yellow-50 border-4 border-yellow-200 rounded-2xl p-4 md:p-6 w-full max-w-sm text-center shadow-sm relative z-10">
+                            <p class="text-brown-500 font-bold text-xs md:text-sm mb-1">この かんじ の よみかた は？</p>
+                            <h2 class="text-7xl md:text-8xl font-black text-gray-800">${q.k}</h2>
                         </div>
-                        
+
                         <!-- オーバーレイ (正解/不正解表示用) -->
-                        <div id="feedback-overlay" class="absolute inset-0 bg-white/95 rounded-3xl z-50 hidden flex-col items-center justify-center animate-pop">
-                            <div id="fb-mark" class="text-9xl font-black mb-4"></div>
-                            <div id="fb-text" class="text-2xl font-bold text-gray-700 text-center px-4"></div>
+                        <div id="feedback-overlay" class="absolute inset-0 bg-white/95 rounded-2xl z-50 hidden flex-col items-center justify-center animate-pop">
+                            <div id="fb-mark" class="text-8xl font-black mb-2"></div>
+                            <div id="fb-text" class="text-xl font-bold text-gray-700 text-center px-4"></div>
                         </div>
                     </div>
 
                     <!-- 選択肢エリア -->
-                    <div class="grid grid-cols-2 gap-3 h-1/3">
+                    <div class="grid grid-cols-2 gap-2 md:gap-3 h-[35%]">
                         ${choices.map(c => `
-                            <button class="choice-btn bg-white border-b-4 border-green-200 hover:bg-green-50 text-2xl md:text-3xl font-bold text-gray-600 rounded-2xl shadow-sm active:border-b-0 active:translate-y-1 transition-all"
+                            <button class="choice-btn bg-white border-b-4 border-green-200 hover:bg-green-50 text-xl md:text-2xl font-bold text-gray-600 rounded-xl md:rounded-2xl shadow-sm active:border-b-0 active:translate-y-1 transition-all"
                                 data-reading="${c.r}" data-kanji="${c.k}">
                                 ${c.r}
                             </button>
@@ -300,19 +300,19 @@ export default {
             }
 
             container.innerHTML = `
-                <div class="h-full flex flex-col items-center justify-center p-4 text-center animate-pop">
-                    <div class="text-8xl mb-4">${emoji}</div>
-                    <h2 class="text-3xl font-black text-blue-500 mb-2">おしまい！</h2>
-                    <p class="text-gray-500 font-bold text-xl mb-6">てんすう: <span class="text-4xl text-orange-500">${score}</span> てん</p>
-                    
-                    <div class="bg-blue-50 rounded-2xl p-6 mb-8 w-full max-w-sm">
-                        <p class="text-lg font-bold text-gray-600 leading-relaxed">${comment}</p>
+                <div class="h-full flex flex-col items-center justify-center p-3 text-center animate-pop">
+                    <div class="text-6xl md:text-7xl mb-2">${emoji}</div>
+                    <h2 class="text-2xl md:text-3xl font-black text-blue-500 mb-1">おしまい！</h2>
+                    <p class="text-gray-500 font-bold text-lg mb-3">てんすう: <span class="text-3xl text-orange-500">${score}</span> てん</p>
+
+                    <div class="bg-blue-50 rounded-xl p-4 mb-4 w-full max-w-sm">
+                        <p class="text-base font-bold text-gray-600 leading-relaxed">${comment}</p>
                     </div>
 
-                    <button id="btn-retry" class="w-full max-w-sm bg-orange-400 text-white font-bold py-3 rounded-full shadow-md mb-3 text-lg">
+                    <button id="btn-retry" class="w-full max-w-sm bg-orange-400 text-white font-bold py-2.5 rounded-full shadow-md mb-2 text-base">
                         もういちど
                     </button>
-                    <button id="btn-home" class="w-full max-w-sm bg-gray-200 text-gray-600 font-bold py-3 rounded-full shadow-sm text-lg">
+                    <button id="btn-home" class="w-full max-w-sm bg-gray-200 text-gray-600 font-bold py-2.5 rounded-full shadow-sm text-base">
                         レベルをえらぶ
                     </button>
                 </div>

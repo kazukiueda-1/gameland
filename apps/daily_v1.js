@@ -400,48 +400,48 @@ export default {
                 <div class="h-full flex flex-col" style="background: linear-gradient(180deg, #FFE4EC 0%, #E8F4F8 50%, #FFF9E6 100%); font-family: 'Zen Maru Gothic', sans-serif;">
 
                     <!-- ヘッダー -->
-                    <div class="flex justify-between items-center px-4 py-3 bg-white/80 backdrop-blur shadow-md">
-                        <button id="btn-quit" class="bg-pink-100 hover:bg-pink-200 text-pink-500 font-bold py-2 px-5 rounded-full text-lg active:scale-95 transition flex items-center gap-2">
+                    <div class="flex justify-between items-center px-3 py-2 bg-white/80 backdrop-blur shadow-md">
+                        <button id="btn-quit" class="bg-pink-100 hover:bg-pink-200 text-pink-500 font-bold py-1.5 px-4 rounded-full text-base active:scale-95 transition flex items-center gap-1">
                             <span>←</span> もどる
                         </button>
-                        <h1 class="text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-400 to-cyan-400 flex items-center gap-3">
+                        <h1 class="text-xl md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-400 to-cyan-400 flex items-center gap-2">
                             🌸 きょうの やること 🌸
                         </h1>
-                        <button id="btn-settings" class="bg-gray-100 hover:bg-gray-200 text-gray-500 font-bold py-2 px-4 rounded-full text-lg active:scale-95 transition">
+                        <button id="btn-settings" class="bg-gray-100 hover:bg-gray-200 text-gray-500 font-bold py-1.5 px-3 rounded-full text-base active:scale-95 transition">
                             ⚙️ せってい
                         </button>
                     </div>
 
                     <!-- メインエリア（横分割） -->
-                    <div class="flex-1 flex overflow-hidden p-4 gap-4">
+                    <div class="flex-1 flex overflow-hidden p-2 md:p-3 gap-2 md:gap-3">
 
                         <!-- 左側: タスクエリア (70%) -->
-                        <div class="w-[70%] bg-white/60 backdrop-blur rounded-3xl p-4 shadow-xl border-4 border-pink-200 overflow-hidden flex flex-col">
-                            <h2 class="text-xl font-black text-pink-500 mb-4 flex items-center gap-2">
+                        <div class="w-[70%] bg-white/60 backdrop-blur rounded-2xl p-2 md:p-3 shadow-xl border-3 border-pink-200 overflow-hidden flex flex-col">
+                            <h2 class="text-base md:text-lg font-black text-pink-500 mb-2 flex items-center gap-2">
                                 ✨ タップして できたことを おしえてね！
                             </h2>
 
                             <div class="flex-1 overflow-y-auto">
                                 ${tasks.length === 0 ? `
                                     <div class="h-full flex flex-col items-center justify-center text-gray-400">
-                                        <span class="text-6xl mb-4">📝</span>
-                                        <p class="font-bold text-xl">タスクが まだ ないよ</p>
-                                        <p class="text-base mt-2">「せってい」から ついかしてね</p>
+                                        <span class="text-5xl mb-3">📝</span>
+                                        <p class="font-bold text-lg">タスクが まだ ないよ</p>
+                                        <p class="text-sm mt-1">「せってい」から ついかしてね</p>
                                     </div>
                                 ` : `
-                                    <div class="grid grid-cols-2 lg:grid-cols-3 gap-4">
+                                    <div class="grid grid-cols-2 lg:grid-cols-3 gap-2 md:gap-3">
                                         ${tasks.map(task => `
-                                            <div data-id="${task.id}" class="task-card relative bg-gradient-to-br from-white to-pink-50 rounded-2xl p-5 cursor-pointer border-4 ${selectedTaskIds.has(task.id) ? 'border-yellow-400 selected' : 'border-pink-100 hover:border-pink-300'} shadow-lg">
+                                            <div data-id="${task.id}" class="task-card relative bg-gradient-to-br from-white to-pink-50 rounded-xl p-3 md:p-4 cursor-pointer border-3 ${selectedTaskIds.has(task.id) ? 'border-yellow-400 selected' : 'border-pink-100 hover:border-pink-300'} shadow-lg">
                                                 <!-- チェックマーク -->
-                                                <div class="check-mark absolute top-3 right-3 w-8 h-8 bg-green-400 rounded-full items-center justify-center text-white font-bold text-xl shadow-md ${selectedTaskIds.has(task.id) ? 'flex' : 'hidden'}">
+                                                <div class="check-mark absolute top-2 right-2 w-6 h-6 md:w-7 md:h-7 bg-green-400 rounded-full items-center justify-center text-white font-bold text-base shadow-md ${selectedTaskIds.has(task.id) ? 'flex' : 'hidden'}">
                                                     ✓
                                                 </div>
 
                                                 <!-- アイコン -->
-                                                <div class="text-5xl md:text-6xl mb-3 text-center">${task.icon}</div>
+                                                <div class="text-4xl md:text-5xl mb-2 text-center">${task.icon}</div>
 
                                                 <!-- タスク名 -->
-                                                <p class="text-lg md:text-xl font-black text-gray-700 text-center leading-tight">${task.title}</p>
+                                                <p class="text-base md:text-lg font-black text-gray-700 text-center leading-tight">${task.title}</p>
                                             </div>
                                         `).join('')}
                                     </div>
@@ -450,37 +450,37 @@ export default {
                         </div>
 
                         <!-- 右側: ごほうびエリア (30%) -->
-                        <div class="w-[30%] flex flex-col gap-4">
+                        <div class="w-[30%] flex flex-col gap-2 md:gap-3">
 
                             <!-- 日付カード -->
-                            <div class="bg-gradient-to-br from-cyan-100 to-blue-100 rounded-3xl p-5 shadow-xl border-4 border-cyan-200 text-center">
-                                <p class="text-lg font-bold text-cyan-600 mb-1">📅 きょうは</p>
-                                <p class="text-2xl font-black text-cyan-700">${getTodayDisplay()}</p>
+                            <div class="bg-gradient-to-br from-cyan-100 to-blue-100 rounded-2xl p-3 shadow-xl border-3 border-cyan-200 text-center">
+                                <p class="text-sm font-bold text-cyan-600 mb-0.5">📅 きょうは</p>
+                                <p class="text-lg md:text-xl font-black text-cyan-700">${getTodayDisplay()}</p>
                             </div>
 
                             <!-- ポイントカード -->
-                            <div class="flex-1 bg-gradient-to-br from-yellow-100 to-orange-100 rounded-3xl p-5 shadow-xl border-4 border-yellow-300 flex flex-col items-center justify-center">
-                                <p class="text-lg font-bold text-yellow-600 mb-2">⭐ きょうの ポイント</p>
-                                <div class="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-orange-500 mb-2" style="animation: pulse 2s ease-in-out infinite;">
+                            <div class="flex-1 bg-gradient-to-br from-yellow-100 to-orange-100 rounded-2xl p-3 shadow-xl border-3 border-yellow-300 flex flex-col items-center justify-center">
+                                <p class="text-sm font-bold text-yellow-600 mb-1">⭐ きょうの ポイント</p>
+                                <div class="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-orange-500 mb-1" style="animation: pulse 2s ease-in-out infinite;">
                                     ${totalPoints}
                                 </div>
-                                <p class="text-base text-yellow-600">(${completedCount}こ × 10ポイント)</p>
+                                <p class="text-sm text-yellow-600">(${completedCount}こ × 10ポイント)</p>
 
                                 ${todayLog ? `
-                                    <div class="mt-4 bg-green-100 rounded-xl px-4 py-2 border-2 border-green-300">
-                                        <p class="text-green-600 font-bold text-sm">✅ きょうは もう ほぞんしたよ！</p>
+                                    <div class="mt-2 bg-green-100 rounded-lg px-3 py-1.5 border-2 border-green-300">
+                                        <p class="text-green-600 font-bold text-xs">✅ きょうは もう ほぞんしたよ！</p>
                                     </div>
                                 ` : ''}
                             </div>
 
                             <!-- 完了ボタン -->
-                            <button id="btn-complete" class="bg-gradient-to-r from-pink-400 via-purple-400 to-cyan-400 hover:from-pink-500 hover:via-purple-500 hover:to-cyan-500 text-white font-black text-2xl py-5 px-6 rounded-3xl shadow-xl active:scale-95 transition border-b-6 border-purple-500 flex items-center justify-center gap-3 ${selectedTaskIds.size === 0 ? 'opacity-50' : ''}">
-                                🎉 きょうの おしまい！
+                            <button id="btn-complete" class="bg-gradient-to-r from-pink-400 via-purple-400 to-cyan-400 hover:from-pink-500 hover:via-purple-500 hover:to-cyan-500 text-white font-black text-lg md:text-xl py-3 md:py-4 px-4 rounded-2xl shadow-xl active:scale-95 transition border-b-4 border-purple-500 flex items-center justify-center gap-2 ${selectedTaskIds.size === 0 ? 'opacity-50' : ''}">
+                                🎉 おしまい！
                             </button>
 
                             <!-- 履歴ボタン -->
-                            <button id="btn-history" class="bg-gradient-to-r from-purple-300 to-indigo-300 hover:from-purple-400 hover:to-indigo-400 text-white font-black text-xl py-4 px-6 rounded-2xl shadow-lg active:scale-95 transition flex items-center justify-center gap-2">
-                                📖 きろくを みる
+                            <button id="btn-history" class="bg-gradient-to-r from-purple-300 to-indigo-300 hover:from-purple-400 hover:to-indigo-400 text-white font-black text-base md:text-lg py-2.5 md:py-3 px-4 rounded-xl shadow-lg active:scale-95 transition flex items-center justify-center gap-2">
+                                📖 きろく
                             </button>
                         </div>
                     </div>

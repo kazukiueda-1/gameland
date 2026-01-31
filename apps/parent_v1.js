@@ -222,35 +222,35 @@ export default {
 
                 <div class="parent-container h-full flex flex-col bg-gray-50">
                     <!-- ヘッダー -->
-                    <div class="bg-white shadow px-4 py-3 flex justify-between items-center">
-                        <button id="btn-back" class="text-gray-500 hover:text-gray-700 font-bold">
+                    <div class="bg-white shadow px-3 py-2 flex justify-between items-center">
+                        <button id="btn-back" class="text-gray-500 hover:text-gray-700 font-bold text-sm">
                             ← もどる
                         </button>
-                        <h1 class="text-lg font-bold text-gray-700">👤 ほごしゃよう</h1>
-                        <div class="w-16"></div>
+                        <h1 class="text-base font-bold text-gray-700">👤 ほごしゃよう</h1>
+                        <div class="w-14"></div>
                     </div>
 
                     <!-- タブ切り替え -->
                     <div class="bg-white border-b flex">
-                        <button class="tab-btn flex-1 py-3 font-bold text-sm ${viewMode === 'usage' ? 'active' : 'text-gray-500'}" data-mode="usage">
+                        <button class="tab-btn flex-1 py-2 font-bold text-xs ${viewMode === 'usage' ? 'active' : 'text-gray-500'}" data-mode="usage">
                             📱 使用履歴
                         </button>
-                        <button class="tab-btn flex-1 py-3 font-bold text-sm ${viewMode === 'quiz' ? 'active' : 'text-gray-500'}" data-mode="quiz">
+                        <button class="tab-btn flex-1 py-2 font-bold text-xs ${viewMode === 'quiz' ? 'active' : 'text-gray-500'}" data-mode="quiz">
                             📝 クイズ
                         </button>
-                        <button class="tab-btn flex-1 py-3 font-bold text-sm ${viewMode === 'apps' ? 'active' : 'text-gray-500'}" data-mode="apps">
+                        <button class="tab-btn flex-1 py-2 font-bold text-xs ${viewMode === 'apps' ? 'active' : 'text-gray-500'}" data-mode="apps">
                             ⚙️ アプリ設定
                         </button>
                     </div>
 
                     <!-- 日付選択 -->
-                    <div class="bg-white border-b px-2 py-2 overflow-x-auto">
-                        <div class="flex gap-2 min-w-max">
-                            <button class="date-btn px-3 py-1 rounded-full text-sm font-bold ${!selectedDate ? 'active' : 'bg-gray-100 text-gray-600'}" data-date="">
+                    <div class="bg-white border-b px-2 py-1.5 overflow-x-auto">
+                        <div class="flex gap-1.5 min-w-max">
+                            <button class="date-btn px-2.5 py-0.5 rounded-full text-xs font-bold ${!selectedDate ? 'active' : 'bg-gray-100 text-gray-600'}" data-date="">
                                 すべて
                             </button>
                             ${dateList.slice(0, 14).map(d => `
-                                <button class="date-btn px-3 py-1 rounded-full text-sm font-bold ${selectedDate === d.value ? 'active' : 'bg-gray-100 text-gray-600'}" data-date="${d.value}">
+                                <button class="date-btn px-2.5 py-0.5 rounded-full text-xs font-bold ${selectedDate === d.value ? 'active' : 'bg-gray-100 text-gray-600'}" data-date="${d.value}">
                                     ${d.display}${d.isToday ? '(今日)' : ''}
                                 </button>
                             `).join('')}
@@ -258,7 +258,7 @@ export default {
                     </div>
 
                     <!-- コンテンツ -->
-                    <div class="flex-1 overflow-y-auto p-4">
+                    <div class="flex-1 overflow-y-auto p-3">
                         ${isLoading ? `
                             <div class="flex items-center justify-center h-full text-gray-400">
                                 <div class="text-center">
