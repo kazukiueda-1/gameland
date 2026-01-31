@@ -1,5 +1,14 @@
 [
     {
+        "id": "daily_tasks_01",
+        "title": "おてつだいきろく",
+        "desc": "きょうの がんばりを きろく",
+        "icon": "🌸",
+        "file": "daily_v1.js",
+        "color": "pink-400",
+        "category": "play"
+    },
+    {
         "id": "shopping_memo_01",
         "title": "おかいものメモ",
         "desc": "かぞくの かいものリスト",
