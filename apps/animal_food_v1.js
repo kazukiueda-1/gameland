@@ -162,20 +162,20 @@ export default {
         // ========================================
         const renderStart = () => {
             container.innerHTML = `
-                <div class="h-full flex flex-col items-center justify-center p-4 bg-gradient-to-b from-green-100 to-yellow-100">
+                <div class="min-h-full overflow-y-auto flex flex-col items-center justify-center p-4 bg-gradient-to-b from-green-100 to-yellow-100">
                     <button id="btn-quit" class="absolute top-4 left-4 bg-white/80 text-gray-500 font-bold py-2 px-4 rounded-full text-sm">
                         ✕ やめる
                     </button>
 
-                    <div class="text-8xl mb-6 animate-bounce">🐾</div>
-                    <h1 class="text-3xl md:text-4xl font-black text-green-600 mb-4 text-center">
+                    <div class="text-6xl md:text-8xl mb-4 md:mb-6 animate-bounce">🐾</div>
+                    <h1 class="text-2xl md:text-4xl font-black text-green-600 mb-3 md:mb-4 text-center">
                         どうぶつの ごはんクイズ
                     </h1>
-                    <p class="text-gray-600 font-bold mb-8 text-center text-lg">
+                    <p class="text-gray-600 font-bold mb-6 md:mb-8 text-center text-base md:text-lg">
                         どうぶつが たべるものを<br>えらんでね！
                     </p>
 
-                    <button id="btn-start" class="bg-gradient-to-r from-green-400 to-emerald-400 hover:from-green-500 hover:to-emerald-500 text-white font-black text-2xl py-5 px-12 rounded-full shadow-lg active:scale-95 transition">
+                    <button id="btn-start" class="bg-gradient-to-r from-green-400 to-emerald-400 hover:from-green-500 hover:to-emerald-500 text-white font-black text-xl md:text-2xl py-4 md:py-5 px-10 md:px-12 rounded-full shadow-lg active:scale-95 transition">
                         🎮 スタート！
                     </button>
                 </div>
@@ -201,60 +201,66 @@ export default {
             hasAnswered = false;
 
             container.innerHTML = `
-                <div class="h-full flex flex-col p-4 bg-gradient-to-b from-green-50 to-yellow-50">
+                <div class="min-h-full overflow-y-auto p-3 md:p-4 bg-gradient-to-b from-green-50 to-yellow-50">
                     <!-- ヘッダー -->
-                    <div class="flex justify-between items-center mb-4">
-                        <button id="btn-quit" class="bg-white/80 text-gray-400 font-bold py-2 px-4 rounded-full text-sm">
+                    <div class="flex justify-between items-center mb-2 md:mb-4">
+                        <button id="btn-quit" class="bg-white/80 text-gray-400 font-bold py-1 px-3 md:py-2 md:px-4 rounded-full text-xs md:text-sm">
                             やめる
                         </button>
-                        <div class="bg-green-100 text-green-600 px-4 py-2 rounded-full font-bold">
+                        <div class="bg-green-100 text-green-600 px-3 py-1 md:px-4 md:py-2 rounded-full font-bold text-sm md:text-base">
                             ${currentQuestionIndex + 1} / ${TOTAL_QUESTIONS}
                         </div>
-                        <div class="bg-yellow-100 text-yellow-600 px-4 py-2 rounded-full font-bold">
+                        <div class="bg-yellow-100 text-yellow-600 px-3 py-1 md:px-4 md:py-2 rounded-full font-bold text-sm md:text-base">
                             ⭐ ${score}
                         </div>
                     </div>
 
-                    <!-- 問題エリア -->
-                    <div class="flex-1 flex flex-col items-center justify-center">
-                        <!-- 動物 -->
-                        <div class="bg-white rounded-3xl p-6 shadow-xl border-4 border-green-200 mb-6 text-center">
-                            <div class="text-8xl md:text-9xl mb-4">${q.animal.emoji}</div>
-                            <h2 class="text-2xl md:text-3xl font-black text-gray-700">${q.animal.name}</h2>
-                        </div>
+                    <!-- 問題エリア（横向き対応のフレックスレイアウト） -->
+                    <div class="flex flex-col landscape:flex-row landscape:items-start landscape:gap-6 items-center">
+                        <!-- 左側: 動物と質問 -->
+                        <div class="flex flex-col items-center landscape:flex-shrink-0">
+                            <!-- 動物 -->
+                            <div class="bg-white rounded-2xl md:rounded-3xl p-3 md:p-6 shadow-xl border-4 border-green-200 mb-3 md:mb-4 text-center">
+                                <div class="text-6xl md:text-8xl mb-2 md:mb-4">${q.animal.emoji}</div>
+                                <h2 class="text-xl md:text-2xl font-black text-gray-700">${q.animal.name}</h2>
+                            </div>
 
-                        <!-- 質問 -->
-                        <div class="bg-yellow-100 rounded-2xl px-6 py-3 mb-6 border-2 border-yellow-300">
-                            <p class="text-lg md:text-xl font-bold text-yellow-700 text-center">
-                                なにを たべる？ <span class="text-2xl text-orange-500">${q.correctCount}こ</span> えらんでね！
-                            </p>
-                        </div>
+                            <!-- 質問 -->
+                            <div class="bg-yellow-100 rounded-xl md:rounded-2xl px-4 py-2 md:px-6 md:py-3 mb-3 md:mb-4 border-2 border-yellow-300">
+                                <p class="text-base md:text-lg font-bold text-yellow-700 text-center">
+                                    なにを たべる？ <span class="text-xl md:text-2xl text-orange-500">${q.correctCount}こ</span> えらんでね！
+                                </p>
+                            </div>
 
-                        <!-- 選択したもの表示 -->
-                        <div class="mb-4 h-12 flex items-center justify-center gap-2">
-                            <span class="text-gray-500 font-bold">えらんだ:</span>
-                            <div id="selected-display" class="flex gap-2">
-                                ${Array(q.correctCount).fill('').map((_, i) => `
-                                    <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center text-gray-400 border-2 border-dashed border-gray-300">?</div>
-                                `).join('')}
+                            <!-- 選択したもの表示 -->
+                            <div class="mb-3 md:mb-4 h-10 md:h-12 flex items-center justify-center gap-2">
+                                <span class="text-gray-500 font-bold text-sm md:text-base">えらんだ:</span>
+                                <div id="selected-display" class="flex gap-1 md:gap-2">
+                                    ${Array(q.correctCount).fill('').map((_, i) => `
+                                        <div class="w-8 h-8 md:w-10 md:h-10 bg-gray-200 rounded-full flex items-center justify-center text-gray-400 border-2 border-dashed border-gray-300 text-sm md:text-base">?</div>
+                                    `).join('')}
+                                </div>
                             </div>
                         </div>
 
-                        <!-- 選択肢 -->
-                        <div class="grid grid-cols-3 gap-3 w-full max-w-lg">
-                            ${q.choices.map((choice, i) => `
-                                <button class="choice-btn bg-white hover:bg-green-50 text-xl md:text-2xl font-bold py-4 px-2 rounded-2xl shadow-md border-4 border-gray-200 active:scale-95 transition flex flex-col items-center justify-center min-h-[80px]"
-                                    data-choice="${choice}" data-index="${i}">
-                                    <span class="text-2xl md:text-3xl">${choice.match(/[\u{1F300}-\u{1F9FF}]/u)?.[0] || ''}</span>
-                                    <span class="text-sm md:text-base text-gray-600">${choice.replace(/[\u{1F300}-\u{1F9FF}]/gu, '')}</span>
-                                </button>
-                            `).join('')}
-                        </div>
+                        <!-- 右側: 選択肢と決定ボタン -->
+                        <div class="flex flex-col items-center w-full landscape:flex-1">
+                            <!-- 選択肢 -->
+                            <div class="grid grid-cols-3 gap-2 md:gap-3 w-full max-w-lg">
+                                ${q.choices.map((choice, i) => `
+                                    <button class="choice-btn bg-white hover:bg-green-50 text-lg md:text-xl font-bold py-2 md:py-3 px-2 rounded-xl md:rounded-2xl shadow-md border-3 md:border-4 border-gray-200 active:scale-95 transition flex flex-col items-center justify-center min-h-[60px] md:min-h-[80px]"
+                                        data-choice="${choice}" data-index="${i}">
+                                        <span class="text-xl md:text-2xl">${choice.match(/[\u{1F300}-\u{1F9FF}]/u)?.[0] || ''}</span>
+                                        <span class="text-xs md:text-sm text-gray-600">${choice.replace(/[\u{1F300}-\u{1F9FF}]/gu, '')}</span>
+                                    </button>
+                                `).join('')}
+                            </div>
 
-                        <!-- 決定ボタン -->
-                        <button id="btn-submit" class="mt-6 bg-gradient-to-r from-orange-400 to-red-400 text-white font-black text-xl py-4 px-12 rounded-full shadow-lg opacity-50 cursor-not-allowed transition" disabled>
-                            けってい！
-                        </button>
+                            <!-- 決定ボタン -->
+                            <button id="btn-submit" class="mt-4 md:mt-6 bg-gradient-to-r from-orange-400 to-red-400 text-white font-black text-lg md:text-xl py-3 md:py-4 px-8 md:px-12 rounded-full shadow-lg opacity-50 cursor-not-allowed transition" disabled>
+                                けってい！
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -305,9 +311,9 @@ export default {
                     selectedDisplay.innerHTML = Array(q.correctCount).fill('').map((_, i) => {
                         if (selected[i]) {
                             const emoji = selected[i].match(/[\u{1F300}-\u{1F9FF}]/u)?.[0] || '?';
-                            return `<div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-2xl border-2 border-green-400">${emoji}</div>`;
+                            return `<div class="w-8 h-8 md:w-10 md:h-10 bg-green-100 rounded-full flex items-center justify-center text-xl md:text-2xl border-2 border-green-400">${emoji}</div>`;
                         }
-                        return `<div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center text-gray-400 border-2 border-dashed border-gray-300">?</div>`;
+                        return `<div class="w-8 h-8 md:w-10 md:h-10 bg-gray-200 rounded-full flex items-center justify-center text-gray-400 border-2 border-dashed border-gray-300 text-sm md:text-base">?</div>`;
                     }).join('');
 
                     // 決定ボタンの有効化
@@ -386,23 +392,23 @@ export default {
             }
 
             container.innerHTML = `
-                <div class="h-full flex flex-col items-center justify-center p-4 bg-gradient-to-b from-green-100 to-yellow-100 text-center">
-                    <div class="text-8xl mb-6">${emoji}</div>
-                    <h2 class="text-3xl font-black text-green-600 mb-4">おしまい！</h2>
+                <div class="min-h-full overflow-y-auto flex flex-col items-center justify-center p-4 bg-gradient-to-b from-green-100 to-yellow-100 text-center">
+                    <div class="text-6xl md:text-8xl mb-4 md:mb-6">${emoji}</div>
+                    <h2 class="text-2xl md:text-3xl font-black text-green-600 mb-3 md:mb-4">おしまい！</h2>
 
-                    <div class="bg-white rounded-3xl p-6 shadow-xl mb-6 w-full max-w-sm">
-                        <p class="text-gray-500 font-bold mb-2">スコア</p>
-                        <p class="text-5xl font-black text-orange-500 mb-2">${score}</p>
-                        <p class="text-gray-400 font-bold">/ ${maxScore} てん</p>
+                    <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-xl mb-4 md:mb-6 w-full max-w-sm">
+                        <p class="text-gray-500 font-bold mb-1 md:mb-2 text-sm md:text-base">スコア</p>
+                        <p class="text-4xl md:text-5xl font-black text-orange-500 mb-1 md:mb-2">${score}</p>
+                        <p class="text-gray-400 font-bold text-sm md:text-base">/ ${maxScore} てん</p>
                     </div>
 
-                    <p class="text-xl font-bold text-gray-600 mb-8">${message}</p>
+                    <p class="text-lg md:text-xl font-bold text-gray-600 mb-4 md:mb-8">${message}</p>
 
-                    <div class="flex flex-col gap-4 w-full max-w-xs">
-                        <button id="btn-retry" class="bg-gradient-to-r from-green-400 to-emerald-400 text-white font-bold text-xl py-4 rounded-full shadow-lg">
+                    <div class="flex flex-col md:flex-row gap-3 md:gap-4 w-full max-w-xs md:max-w-md">
+                        <button id="btn-retry" class="bg-gradient-to-r from-green-400 to-emerald-400 text-white font-bold text-lg md:text-xl py-3 md:py-4 px-6 rounded-full shadow-lg flex-1">
                             🔄 もういちど
                         </button>
-                        <button id="btn-home" class="bg-white text-gray-600 font-bold text-xl py-4 rounded-full shadow-md border-2 border-gray-200">
+                        <button id="btn-home" class="bg-white text-gray-600 font-bold text-lg md:text-xl py-3 md:py-4 px-6 rounded-full shadow-md border-2 border-gray-200 flex-1">
                             🏠 ホームにもどる
                         </button>
                     </div>

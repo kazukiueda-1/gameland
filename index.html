@@ -88,6 +88,14 @@
         .rainbow-border {
             border-image: linear-gradient(90deg, #FF9AA2, #FFB7B2, #FFDAC1, #E2F0CB, #B5EAD7, #C7CEEA) 1;
         }
+        /* 横向き（ランドスケープ）対応 */
+        @media (orientation: landscape) and (max-height: 500px) {
+            .landscape\:flex-row { flex-direction: row !important; }
+            .landscape\:items-start { align-items: flex-start !important; }
+            .landscape\:gap-6 { gap: 1.5rem !important; }
+            .landscape\:flex-shrink-0 { flex-shrink: 0 !important; }
+            .landscape\:flex-1 { flex: 1 1 0% !important; }
+        }
     </style>
 </head>
 <body class="h-screen flex flex-col text-gray-800">
