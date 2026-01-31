@@ -1,5 +1,14 @@
 [
     {
+        "id": "animal_food_01",
+        "title": "どうぶつのごはん",
+        "desc": "どうぶつは なにをたべる？",
+        "icon": "🐾",
+        "file": "animal_food_v1.js",
+        "color": "green-400",
+        "category": "study"
+    },
+    {
         "id": "daily_tasks_01",
         "title": "おてつだいきろく",
         "desc": "きょうの がんばりを きろく",
