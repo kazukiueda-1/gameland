@@ -359,11 +359,16 @@ export default {
         const render = () => {
             const dateList = getDateList();
 
+            // 子供フィルター：通常モードでは常にログイン中の子供、管理者モードでは選択したフィルター
+            const effectiveChildFilter = isAdminAuthenticated
+                ? selectedChildFilter
+                : (system.currentChild?.id || null);
+
             // 日付と子供でフィルタ
             let filteredUsage = getLogsForDate(usageLogs, selectedDate);
-            filteredUsage = getLogsForChild(filteredUsage, selectedChildFilter);
+            filteredUsage = getLogsForChild(filteredUsage, effectiveChildFilter);
             let filteredQuiz = getLogsForDate(quizLogs, selectedDate);
-            filteredQuiz = getLogsForChild(filteredQuiz, selectedChildFilter);
+            filteredQuiz = getLogsForChild(filteredQuiz, effectiveChildFilter);
 
             const usageByApp = groupByApp(filteredUsage);
             const quizSummary = summarizeQuizLogs(filteredQuiz);
@@ -424,8 +429,8 @@ export default {
                         </div>
                     </div>
 
-                    <!-- 子供フィルター -->
-                    ${activeChildren.length > 0 ? `
+                    <!-- 子供フィルター（管理者モードのみ表示） -->
+                    ${isAdminAuthenticated && activeChildren.length > 0 ? `
                     <div class="bg-gray-50 border-b px-2 py-1.5 overflow-x-auto">
                         <div class="flex gap-1.5 min-w-max items-center">
                             <span class="text-xs text-gray-500 font-bold mr-1">👤</span>
@@ -440,6 +445,13 @@ export default {
                             <button class="child-filter-btn px-2.5 py-0.5 rounded-full text-xs font-bold ${selectedChildFilter === '__old__' ? 'bg-pink-400 text-white' : 'bg-gray-100 text-gray-600'}" data-child="__old__">
                                 📜 むかしのきろく
                             </button>
+                        </div>
+                    </div>
+                    ` : !isAdminAuthenticated && system.currentChild ? `
+                    <div class="bg-blue-50 border-b px-3 py-2">
+                        <div class="flex items-center gap-2 text-sm text-blue-700 font-bold">
+                            <span class="text-lg">${system.currentChild.avatarEmoji || '👤'}</span>
+                            <span>${system.currentChild.name} のきろく</span>
                         </div>
                     </div>
                     ` : ''}
