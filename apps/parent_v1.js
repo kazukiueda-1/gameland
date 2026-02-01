@@ -49,7 +49,8 @@ export default {
         // 管理者モード関連
         const isAdminMode = system.adminMode || false;
         let children = [];
-        let selectedChildFilter = null; // 子供フィルター用
+        // 子供フィルター：管理者モードなら全員、通常モードなら現在ログイン中の子供
+        let selectedChildFilter = isAdminMode ? null : (system.currentChild?.id || null);
         let editingChild = null; // 編集中の子供
         let adminPassword = 'admin1234'; // 管理者パスワード（実運用では別途管理）
         let isAdminAuthenticated = isAdminMode; // 長押しで入った場合は認証済み
