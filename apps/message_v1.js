@@ -3,7 +3,7 @@
  * 子供と親がテキスト・ボイスメッセージをやり取りするアプリ
  */
 
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import {
     getFirestore,
     collection,
@@ -28,7 +28,9 @@ const firebaseConfig = {
     appId: "1:516894951381:web:76d0b88cb8c406d6791f5c"
 };
 
-const app = initializeApp(firebaseConfig, 'message-app');
+// 既存のアプリがあれば使用、なければ新規作成
+const appName = 'message-app';
+const app = getApps().find(a => a.name === appName) || initializeApp(firebaseConfig, appName);
 const db = getFirestore(app);
 
 export default {
