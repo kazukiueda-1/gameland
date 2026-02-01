@@ -14,7 +14,11 @@ import {
     limit,
     doc,
     getDoc,
-    setDoc
+    setDoc,
+    addDoc,
+    deleteDoc,
+    updateDoc,
+    serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
 // Firebase設定
@@ -35,12 +39,23 @@ export default {
         let usageLogs = [];
         let quizLogs = [];
         let selectedDate = null;
-        let viewMode = 'usage'; // 'usage', 'quiz', 'apps', or 'theme'
+        let viewMode = 'usage'; // 'usage', 'quiz', 'apps', 'theme', or 'admin'
         let isLoading = true;
         let allApps = [];
         let visibleAppIds = [];
         let isSaving = false;
         let currentTheme = 'cute';
+
+        // 管理者モード関連
+        const isAdminMode = system.adminMode || false;
+        let children = [];
+        let selectedChildFilter = null; // 子供フィルター用
+        let editingChild = null; // 編集中の子供
+        let adminPassword = 'admin1234'; // 管理者パスワード（実運用では別途管理）
+        let isAdminAuthenticated = isAdminMode; // 長押しで入った場合は認証済み
+
+        // 利用可能なアバター絵文字
+        const avatarEmojis = ['👧', '👦', '👶', '🧒', '👸', '🤴', '🦸', '🦹', '🧙', '🧚', '🐱', '🐶', '🐰', '🦊', '🐼', '🐨', '🦁', '🐯', '🐸', '🐵'];
 
         // 日付リストを取得（過去30日分）
         const getDateList = () => {
@@ -183,6 +198,91 @@ export default {
             render();
         };
 
+        // === 子供管理機能 ===
+
+        // 子供一覧を読み込み
+        const loadChildren = async () => {
+            try {
+                const q = query(
+                    collection(db, 'children'),
+                    orderBy('createdAt', 'asc')
+                );
+                const snapshot = await getDocs(q);
+                children = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+            } catch (e) {
+                console.error('子供一覧取得エラー:', e);
+                children = [];
+            }
+        };
+
+        // 子供を追加
+        const addChild = async (name, pin, avatarEmoji) => {
+            isSaving = true;
+            render();
+            try {
+                await addDoc(collection(db, 'children'), {
+                    name: name,
+                    pin: pin,
+                    avatarEmoji: avatarEmoji,
+                    isActive: true,
+                    createdAt: serverTimestamp()
+                });
+                await loadChildren();
+                alert(`${name} を追加しました！`);
+            } catch (e) {
+                console.error('子供追加エラー:', e);
+                alert('追加に失敗しました');
+            }
+            isSaving = false;
+            render();
+        };
+
+        // 子供を更新
+        const updateChild = async (childId, name, pin, avatarEmoji) => {
+            isSaving = true;
+            render();
+            try {
+                const docRef = doc(db, 'children', childId);
+                await updateDoc(docRef, {
+                    name: name,
+                    pin: pin,
+                    avatarEmoji: avatarEmoji
+                });
+                await loadChildren();
+                alert(`${name} を更新しました！`);
+            } catch (e) {
+                console.error('子供更新エラー:', e);
+                alert('更新に失敗しました');
+            }
+            isSaving = false;
+            editingChild = null;
+            render();
+        };
+
+        // 子供を削除（非アクティブ化）
+        const deleteChild = async (childId, childName) => {
+            if (!confirm(`${childName} を削除しますか？\n（履歴データは残ります）`)) return;
+
+            isSaving = true;
+            render();
+            try {
+                const docRef = doc(db, 'children', childId);
+                await updateDoc(docRef, {
+                    isActive: false
+                });
+                await loadChildren();
+                alert(`${childName} を削除しました`);
+            } catch (e) {
+                console.error('子供削除エラー:', e);
+                alert('削除に失敗しました');
+            }
+            isSaving = false;
+            render();
+        };
+
         // アプリの表示/非表示を切り替え
         const toggleAppVisibility = (appId) => {
             if (visibleAppIds.includes(appId)) {
@@ -197,6 +297,16 @@ export default {
         const getLogsForDate = (logs, date) => {
             if (!date) return logs;
             return logs.filter(log => log.date === date);
+        };
+
+        // 子供でフィルタ
+        const getLogsForChild = (logs, childId) => {
+            if (!childId) return logs;
+            if (childId === '__old__') {
+                // 古いログ（childIdがないもの）
+                return logs.filter(log => !log.childId);
+            }
+            return logs.filter(log => log.childId === childId);
         };
 
         // アプリごとに集計
@@ -245,10 +355,18 @@ export default {
         // 描画
         const render = () => {
             const dateList = getDateList();
-            const filteredUsage = getLogsForDate(usageLogs, selectedDate);
-            const filteredQuiz = getLogsForDate(quizLogs, selectedDate);
+
+            // 日付と子供でフィルタ
+            let filteredUsage = getLogsForDate(usageLogs, selectedDate);
+            filteredUsage = getLogsForChild(filteredUsage, selectedChildFilter);
+            let filteredQuiz = getLogsForDate(quizLogs, selectedDate);
+            filteredQuiz = getLogsForChild(filteredQuiz, selectedChildFilter);
+
             const usageByApp = groupByApp(filteredUsage);
             const quizSummary = summarizeQuizLogs(filteredQuiz);
+
+            // アクティブな子供のみ
+            const activeChildren = children.filter(c => c.isActive);
 
             container.innerHTML = `
                 <style>
@@ -281,6 +399,11 @@ export default {
                         <button class="tab-btn flex-1 py-2 font-bold text-xs ${viewMode === 'theme' ? 'active' : 'text-gray-500'}" data-mode="theme">
                             🎨 テーマ
                         </button>
+                        ${isAdminAuthenticated ? `
+                        <button class="tab-btn flex-1 py-2 font-bold text-xs ${viewMode === 'admin' ? 'active' : 'text-gray-500'}" data-mode="admin">
+                            👥 管理
+                        </button>
+                        ` : ''}
                     </div>
 
                     <!-- 日付選択（履歴・クイズタブのみ表示） -->
@@ -297,6 +420,26 @@ export default {
                             `).join('')}
                         </div>
                     </div>
+
+                    <!-- 子供フィルター -->
+                    ${activeChildren.length > 0 ? `
+                    <div class="bg-gray-50 border-b px-2 py-1.5 overflow-x-auto">
+                        <div class="flex gap-1.5 min-w-max items-center">
+                            <span class="text-xs text-gray-500 font-bold mr-1">👤</span>
+                            <button class="child-filter-btn px-2.5 py-0.5 rounded-full text-xs font-bold ${!selectedChildFilter ? 'bg-pink-400 text-white' : 'bg-gray-100 text-gray-600'}" data-child="">
+                                全員
+                            </button>
+                            ${activeChildren.map(c => `
+                                <button class="child-filter-btn px-2.5 py-0.5 rounded-full text-xs font-bold ${selectedChildFilter === c.id ? 'bg-pink-400 text-white' : 'bg-gray-100 text-gray-600'}" data-child="${c.id}">
+                                    ${c.avatarEmoji || '👤'} ${c.name}
+                                </button>
+                            `).join('')}
+                            <button class="child-filter-btn px-2.5 py-0.5 rounded-full text-xs font-bold ${selectedChildFilter === '__old__' ? 'bg-pink-400 text-white' : 'bg-gray-100 text-gray-600'}" data-child="__old__">
+                                📜 むかしのきろく
+                            </button>
+                        </div>
+                    </div>
+                    ` : ''}
                     ` : ''}
 
                     <!-- コンテンツ -->
@@ -517,6 +660,99 @@ export default {
 
                                 ${isSaving ? '<p class="text-center text-gray-400 font-bold animate-pulse">保存中...</p>' : ''}
                             </div>
+                        ` : viewMode === 'admin' ? `
+                            <!-- 管理者画面 -->
+                            <div class="space-y-4">
+                                <div class="bg-purple-50 rounded-xl p-4 border border-purple-200">
+                                    <p class="text-purple-700 font-bold text-sm">
+                                        👥 子供アカウントを管理できます。<br>
+                                        名前・PIN・アバターを設定してください。
+                                    </p>
+                                </div>
+
+                                <!-- 子供一覧 -->
+                                <div class="space-y-3">
+                                    ${activeChildren.length === 0 ? `
+                                        <div class="text-center text-gray-400 py-8">
+                                            <div class="text-4xl mb-2">👶</div>
+                                            <p class="font-bold">まだ子供がいません</p>
+                                            <p class="text-sm mt-1">下のボタンから追加してください</p>
+                                        </div>
+                                    ` : activeChildren.map(child => `
+                                        <div class="bg-white rounded-xl p-4 shadow-sm">
+                                            <div class="flex items-center justify-between">
+                                                <div class="flex items-center gap-3">
+                                                    <span class="text-3xl">${child.avatarEmoji || '👤'}</span>
+                                                    <div>
+                                                        <h3 class="font-bold text-gray-700">${child.name}</h3>
+                                                        <p class="text-sm text-gray-400">PIN: ****</p>
+                                                    </div>
+                                                </div>
+                                                <div class="flex gap-2">
+                                                    <button class="edit-child-btn bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm font-bold hover:bg-blue-200" data-child-id="${child.id}">
+                                                        編集
+                                                    </button>
+                                                    <button class="delete-child-btn bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm font-bold hover:bg-red-200" data-child-id="${child.id}" data-child-name="${child.name}">
+                                                        削除
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+
+                                <!-- 追加/編集フォーム -->
+                                <div class="bg-white rounded-xl p-4 shadow-sm border-2 border-dashed border-purple-200">
+                                    <h3 class="font-bold text-gray-700 mb-4">
+                                        ${editingChild ? `✏️ ${editingChild.name} を編集` : '➕ 新しい子供を追加'}
+                                    </h3>
+
+                                    <div class="space-y-4">
+                                        <div>
+                                            <label class="block text-sm font-bold text-gray-600 mb-1">なまえ（ひらがな）</label>
+                                            <input type="text" id="child-name-input" placeholder="かりん" value="${editingChild?.name || ''}"
+                                                class="w-full border-2 rounded-lg py-2 px-3 text-lg font-bold focus:outline-none focus:border-purple-400">
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-sm font-bold text-gray-600 mb-1">PIN（4桁の数字）</label>
+                                            <input type="text" id="child-pin-input" placeholder="1234" maxlength="4" pattern="[0-9]{4}" value="${editingChild?.pin || ''}"
+                                                class="w-full border-2 rounded-lg py-2 px-3 text-lg font-bold focus:outline-none focus:border-purple-400 tracking-widest">
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-sm font-bold text-gray-600 mb-2">アバター</label>
+                                            <div class="flex flex-wrap gap-2" id="avatar-selector">
+                                                ${avatarEmojis.map(emoji => `
+                                                    <button class="avatar-btn w-10 h-10 text-2xl rounded-lg border-2 transition ${(editingChild?.avatarEmoji || '👧') === emoji ? 'border-purple-400 bg-purple-100' : 'border-gray-200 hover:border-purple-200'}" data-emoji="${emoji}">
+                                                        ${emoji}
+                                                    </button>
+                                                `).join('')}
+                                            </div>
+                                            <input type="hidden" id="child-avatar-input" value="${editingChild?.avatarEmoji || '👧'}">
+                                        </div>
+
+                                        <div class="flex gap-2">
+                                            ${editingChild ? `
+                                                <button id="btn-cancel-edit" class="flex-1 bg-gray-200 text-gray-600 font-bold py-3 rounded-xl hover:bg-gray-300 transition">
+                                                    キャンセル
+                                                </button>
+                                                <button id="btn-save-child" class="flex-1 bg-gradient-to-r from-blue-400 to-purple-400 text-white font-bold py-3 rounded-xl shadow-lg hover:from-blue-500 hover:to-purple-500 transition ${isSaving ? 'opacity-50' : ''}">
+                                                    ${isSaving ? '保存中...' : '💾 更新'}
+                                                </button>
+                                            ` : `
+                                                <button id="btn-save-child" class="w-full bg-gradient-to-r from-pink-400 to-purple-400 text-white font-bold py-3 rounded-xl shadow-lg hover:from-pink-500 hover:to-purple-500 transition ${isSaving ? 'opacity-50' : ''}">
+                                                    ${isSaving ? '保存中...' : '➕ 追加'}
+                                                </button>
+                                            `}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <p class="text-center text-gray-400 text-sm">
+                                    現在 ${activeChildren.length} 人のアカウントがあります
+                                </p>
+                            </div>
                         `}
                     </div>
                 </div>
@@ -543,6 +779,14 @@ export default {
                 });
             });
 
+            // 子供フィルター
+            container.querySelectorAll('.child-filter-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    selectedChildFilter = btn.dataset.child || null;
+                    render();
+                });
+            });
+
             // アプリ設定用
             container.querySelectorAll('.app-toggle').forEach(toggle => {
                 toggle.addEventListener('change', () => {
@@ -561,13 +805,89 @@ export default {
                     }
                 });
             });
+
+            // === 管理者機能用 ===
+
+            // アバター選択
+            container.querySelectorAll('.avatar-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const emoji = btn.dataset.emoji;
+                    const input = container.querySelector('#child-avatar-input');
+                    if (input) input.value = emoji;
+
+                    // 選択状態を更新
+                    container.querySelectorAll('.avatar-btn').forEach(b => {
+                        b.classList.remove('border-purple-400', 'bg-purple-100');
+                        b.classList.add('border-gray-200');
+                    });
+                    btn.classList.remove('border-gray-200');
+                    btn.classList.add('border-purple-400', 'bg-purple-100');
+                });
+            });
+
+            // 子供を追加/更新
+            container.querySelector('#btn-save-child')?.addEventListener('click', () => {
+                const name = container.querySelector('#child-name-input')?.value.trim();
+                const pin = container.querySelector('#child-pin-input')?.value.trim();
+                const avatar = container.querySelector('#child-avatar-input')?.value || '👧';
+
+                // バリデーション
+                if (!name) {
+                    alert('なまえを入力してください');
+                    return;
+                }
+                if (!pin || pin.length !== 4 || !/^\d{4}$/.test(pin)) {
+                    alert('PINは4桁の数字で入力してください');
+                    return;
+                }
+
+                if (editingChild) {
+                    updateChild(editingChild.id, name, pin, avatar);
+                } else {
+                    addChild(name, pin, avatar);
+                }
+            });
+
+            // 編集ボタン
+            container.querySelectorAll('.edit-child-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const childId = btn.dataset.childId;
+                    editingChild = children.find(c => c.id === childId);
+                    render();
+                });
+            });
+
+            // 削除ボタン
+            container.querySelectorAll('.delete-child-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const childId = btn.dataset.childId;
+                    const childName = btn.dataset.childName;
+                    deleteChild(childId, childName);
+                });
+            });
+
+            // キャンセルボタン
+            container.querySelector('#btn-cancel-edit')?.addEventListener('click', () => {
+                editingChild = null;
+                render();
+            });
         };
 
         // 初期化
         const init = async () => {
+            // 管理者モードで入った場合は管理タブを最初に表示
+            if (isAdminMode) {
+                viewMode = 'admin';
+            }
             render();
             await loadAppRegistry();
-            await Promise.all([loadUsageLogs(), loadQuizLogs(), loadVisibilitySettings(), loadThemeSetting()]);
+            await Promise.all([
+                loadUsageLogs(),
+                loadQuizLogs(),
+                loadVisibilitySettings(),
+                loadThemeSetting(),
+                loadChildren()
+            ]);
             isLoading = false;
             render();
         };

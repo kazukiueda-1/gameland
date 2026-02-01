@@ -87,13 +87,13 @@
             90% { opacity: 0.6; }
             100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
         }
-        /* ロック画面用 - テーマ別 */
-        #lock-screen {
+        /* ログイン画面用 - テーマ別 */
+        #login-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             z-index: 9999;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
-        #lock-screen::before {
+        #login-screen::before {
             content: '';
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -102,9 +102,64 @@
                 radial-gradient(circle at 80% 70%, rgba(255,255,255,0.2) 0%, transparent 40%);
             pointer-events: none;
         }
-        body.theme-cute #lock-screen { background: linear-gradient(135deg, #FFB6C1 0%, #DDA0DD 50%, #87CEEB 100%); }
-        body.theme-cool #lock-screen { background: linear-gradient(135deg, #0F172A 0%, #1E40AF 50%, #0D9488 100%); }
-        body.theme-smart #lock-screen { background: linear-gradient(135deg, #64748B 0%, #475569 50%, #334155 100%); }
+        body.theme-cute #login-screen { background: linear-gradient(135deg, #FFB6C1 0%, #DDA0DD 50%, #87CEEB 100%); }
+        body.theme-cool #login-screen { background: linear-gradient(135deg, #0F172A 0%, #1E40AF 50%, #0D9488 100%); }
+        body.theme-smart #login-screen { background: linear-gradient(135deg, #64748B 0%, #475569 50%, #334155 100%); }
+
+        /* 子供カード */
+        .child-card {
+            background: rgba(255,255,255,0.9);
+            border-radius: 1rem;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 3px solid transparent;
+        }
+        .child-card:hover {
+            transform: scale(1.05);
+            border-color: #F472B6;
+        }
+        .child-card:active {
+            transform: scale(0.95);
+        }
+        body.theme-cool .child-card {
+            background: rgba(30, 41, 59, 0.9);
+            color: white;
+        }
+        body.theme-cool .child-card:hover {
+            border-color: #22D3EE;
+        }
+        body.theme-smart .child-card {
+            background: rgba(255,255,255,0.95);
+        }
+        body.theme-smart .child-card:hover {
+            border-color: #64748B;
+        }
+
+        /* PIN入力ドット */
+        .pin-dot.filled {
+            background: #F472B6 !important;
+            transform: scale(1.2);
+        }
+        body.theme-cool .pin-dot.filled {
+            background: #22D3EE !important;
+        }
+        body.theme-smart .pin-dot.filled {
+            background: #64748B !important;
+        }
+
+        /* PIN入力キーパッド - テーマ別 */
+        body.theme-cool .pin-key {
+            background: #1E293B;
+            border-color: #334155;
+            color: white;
+        }
+        body.theme-cool .pin-key:hover {
+            background: #334155;
+        }
+        body.theme-cool #selected-child-name {
+            color: white;
+        }
 
         /* ロック画面カードのテーマ別スタイル */
         body.theme-cute .lock-card { background: rgba(255,255,255,0.95); border-color: #F9A8D4; }
@@ -160,25 +215,68 @@
 </head>
 <body class="h-screen flex flex-col text-gray-800 theme-cute">
 
-    <!-- ▼▼▼ 1. ロック画面 (セキュリティ) ▼▼▼ -->
-    <div id="lock-screen">
+    <!-- ▼▼▼ 1. ログイン画面 (子供選択 + PIN入力) ▼▼▼ -->
+    <div id="login-screen">
         <!-- 浮かぶ装飾 -->
         <div id="lock-decorations" class="absolute inset-0 overflow-hidden pointer-events-none">
             <!-- テーマに応じて動的に生成 -->
         </div>
 
-        <div class="lock-card backdrop-blur p-8 rounded-3xl shadow-2xl max-w-sm w-full text-center mx-4 border-4 relative z-10">
+        <!-- 子供選択画面 -->
+        <div id="child-select-screen" class="lock-card backdrop-blur p-8 rounded-3xl shadow-2xl max-w-md w-full text-center mx-4 border-4 relative z-10">
             <div class="text-6xl mb-4 animate-float" id="lock-icon">🏰</div>
             <h2 class="lock-title text-2xl font-black bg-clip-text text-transparent mb-4">わくわくランド</h2>
-            <p class="lock-hint mb-6 font-bold text-sm">✨ あいことば をいれてね ✨</p>
+            <p class="lock-hint mb-6 font-bold text-sm">✨ だれが あそぶ？ ✨</p>
 
-            <input type="text" id="pass-input" placeholder="ひらがな" autocomplete="off"
-                class="w-full border-2 rounded-full py-3 px-6 text-center text-xl font-bold mb-4 focus:outline-none">
+            <div id="children-grid" class="grid grid-cols-2 gap-4 mb-6">
+                <!-- 子供一覧がここに表示される -->
+                <div class="text-gray-400 col-span-2 py-8">
+                    <div class="text-4xl mb-2 animate-spin">⏳</div>
+                    <p class="font-bold">よみこみちゅう...</p>
+                </div>
+            </div>
 
-            <button onclick="checkPass()" class="lock-btn w-full text-white font-bold py-3 rounded-full shadow-lg active:scale-95 transition text-lg hover:opacity-90">
-                🔓 あける！
+            <button onclick="showAddChildPrompt()" id="add-child-btn" class="lock-btn w-full text-white font-bold py-3 rounded-full shadow-lg active:scale-95 transition text-lg hover:opacity-90">
+                ➕ ついか
             </button>
-            <p id="error-msg" class="text-red-400 font-bold mt-4 hidden">ちがうみたい... 💦</p>
+        </div>
+
+        <!-- PIN入力画面 -->
+        <div id="pin-input-screen" class="lock-card backdrop-blur p-6 rounded-3xl shadow-2xl max-w-sm w-full text-center mx-4 border-4 relative z-10 hidden">
+            <button onclick="backToChildSelect()" class="absolute top-4 left-4 text-gray-500 hover:text-gray-700 font-bold text-lg">
+                ← もどる
+            </button>
+
+            <div class="text-5xl mb-2 mt-4" id="selected-child-avatar">👧</div>
+            <h3 class="text-xl font-black text-gray-700 mb-4" id="selected-child-name">かりん</h3>
+
+            <p class="lock-hint mb-4 font-bold text-sm">🔢 ばんごう を いれてね</p>
+
+            <!-- PIN表示 -->
+            <div class="flex justify-center gap-3 mb-6">
+                <div class="pin-dot w-5 h-5 rounded-full bg-gray-300 transition-all"></div>
+                <div class="pin-dot w-5 h-5 rounded-full bg-gray-300 transition-all"></div>
+                <div class="pin-dot w-5 h-5 rounded-full bg-gray-300 transition-all"></div>
+                <div class="pin-dot w-5 h-5 rounded-full bg-gray-300 transition-all"></div>
+            </div>
+
+            <!-- 数字キーパッド -->
+            <div class="grid grid-cols-3 gap-2 max-w-[240px] mx-auto">
+                <button onclick="enterPin('1')" class="pin-key bg-white hover:bg-gray-100 border-2 border-gray-200 rounded-xl py-4 text-2xl font-black text-gray-700 active:scale-95 transition">1</button>
+                <button onclick="enterPin('2')" class="pin-key bg-white hover:bg-gray-100 border-2 border-gray-200 rounded-xl py-4 text-2xl font-black text-gray-700 active:scale-95 transition">2</button>
+                <button onclick="enterPin('3')" class="pin-key bg-white hover:bg-gray-100 border-2 border-gray-200 rounded-xl py-4 text-2xl font-black text-gray-700 active:scale-95 transition">3</button>
+                <button onclick="enterPin('4')" class="pin-key bg-white hover:bg-gray-100 border-2 border-gray-200 rounded-xl py-4 text-2xl font-black text-gray-700 active:scale-95 transition">4</button>
+                <button onclick="enterPin('5')" class="pin-key bg-white hover:bg-gray-100 border-2 border-gray-200 rounded-xl py-4 text-2xl font-black text-gray-700 active:scale-95 transition">5</button>
+                <button onclick="enterPin('6')" class="pin-key bg-white hover:bg-gray-100 border-2 border-gray-200 rounded-xl py-4 text-2xl font-black text-gray-700 active:scale-95 transition">6</button>
+                <button onclick="enterPin('7')" class="pin-key bg-white hover:bg-gray-100 border-2 border-gray-200 rounded-xl py-4 text-2xl font-black text-gray-700 active:scale-95 transition">7</button>
+                <button onclick="enterPin('8')" class="pin-key bg-white hover:bg-gray-100 border-2 border-gray-200 rounded-xl py-4 text-2xl font-black text-gray-700 active:scale-95 transition">8</button>
+                <button onclick="enterPin('9')" class="pin-key bg-white hover:bg-gray-100 border-2 border-gray-200 rounded-xl py-4 text-2xl font-black text-gray-700 active:scale-95 transition">9</button>
+                <button onclick="clearPin()" class="pin-key bg-gray-100 hover:bg-gray-200 border-2 border-gray-200 rounded-xl py-4 text-xl font-black text-gray-500 active:scale-95 transition">C</button>
+                <button onclick="enterPin('0')" class="pin-key bg-white hover:bg-gray-100 border-2 border-gray-200 rounded-xl py-4 text-2xl font-black text-gray-700 active:scale-95 transition">0</button>
+                <button onclick="deletePin()" class="pin-key bg-gray-100 hover:bg-gray-200 border-2 border-gray-200 rounded-xl py-4 text-xl font-black text-gray-500 active:scale-95 transition">←</button>
+            </div>
+
+            <p id="pin-error-msg" class="text-red-400 font-bold mt-4 hidden">ちがうみたい... 💦</p>
         </div>
     </div>
 
@@ -193,7 +291,7 @@
                 <span class="text-xl animate-twinkle">⭐</span>
                 <span id="star-count" class="text-xl">0</span>
             </div>
-            <button onclick="AppSystem.launchApp('parent_v1.js', 'ほごしゃよう')" class="text-gray-400 hover:text-gray-600 text-sm font-bold px-2 py-1 rounded transition" title="保護者用">
+            <button id="parent-btn" class="text-gray-400 hover:text-gray-600 text-sm font-bold px-2 py-1 rounded transition select-none" title="保護者用（長押しで管理者モード）">
                 👤
             </button>
         </div>
@@ -207,7 +305,7 @@
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getFirestore, collection, addDoc, serverTimestamp, doc, getDoc, query, where, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getFirestore, collection, addDoc, serverTimestamp, doc, getDoc, getDocs, query, where, onSnapshot, orderBy } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
         // Firebase設定
         const firebaseConfig = {
@@ -222,14 +320,65 @@
         const firebaseApp = initializeApp(firebaseConfig, 'main-app');
         const db = getFirestore(firebaseApp);
 
-        // グローバルに公開
+        // === セッション管理 ===
+        window.getCurrentChild = () => {
+            const stored = sessionStorage.getItem('currentChild');
+            return stored ? JSON.parse(stored) : null;
+        };
+
+        window.setCurrentChild = (child) => {
+            if (child) {
+                sessionStorage.setItem('currentChild', JSON.stringify(child));
+            } else {
+                sessionStorage.removeItem('currentChild');
+            }
+        };
+
+        // === 子供一覧を取得 ===
+        window.loadChildren = async () => {
+            try {
+                const q = query(
+                    collection(db, 'children'),
+                    where('isActive', '==', true),
+                    orderBy('createdAt', 'asc')
+                );
+                const snapshot = await getDocs(q);
+                return snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+            } catch (e) {
+                console.error('子供一覧取得エラー:', e);
+                return [];
+            }
+        };
+
+        // === 子供のPINを検証 ===
+        window.verifyChildPin = async (childId, pin) => {
+            try {
+                const docRef = doc(db, 'children', childId);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    return docSnap.data().pin === pin;
+                }
+                return false;
+            } catch (e) {
+                console.error('PIN検証エラー:', e);
+                return false;
+            }
+        };
+
+        // グローバルに公開（childId対応）
         window.logAppUsage = async (appTitle, appFile) => {
             try {
+                const currentChild = window.getCurrentChild();
                 await addDoc(collection(db, 'app_usage_logs'), {
                     appTitle,
                     appFile,
                     date: getTodayString(),
-                    timestamp: serverTimestamp()
+                    timestamp: serverTimestamp(),
+                    childId: currentChild?.id || null,
+                    childName: currentChild?.name || null
                 });
             } catch (e) {
                 console.error('使用ログ記録エラー:', e);
@@ -238,13 +387,16 @@
 
         window.logQuizResult = async (appTitle, question, isCorrect, details = {}) => {
             try {
+                const currentChild = window.getCurrentChild();
                 await addDoc(collection(db, 'quiz_logs'), {
                     appTitle,
                     question,
                     isCorrect,
                     details,
                     date: getTodayString(),
-                    timestamp: serverTimestamp()
+                    timestamp: serverTimestamp(),
+                    childId: currentChild?.id || null,
+                    childName: currentChild?.name || null
                 });
             } catch (e) {
                 console.error('クイズログ記録エラー:', e);
@@ -375,46 +527,154 @@
 
     <!-- ▼▼▼ 4. システムロジック ▼▼▼ -->
     <script>
-        // --- 設定: 合言葉 ---
-        const SECRET_WORD = "ぱぱだいすき";
-        const LOCK_KEY = "papa_app_unlocked_v1";
+        // --- 子供選択・PIN入力管理 ---
+        let selectedChild = null;
+        let enteredPin = '';
+        let childrenList = [];
 
-        // --- 日付ごとのスター管理 ---
-        const getStarKey = () => `kids_stars_${window.getTodayString ? window.getTodayString() : new Date().toISOString().split('T')[0]}`;
+        // --- 日付・子供ごとのスター管理 ---
+        const getStarKey = () => {
+            const date = window.getTodayString ? window.getTodayString() : new Date().toISOString().split('T')[0];
+            const currentChild = window.getCurrentChild ? window.getCurrentChild() : null;
+            const childId = currentChild?.id || 'guest';
+            return `kids_stars_${childId}_${date}`;
+        };
 
-        // --- ロック解除処理 ---
-        window.addEventListener('DOMContentLoaded', () => { 
-            // すでに解除済みかチェック
-            if(localStorage.getItem(LOCK_KEY) === 'true') {
-                unlockApp(); 
-            }
-            // Enterキー対応
-            document.getElementById('pass-input').addEventListener('keypress', (e)=>{
-                if(e.key==='Enter') checkPass();
-            });
+        // --- ログイン処理 ---
+        window.addEventListener('DOMContentLoaded', () => {
+            // 子供一覧を読み込み
+            loadChildrenList();
         });
 
-        function checkPass() {
-            const input = document.getElementById('pass-input');
-            const errorMsg = document.getElementById('error-msg');
-            
-            if(input.value === SECRET_WORD) {
-                localStorage.setItem(LOCK_KEY, 'true');
-                unlockApp();
-            } else {
-                errorMsg.classList.remove('hidden');
-                // 揺れるアニメーション
-                const box = input.parentElement;
-                box.classList.remove('animate-shake');
-                void box.offsetWidth; // リフロー
-                box.classList.add('animate-shake');
-                input.value = '';
-                input.focus();
+        // 子供一覧を読み込んで表示
+        async function loadChildrenList() {
+            if (window.loadChildren) {
+                childrenList = await window.loadChildren();
+            }
+            renderChildrenGrid();
+        }
+
+        // 子供一覧をグリッド表示
+        function renderChildrenGrid() {
+            const grid = document.getElementById('children-grid');
+            if (!grid) return;
+
+            if (childrenList.length === 0) {
+                grid.innerHTML = `
+                    <div class="text-gray-500 col-span-2 py-8 text-center">
+                        <div class="text-4xl mb-2">👶</div>
+                        <p class="font-bold text-sm">まだ だれも いないよ</p>
+                        <p class="text-xs mt-1 opacity-70">「ついか」ボタンで ついかしてね</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = childrenList.map(child => `
+                <div class="child-card text-center" onclick="selectChild('${child.id}')">
+                    <div class="text-4xl mb-2">${child.avatarEmoji || '👤'}</div>
+                    <p class="font-black text-gray-700">${child.name}</p>
+                </div>
+            `).join('');
+        }
+
+        // 子供を選択してPIN画面へ
+        function selectChild(childId) {
+            selectedChild = childrenList.find(c => c.id === childId);
+            if (!selectedChild) return;
+
+            // UI更新
+            document.getElementById('selected-child-avatar').textContent = selectedChild.avatarEmoji || '👤';
+            document.getElementById('selected-child-name').textContent = selectedChild.name;
+
+            // 画面切り替え
+            document.getElementById('child-select-screen').classList.add('hidden');
+            document.getElementById('pin-input-screen').classList.remove('hidden');
+
+            // PIN初期化
+            clearPin();
+        }
+
+        // 子供選択画面に戻る
+        function backToChildSelect() {
+            document.getElementById('pin-input-screen').classList.add('hidden');
+            document.getElementById('child-select-screen').classList.remove('hidden');
+            selectedChild = null;
+            clearPin();
+        }
+
+        // PIN入力
+        function enterPin(digit) {
+            if (enteredPin.length >= 4) return;
+            enteredPin += digit;
+            updatePinDots();
+
+            // 4桁入力完了
+            if (enteredPin.length === 4) {
+                verifyPin();
             }
         }
 
+        // PIN一文字削除
+        function deletePin() {
+            enteredPin = enteredPin.slice(0, -1);
+            updatePinDots();
+        }
+
+        // PINクリア
+        function clearPin() {
+            enteredPin = '';
+            updatePinDots();
+            document.getElementById('pin-error-msg')?.classList.add('hidden');
+        }
+
+        // PINドット表示更新
+        function updatePinDots() {
+            const dots = document.querySelectorAll('.pin-dot');
+            dots.forEach((dot, i) => {
+                if (i < enteredPin.length) {
+                    dot.classList.add('filled');
+                } else {
+                    dot.classList.remove('filled');
+                }
+            });
+        }
+
+        // PIN検証
+        async function verifyPin() {
+            if (!selectedChild) return;
+
+            const isValid = await window.verifyChildPin(selectedChild.id, enteredPin);
+
+            if (isValid) {
+                // ログイン成功
+                window.setCurrentChild(selectedChild);
+                unlockApp();
+            } else {
+                // ログイン失敗
+                const errorMsg = document.getElementById('pin-error-msg');
+                errorMsg.classList.remove('hidden');
+
+                // シェイクアニメーション
+                const pinScreen = document.getElementById('pin-input-screen');
+                pinScreen.classList.remove('animate-shake');
+                void pinScreen.offsetWidth;
+                pinScreen.classList.add('animate-shake');
+
+                // PINクリア
+                setTimeout(() => {
+                    clearPin();
+                }, 500);
+            }
+        }
+
+        // 子供追加のプロンプト表示
+        function showAddChildPrompt() {
+            alert('子供の追加は「ほごしゃよう」の管理者モードから行えます。\n\n保護者ボタン 👤 を3秒長押ししてください。');
+        }
+
         function unlockApp() {
-            const ls = document.getElementById('lock-screen');
+            const ls = document.getElementById('login-screen');
             ls.style.transition = "opacity 0.5s ease";
             ls.style.opacity = "0";
             // フェードアウト後にシステム起動
@@ -428,6 +688,47 @@
         window.addEventListener('messageCountUpdate', (e) => {
             AppSystem.updateMessageBadge();
         });
+
+        // 保護者ボタン長押し検知
+        let parentBtnPressTimer = null;
+        let parentBtnIsLongPress = false;
+
+        function setupParentButtonLongPress() {
+            const parentBtn = document.getElementById('parent-btn');
+            if (!parentBtn) return;
+
+            const startPress = (e) => {
+                e.preventDefault();
+                parentBtnIsLongPress = false;
+                parentBtnPressTimer = setTimeout(() => {
+                    parentBtnIsLongPress = true;
+                    // 長押し成功 - 管理者モードで起動
+                    AppSystem.launchApp('parent_v1.js', 'ほごしゃよう', { adminMode: true });
+                }, 3000); // 3秒長押し
+            };
+
+            const endPress = (e) => {
+                clearTimeout(parentBtnPressTimer);
+                if (!parentBtnIsLongPress) {
+                    // 短押し - 通常モードで起動
+                    AppSystem.launchApp('parent_v1.js', 'ほごしゃよう', { adminMode: false });
+                }
+            };
+
+            const cancelPress = () => {
+                clearTimeout(parentBtnPressTimer);
+            };
+
+            // タッチイベント
+            parentBtn.addEventListener('touchstart', startPress, { passive: false });
+            parentBtn.addEventListener('touchend', endPress);
+            parentBtn.addEventListener('touchcancel', cancelPress);
+
+            // マウスイベント
+            parentBtn.addEventListener('mousedown', startPress);
+            parentBtn.addEventListener('mouseup', endPress);
+            parentBtn.addEventListener('mouseleave', cancelPress);
+        }
 
         // --- アプリケーションシステム ---
         const AppSystem = {
@@ -492,6 +793,11 @@
             // 初期化: データ読み込み
             async init() {
                 this.updateStars();
+                this.updateCurrentChildDisplay();
+
+                // 保護者ボタンの長押し検知をセットアップ
+                setupParentButtonLongPress();
+
                 try {
                     // テーマ設定を取得して適用
                     if (window.getThemeSetting) {
@@ -652,8 +958,18 @@
                 }
             },
 
+            // 現在ログイン中の子供を表示
+            updateCurrentChildDisplay() {
+                const currentChild = window.getCurrentChild ? window.getCurrentChild() : null;
+                const parentBtn = document.getElementById('parent-btn');
+                if (parentBtn && currentChild) {
+                    parentBtn.innerHTML = `<span class="text-lg">${currentChild.avatarEmoji || '👤'}</span>`;
+                    parentBtn.title = `${currentChild.name} としてログイン中（長押しで管理者モード）`;
+                }
+            },
+
             // アプリ起動処理
-            async launchApp(filename, title) {
+            async launchApp(filename, title, options = {}) {
                 const container = document.getElementById('app-container');
                 // ローディング画面
                 container.innerHTML = `
@@ -689,7 +1005,9 @@
                         },
                         goHome: () => this.loadHome(),
                         playSound: (type) => console.log('Playing sound:', type),
-                        logQuizResult: window.logQuizResult || (() => {})
+                        logQuizResult: window.logQuizResult || (() => {}),
+                        adminMode: options.adminMode || false,
+                        currentChild: window.getCurrentChild ? window.getCurrentChild() : null
                     });
 
                 } catch(e) { 
