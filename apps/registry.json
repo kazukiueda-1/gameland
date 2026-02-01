@@ -43,5 +43,32 @@
         "file": "english_v1.js",
         "color": "pink-400",
         "category": "study"
+    },
+    {
+        "id": "math_master_01",
+        "title": "さんすうマスター",
+        "desc": "たしざん ひきざん かけざん",
+        "icon": "🔢",
+        "file": "math_v1.js",
+        "color": "blue-400",
+        "category": "study"
+    },
+    {
+        "id": "family_message_01",
+        "title": "かぞくメッセージ",
+        "desc": "パパママと おはなし",
+        "icon": "💌",
+        "file": "message_v1.js",
+        "color": "pink-400",
+        "category": "play"
+    },
+    {
+        "id": "app_request_01",
+        "title": "アプリリクエスト",
+        "desc": "ほしいアプリを おしえてね",
+        "icon": "💡",
+        "file": "request_v1.js",
+        "color": "yellow-400",
+        "category": "play"
     }
 ]
