@@ -236,9 +236,46 @@
                 </div>
             </div>
 
-            <button onclick="showAddChildPrompt()" id="add-child-btn" class="lock-btn w-full text-white font-bold py-3 rounded-full shadow-lg active:scale-95 transition text-lg hover:opacity-90">
+            <button onclick="showAddChildForm()" id="add-child-btn" class="lock-btn w-full text-white font-bold py-3 rounded-full shadow-lg active:scale-95 transition text-lg hover:opacity-90">
                 ➕ ついか
             </button>
+        </div>
+
+        <!-- 子供追加画面 -->
+        <div id="add-child-screen" class="lock-card backdrop-blur p-6 rounded-3xl shadow-2xl max-w-sm w-full text-center mx-4 border-4 relative z-10 hidden">
+            <button onclick="hideAddChildForm()" class="absolute top-4 left-4 text-gray-500 hover:text-gray-700 font-bold text-lg">
+                ← もどる
+            </button>
+
+            <div class="text-5xl mb-2 mt-4" id="new-child-avatar-preview">👧</div>
+            <h3 class="text-xl font-black text-gray-700 mb-4">あたらしい なかま</h3>
+
+            <div class="space-y-4 text-left">
+                <div>
+                    <label class="block text-sm font-bold text-gray-600 mb-1">なまえ</label>
+                    <input type="text" id="new-child-name" placeholder="ひらがなで いれてね"
+                        class="w-full border-2 rounded-xl py-2 px-3 text-lg font-bold focus:outline-none focus:border-pink-400">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-gray-600 mb-1">PIN（4けたの すうじ）</label>
+                    <input type="text" id="new-child-pin" placeholder="1234" maxlength="4" inputmode="numeric"
+                        class="w-full border-2 rounded-xl py-2 px-3 text-lg font-bold tracking-widest focus:outline-none focus:border-pink-400">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-gray-600 mb-2">アバター</label>
+                    <div class="flex flex-wrap gap-2 justify-center" id="avatar-picker">
+                        <!-- アバター選択ボタン -->
+                    </div>
+                    <input type="hidden" id="new-child-avatar" value="👧">
+                </div>
+            </div>
+
+            <button onclick="saveNewChild()" id="save-child-btn" class="lock-btn w-full text-white font-bold py-3 rounded-full shadow-lg active:scale-95 transition text-lg hover:opacity-90 mt-6">
+                ✨ ついか！
+            </button>
+            <p id="add-child-error" class="text-red-400 font-bold mt-3 hidden text-sm"></p>
         </div>
 
         <!-- PIN入力画面 -->
@@ -305,7 +342,7 @@
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getFirestore, collection, addDoc, serverTimestamp, doc, getDoc, getDocs, query, where, onSnapshot, orderBy } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getFirestore, collection, addDoc, serverTimestamp, doc, getDoc, getDocs, query, where, onSnapshot, orderBy, updateDoc, writeBatch } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
         // Firebase設定
         const firebaseConfig = {
@@ -367,6 +404,101 @@
                 return false;
             }
         };
+
+        // === 子供を追加 ===
+        window.addChild = async (name, pin, avatarEmoji) => {
+            try {
+                const docRef = await addDoc(collection(db, 'children'), {
+                    name: name,
+                    pin: pin,
+                    avatarEmoji: avatarEmoji,
+                    isActive: true,
+                    createdAt: serverTimestamp()
+                });
+                return docRef.id;
+            } catch (e) {
+                console.error('子供追加エラー:', e);
+                return null;
+            }
+        };
+
+        // === 初回起動時に「かりん」を自動作成 & 既存ログをマイグレーション ===
+        window.ensureDefaultChild = async () => {
+            try {
+                // 子供一覧を取得
+                const children = await window.loadChildren();
+
+                // 既に子供がいれば何もしない
+                if (children.length > 0) {
+                    return children;
+                }
+
+                // 「かりん」アカウントを作成
+                console.log('初回起動: かりんアカウントを作成中...');
+                const karinId = await window.addChild('かりん', '1234', '👧');
+
+                if (karinId) {
+                    // 既存ログをかりんに紐づけ（バッチ処理）
+                    await migrateOldLogs(karinId, 'かりん');
+                    console.log('かりんアカウント作成完了');
+                }
+
+                // 更新された子供一覧を返す
+                return await window.loadChildren();
+            } catch (e) {
+                console.error('デフォルト子供作成エラー:', e);
+                return [];
+            }
+        };
+
+        // 既存ログのマイグレーション
+        async function migrateOldLogs(childId, childName) {
+            try {
+                // app_usage_logs のマイグレーション
+                const usageQuery = query(collection(db, 'app_usage_logs'));
+                const usageSnapshot = await getDocs(usageQuery);
+
+                const batch1 = writeBatch(db);
+                let count1 = 0;
+                usageSnapshot.docs.forEach(docSnap => {
+                    const data = docSnap.data();
+                    if (!data.childId) {
+                        batch1.update(doc(db, 'app_usage_logs', docSnap.id), {
+                            childId: childId,
+                            childName: childName
+                        });
+                        count1++;
+                    }
+                });
+                if (count1 > 0) {
+                    await batch1.commit();
+                    console.log(`app_usage_logs: ${count1}件をマイグレーション`);
+                }
+
+                // quiz_logs のマイグレーション
+                const quizQuery = query(collection(db, 'quiz_logs'));
+                const quizSnapshot = await getDocs(quizQuery);
+
+                const batch2 = writeBatch(db);
+                let count2 = 0;
+                quizSnapshot.docs.forEach(docSnap => {
+                    const data = docSnap.data();
+                    if (!data.childId) {
+                        batch2.update(doc(db, 'quiz_logs', docSnap.id), {
+                            childId: childId,
+                            childName: childName
+                        });
+                        count2++;
+                    }
+                });
+                if (count2 > 0) {
+                    await batch2.commit();
+                    console.log(`quiz_logs: ${count2}件をマイグレーション`);
+                }
+            } catch (e) {
+                console.error('ログマイグレーションエラー:', e);
+            }
+        }
 
         // グローバルに公開（childId対応）
         window.logAppUsage = async (appTitle, appFile) => {
@@ -546,12 +678,15 @@
             loadChildrenList();
         });
 
-        // 子供一覧を読み込んで表示
+        // 子供一覧を読み込んで表示（初回起動時は「かりん」を自動作成）
         async function loadChildrenList() {
-            if (window.loadChildren) {
+            if (window.ensureDefaultChild) {
+                childrenList = await window.ensureDefaultChild();
+            } else if (window.loadChildren) {
                 childrenList = await window.loadChildren();
             }
             renderChildrenGrid();
+            initAvatarPicker();
         }
 
         // 子供一覧をグリッド表示
@@ -668,9 +803,104 @@
             }
         }
 
-        // 子供追加のプロンプト表示
-        function showAddChildPrompt() {
-            alert('子供の追加は「ほごしゃよう」の管理者モードから行えます。\n\n保護者ボタン 👤 を3秒長押ししてください。');
+        // アバター選択肢
+        const avatarEmojis = ['👧', '👦', '👶', '🧒', '👸', '🤴', '🦸', '🦹', '🐱', '🐶', '🐰', '🦊', '🐼', '🐨', '🦁', '🐯'];
+        let selectedAvatar = '👧';
+
+        // アバター選択UIを初期化
+        function initAvatarPicker() {
+            const picker = document.getElementById('avatar-picker');
+            if (!picker) return;
+
+            picker.innerHTML = avatarEmojis.map(emoji => `
+                <button type="button" onclick="selectAvatar('${emoji}')"
+                    class="avatar-pick-btn w-10 h-10 text-2xl rounded-lg border-2 transition ${emoji === selectedAvatar ? 'border-pink-400 bg-pink-100' : 'border-gray-200 hover:border-pink-200'}">
+                    ${emoji}
+                </button>
+            `).join('');
+        }
+
+        // アバター選択
+        function selectAvatar(emoji) {
+            selectedAvatar = emoji;
+            document.getElementById('new-child-avatar').value = emoji;
+            document.getElementById('new-child-avatar-preview').textContent = emoji;
+
+            // 選択状態を更新
+            document.querySelectorAll('.avatar-pick-btn').forEach(btn => {
+                if (btn.textContent.trim() === emoji) {
+                    btn.classList.remove('border-gray-200');
+                    btn.classList.add('border-pink-400', 'bg-pink-100');
+                } else {
+                    btn.classList.remove('border-pink-400', 'bg-pink-100');
+                    btn.classList.add('border-gray-200');
+                }
+            });
+        }
+
+        // 子供追加フォームを表示
+        function showAddChildForm() {
+            document.getElementById('child-select-screen').classList.add('hidden');
+            document.getElementById('add-child-screen').classList.remove('hidden');
+
+            // フォームをリセット
+            document.getElementById('new-child-name').value = '';
+            document.getElementById('new-child-pin').value = '';
+            selectedAvatar = '👧';
+            document.getElementById('new-child-avatar').value = '👧';
+            document.getElementById('new-child-avatar-preview').textContent = '👧';
+            document.getElementById('add-child-error').classList.add('hidden');
+            initAvatarPicker();
+        }
+
+        // 子供追加フォームを非表示
+        function hideAddChildForm() {
+            document.getElementById('add-child-screen').classList.add('hidden');
+            document.getElementById('child-select-screen').classList.remove('hidden');
+        }
+
+        // 新しい子供を保存
+        async function saveNewChild() {
+            const name = document.getElementById('new-child-name').value.trim();
+            const pin = document.getElementById('new-child-pin').value.trim();
+            const avatar = document.getElementById('new-child-avatar').value;
+            const errorEl = document.getElementById('add-child-error');
+            const saveBtn = document.getElementById('save-child-btn');
+
+            // バリデーション
+            if (!name) {
+                errorEl.textContent = 'なまえを いれてね';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+            if (!pin || pin.length !== 4 || !/^\d{4}$/.test(pin)) {
+                errorEl.textContent = 'PINは 4けたの すうじで いれてね';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            // 保存中
+            saveBtn.textContent = 'ついかちゅう...';
+            saveBtn.disabled = true;
+
+            try {
+                const newId = await window.addChild(name, pin, avatar);
+                if (newId) {
+                    // 成功 - 子供一覧を再読み込みして選択画面に戻る
+                    childrenList = await window.loadChildren();
+                    renderChildrenGrid();
+                    hideAddChildForm();
+                } else {
+                    errorEl.textContent = 'ついかできませんでした';
+                    errorEl.classList.remove('hidden');
+                }
+            } catch (e) {
+                errorEl.textContent = 'エラーがおきました';
+                errorEl.classList.remove('hidden');
+            }
+
+            saveBtn.textContent = '✨ ついか！';
+            saveBtn.disabled = false;
         }
 
         function unlockApp() {
