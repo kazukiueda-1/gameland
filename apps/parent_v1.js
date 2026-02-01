@@ -203,15 +203,17 @@ export default {
         // 子供一覧を読み込み
         const loadChildren = async () => {
             try {
-                const q = query(
-                    collection(db, 'children'),
-                    orderBy('createdAt', 'asc')
-                );
-                const snapshot = await getDocs(q);
+                const snapshot = await getDocs(collection(db, 'children'));
                 children = snapshot.docs.map(doc => ({
                     id: doc.id,
                     ...doc.data()
                 }));
+                // createdAtでソート
+                children.sort((a, b) => {
+                    const timeA = a.createdAt?.toMillis?.() || 0;
+                    const timeB = b.createdAt?.toMillis?.() || 0;
+                    return timeA - timeB;
+                });
             } catch (e) {
                 console.error('子供一覧取得エラー:', e);
                 children = [];
