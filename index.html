@@ -655,6 +655,11 @@
                 window.messageUnsubscribe = null;
             }
         };
+
+        // Firebase初期化完了後にログイン画面を初期化
+        if (window.initLoginScreen) {
+            window.initLoginScreen();
+        }
     </script>
 
     <!-- ▼▼▼ 4. システムロジック ▼▼▼ -->
@@ -673,10 +678,10 @@
         };
 
         // --- ログイン処理 ---
-        window.addEventListener('DOMContentLoaded', () => {
-            // 子供一覧を読み込み
+        // モジュールスクリプトから呼び出されるのを待つ
+        window.initLoginScreen = () => {
             loadChildrenList();
-        });
+        };
 
         // 子供一覧を読み込んで表示（初回起動時は「かりん」を自動作成）
         async function loadChildrenList() {
