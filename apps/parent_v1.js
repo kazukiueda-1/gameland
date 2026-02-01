@@ -579,7 +579,7 @@ export default {
                                     現在 ${visibleAppIds.length} / ${allApps.length} 個のアプリが表示されています
                                 </p>
                             </div>
-                        ` : `
+                        ` : viewMode === 'theme' ? `
                             <!-- テーマ設定 -->
                             <div class="space-y-4">
                                 <div class="bg-purple-50 rounded-xl p-4 border border-purple-200">
@@ -755,7 +755,7 @@ export default {
                                     現在 ${activeChildren.length} 人のアカウントがあります
                                 </p>
                             </div>
-                        `}
+                        ` : ``}
                     </div>
                 </div>
             `;
