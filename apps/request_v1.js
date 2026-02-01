@@ -3,41 +3,43 @@
  * 子供がほしいアプリのアイデアを入力するアプリ
  */
 
-import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-import {
-    getFirestore,
-    collection,
-    addDoc,
-    onSnapshot,
-    query,
-    orderBy,
-    serverTimestamp,
-    deleteDoc,
-    doc,
-    updateDoc
-} from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-
-// Firebase設定
-const firebaseConfig = {
-    apiKey: "AIzaSyCcM38mjkSVXJDFJaxqZ8PXCuLr-bwNfsU",
-    authDomain: "family-app-1006.firebaseapp.com",
-    projectId: "family-app-1006",
-    storageBucket: "family-app-1006.firebasestorage.app",
-    messagingSenderId: "516894951381",
-    appId: "1:516894951381:web:76d0b88cb8c406d6791f5c"
-};
-
-// 既存のアプリがあれば使用、なければ新規作成
-const appName = 'request-app';
-const app = getApps().find(a => a.name === appName) || initializeApp(firebaseConfig, appName);
-const db = getFirestore(app);
-
 export default {
     launch(container, system) {
+        let db = null;
         let requests = [];
         let unsubscribe = null;
         let inputText = '';
         let showForm = false;
+
+        const initFirebase = async () => {
+            try {
+                const { initializeApp, getApps } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
+                const { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, deleteDoc, doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+
+                const firebaseConfig = {
+                    apiKey: "AIzaSyCcM38mjkSVXJDFJaxqZ8PXCuLr-bwNfsU",
+                    authDomain: "family-app-1006.firebaseapp.com",
+                    projectId: "family-app-1006",
+                    storageBucket: "family-app-1006.firebasestorage.app",
+                    messagingSenderId: "516894951381",
+                    appId: "1:516894951381:web:76d0b88cb8c406d6791f5c"
+                };
+
+                const appName = 'request-app';
+                let app = getApps().find(a => a.name === appName);
+                if (!app) {
+                    app = initializeApp(firebaseConfig, appName);
+                }
+                db = getFirestore(app);
+
+                window._reqFirestore = { collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, deleteDoc, doc, updateDoc };
+
+                return true;
+            } catch (e) {
+                console.error('Firebase初期化エラー:', e);
+                return false;
+            }
+        };
 
         // リクエスト送信
         const submitRequest = async () => {
@@ -45,11 +47,13 @@ export default {
                 alert('リクエストを いれてね');
                 return;
             }
+            if (!db || !window._reqFirestore) return;
+            const { collection, addDoc, serverTimestamp } = window._reqFirestore;
 
             try {
                 await addDoc(collection(db, 'app_requests'), {
                     content: inputText.trim(),
-                    status: 'new', // 'new', 'reading', 'done'
+                    status: 'new',
                     createdAt: serverTimestamp()
                 });
                 inputText = '';
@@ -63,21 +67,14 @@ export default {
 
         // リクエスト削除
         const deleteRequest = async (id) => {
-            if (confirm('このリクエストを けす？')) {
-                try {
-                    await deleteDoc(doc(db, 'app_requests', id));
-                } catch (e) {
-                    console.error('削除エラー:', e);
-                }
-            }
-        };
+            if (!confirm('このリクエストを けす？')) return;
+            if (!db || !window._reqFirestore) return;
+            const { deleteDoc, doc } = window._reqFirestore;
 
-        // ステータス更新（保護者用）
-        const updateStatus = async (id, status) => {
             try {
-                await updateDoc(doc(db, 'app_requests', id), { status });
+                await deleteDoc(doc(db, 'app_requests', id));
             } catch (e) {
-                console.error('ステータス更新エラー:', e);
+                console.error('削除エラー:', e);
             }
         };
 
@@ -102,34 +99,21 @@ export default {
         const render = () => {
             container.innerHTML = `
                 <style>
-                    .request-card {
-                        transition: all 0.3s ease;
-                    }
-                    .request-card:hover {
-                        transform: translateY(-2px);
-                    }
+                    .request-card { transition: all 0.3s ease; }
+                    .request-card:hover { transform: translateY(-2px); }
                 </style>
 
                 <div class="h-full flex flex-col bg-gradient-to-b from-yellow-50 to-orange-50">
-                    <!-- ヘッダー -->
                     <div class="bg-white shadow px-3 py-2 flex justify-between items-center">
-                        <button id="btn-back" class="text-gray-500 font-bold text-sm">
-                            ← もどる
-                        </button>
-                        <h1 class="text-lg font-black text-orange-500 flex items-center gap-2">
-                            💡 アプリリクエスト
-                        </h1>
+                        <button id="btn-back" class="text-gray-500 font-bold text-sm">← もどる</button>
+                        <h1 class="text-lg font-black text-orange-500 flex items-center gap-2">💡 アプリリクエスト</h1>
                         <div class="w-14"></div>
                     </div>
 
-                    <!-- 説明 -->
                     <div class="bg-gradient-to-r from-yellow-100 to-orange-100 px-4 py-3 border-b">
-                        <p class="text-orange-700 font-bold text-sm text-center">
-                            🌟 こんなアプリが ほしい！を おしえてね 🌟
-                        </p>
+                        <p class="text-orange-700 font-bold text-sm text-center">🌟 こんなアプリが ほしい！を おしえてね 🌟</p>
                     </div>
 
-                    <!-- リクエスト一覧 -->
                     <div class="flex-1 overflow-y-auto p-3">
                         ${requests.length === 0 ? `
                             <div class="h-full flex flex-col items-center justify-center text-gray-400">
@@ -144,19 +128,11 @@ export default {
                                     return `
                                         <div class="request-card bg-white rounded-2xl p-4 shadow-md border-2 border-orange-100">
                                             <div class="flex justify-between items-start mb-2">
-                                                <span class="${status.color} text-xs font-bold px-3 py-1 rounded-full">
-                                                    ${status.emoji} ${status.text}
-                                                </span>
-                                                <button class="delete-btn text-gray-300 hover:text-red-400 text-lg" data-id="${req.id}">
-                                                    ✕
-                                                </button>
+                                                <span class="${status.color} text-xs font-bold px-3 py-1 rounded-full">${status.emoji} ${status.text}</span>
+                                                <button class="delete-btn text-gray-300 hover:text-red-400 text-lg" data-id="${req.id}">✕</button>
                                             </div>
-                                            <p class="text-gray-700 font-bold text-lg leading-relaxed mb-2">
-                                                ${req.content}
-                                            </p>
-                                            <p class="text-gray-400 text-xs">
-                                                📅 ${formatDate(req.createdAt)}
-                                            </p>
+                                            <p class="text-gray-700 font-bold text-lg leading-relaxed mb-2">${req.content}</p>
+                                            <p class="text-gray-400 text-xs">📅 ${formatDate(req.createdAt)}</p>
                                         </div>
                                     `;
                                 }).join('')}
@@ -164,7 +140,6 @@ export default {
                         `}
                     </div>
 
-                    <!-- 入力フォーム -->
                     ${showForm ? `
                         <div class="bg-white border-t p-4">
                             <div class="mb-3">
@@ -172,19 +147,14 @@ export default {
                                     class="w-full h-32 bg-gray-50 border-2 border-orange-200 rounded-xl px-4 py-3 font-bold focus:outline-none focus:border-orange-400 text-lg resize-none">${inputText}</textarea>
                             </div>
                             <div class="flex gap-3">
-                                <button id="btn-cancel" class="flex-1 bg-gray-200 text-gray-600 font-bold py-3 rounded-xl">
-                                    やめる
-                                </button>
-                                <button id="btn-submit" class="flex-1 bg-gradient-to-r from-orange-400 to-red-400 text-white font-bold py-3 rounded-xl shadow-lg">
-                                    📨 おくる！
-                                </button>
+                                <button id="btn-cancel" class="flex-1 bg-gray-200 text-gray-600 font-bold py-3 rounded-xl">やめる</button>
+                                <button id="btn-submit" class="flex-1 bg-gradient-to-r from-orange-400 to-red-400 text-white font-bold py-3 rounded-xl shadow-lg">📨 おくる！</button>
                             </div>
                         </div>
                     ` : `
                         <div class="p-4">
                             <button id="btn-new" class="w-full bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-500 hover:to-orange-500 text-white font-black text-xl py-4 rounded-2xl shadow-lg active:scale-95 transition flex items-center justify-center gap-3">
-                                <span class="text-2xl">✨</span>
-                                あたらしい リクエスト
+                                <span class="text-2xl">✨</span> あたらしい リクエスト
                             </button>
                         </div>
                     `}
@@ -195,48 +165,43 @@ export default {
         };
 
         const setupListeners = () => {
-            container.querySelector('#btn-back')?.onclick = () => system.goHome();
+            container.querySelector('#btn-back')?.addEventListener('click', () => system.goHome());
 
-            // 新規ボタン
-            container.querySelector('#btn-new')?.onclick = () => {
+            container.querySelector('#btn-new')?.addEventListener('click', () => {
                 showForm = true;
                 render();
                 container.querySelector('#input-request')?.focus();
-            };
+            });
 
-            // キャンセル
-            container.querySelector('#btn-cancel')?.onclick = () => {
+            container.querySelector('#btn-cancel')?.addEventListener('click', () => {
                 showForm = false;
                 inputText = '';
                 render();
-            };
+            });
 
-            // テキスト入力
             container.querySelector('#input-request')?.addEventListener('input', (e) => {
                 inputText = e.target.value;
             });
 
-            // 送信
-            container.querySelector('#btn-submit')?.onclick = submitRequest;
+            container.querySelector('#btn-submit')?.addEventListener('click', submitRequest);
 
-            // 削除
             container.querySelectorAll('.delete-btn').forEach(btn => {
-                btn.onclick = () => deleteRequest(btn.dataset.id);
+                btn.addEventListener('click', () => deleteRequest(btn.dataset.id));
             });
         };
 
         // リアルタイム監視
         const startListening = () => {
+            if (!db || !window._reqFirestore) return;
+            const { collection, query, orderBy, onSnapshot } = window._reqFirestore;
+
             const q = query(
                 collection(db, 'app_requests'),
                 orderBy('createdAt', 'desc')
             );
 
             unsubscribe = onSnapshot(q, (snapshot) => {
-                requests = snapshot.docs.map(d => ({
-                    id: d.id,
-                    ...d.data()
-                }));
+                requests = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
                 render();
             }, (error) => {
                 console.error('リクエスト監視エラー:', error);
@@ -244,10 +209,25 @@ export default {
         };
 
         // 初期化
-        render();
-        startListening();
+        const init = async () => {
+            render();
+            const success = await initFirebase();
+            if (success) {
+                startListening();
+            } else {
+                container.innerHTML = `
+                    <div class="h-full flex flex-col items-center justify-center text-gray-500 p-4">
+                        <div class="text-5xl mb-4">😢</div>
+                        <p class="font-bold">つながらないよ</p>
+                        <button id="btn-back-error" class="mt-4 bg-orange-400 text-white font-bold py-2 px-6 rounded-full">もどる</button>
+                    </div>
+                `;
+                container.querySelector('#btn-back-error')?.addEventListener('click', () => system.goHome());
+            }
+        };
 
-        // クリーンアップ
+        init();
+
         return () => {
             if (unsubscribe) unsubscribe();
         };

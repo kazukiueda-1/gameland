@@ -3,79 +3,59 @@
  * 子供と親がテキスト・ボイスメッセージをやり取りするアプリ
  */
 
-import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-import {
-    getFirestore,
-    collection,
-    addDoc,
-    onSnapshot,
-    query,
-    orderBy,
-    serverTimestamp,
-    doc,
-    updateDoc,
-    where,
-    getDocs
-} from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-
-// Firebase設定
-const firebaseConfig = {
-    apiKey: "AIzaSyCcM38mjkSVXJDFJaxqZ8PXCuLr-bwNfsU",
-    authDomain: "family-app-1006.firebaseapp.com",
-    projectId: "family-app-1006",
-    storageBucket: "family-app-1006.firebasestorage.app",
-    messagingSenderId: "516894951381",
-    appId: "1:516894951381:web:76d0b88cb8c406d6791f5c"
-};
-
-// 既存のアプリがあれば使用、なければ新規作成
-const appName = 'message-app';
-const app = getApps().find(a => a.name === appName) || initializeApp(firebaseConfig, appName);
-const db = getFirestore(app);
-
 export default {
     launch(container, system) {
+        // Firebase初期化（launch内で遅延初期化）
+        let db = null;
         let messages = [];
         let unsubscribe = null;
         let inputText = '';
         let isRecording = false;
         let mediaRecorder = null;
         let audioChunks = [];
-        let userType = 'child'; // 'child' or 'parent'
+        let userType = 'child';
 
-        // ユーザータイプを判定（保護者モードかどうか）
-        const isParentMode = () => {
-            return window.location.hash === '#parent' || sessionStorage.getItem('parentMode') === 'true';
-        };
-
-        // 初期化時にユーザータイプを設定
-        userType = isParentMode() ? 'parent' : 'child';
-
-        // 未読カウントを更新（グローバル通知用）
-        const updateUnreadCount = async () => {
+        const initFirebase = async () => {
             try {
-                const q = query(
-                    collection(db, 'family_messages'),
-                    where('to', '==', userType),
-                    where('read', '==', false)
-                );
-                const snapshot = await getDocs(q);
-                const count = snapshot.size;
+                const { initializeApp, getApps } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
+                const { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, doc, updateDoc, where, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
 
-                // グローバルな通知カウント更新イベントを発火
-                window.dispatchEvent(new CustomEvent('messageNotification', {
-                    detail: { count, userType }
-                }));
+                const firebaseConfig = {
+                    apiKey: "AIzaSyCcM38mjkSVXJDFJaxqZ8PXCuLr-bwNfsU",
+                    authDomain: "family-app-1006.firebaseapp.com",
+                    projectId: "family-app-1006",
+                    storageBucket: "family-app-1006.firebasestorage.app",
+                    messagingSenderId: "516894951381",
+                    appId: "1:516894951381:web:76d0b88cb8c406d6791f5c"
+                };
 
-                return count;
+                const appName = 'message-app';
+                let app = getApps().find(a => a.name === appName);
+                if (!app) {
+                    app = initializeApp(firebaseConfig, appName);
+                }
+                db = getFirestore(app);
+
+                // Firestoreの関数をグローバルに保存
+                window._msgFirestore = { collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, doc, updateDoc, where, getDocs };
+
+                return true;
             } catch (e) {
-                console.error('未読カウント取得エラー:', e);
-                return 0;
+                console.error('Firebase初期化エラー:', e);
+                return false;
             }
         };
 
+        // ユーザータイプを判定
+        const isParentMode = () => {
+            return window.location.hash === '#parent' || sessionStorage.getItem('parentMode') === 'true';
+        };
+        userType = isParentMode() ? 'parent' : 'child';
+
         // メッセージを既読にする
         const markAsRead = async () => {
+            if (!db || !window._msgFirestore) return;
+            const { collection, query, where, getDocs, doc, updateDoc } = window._msgFirestore;
             try {
                 const q = query(
                     collection(db, 'family_messages'),
@@ -87,7 +67,6 @@ export default {
                     updateDoc(doc(db, 'family_messages', d.id), { read: true })
                 );
                 await Promise.all(updates);
-                updateUnreadCount();
             } catch (e) {
                 console.error('既読更新エラー:', e);
             }
@@ -95,11 +74,12 @@ export default {
 
         // メッセージ送信
         const sendMessage = async (type, content) => {
-            if (!content) return;
+            if (!content || !db || !window._msgFirestore) return;
+            const { collection, addDoc, serverTimestamp } = window._msgFirestore;
 
             try {
                 await addDoc(collection(db, 'family_messages'), {
-                    type: type, // 'text' or 'voice'
+                    type: type,
                     content: content,
                     from: userType,
                     to: userType === 'child' ? 'parent' : 'child',
@@ -129,12 +109,9 @@ export default {
                     const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
                     const reader = new FileReader();
                     reader.onloadend = () => {
-                        const base64Audio = reader.result;
-                        sendMessage('voice', base64Audio);
+                        sendMessage('voice', reader.result);
                     };
                     reader.readAsDataURL(audioBlob);
-
-                    // ストリームを停止
                     stream.getTracks().forEach(track => track.stop());
                 };
 
@@ -168,7 +145,6 @@ export default {
             const d = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
             const now = new Date();
             const isToday = d.toDateString() === now.toDateString();
-
             if (isToday) {
                 return `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
             } else {
@@ -183,43 +159,22 @@ export default {
 
             container.innerHTML = `
                 <style>
-                    .message-bubble {
-                        max-width: 80%;
-                        word-break: break-word;
-                    }
-                    .message-from-me {
-                        background: linear-gradient(135deg, #FFB6C1, #DDA0DD);
-                        margin-left: auto;
-                        border-radius: 20px 20px 4px 20px;
-                    }
-                    .message-from-other {
-                        background: white;
-                        margin-right: auto;
-                        border-radius: 20px 20px 20px 4px;
-                        border: 2px solid #E5E7EB;
-                    }
-                    .voice-btn {
-                        animation: ${isRecording ? 'pulse 1s infinite' : 'none'};
-                    }
-                    @keyframes pulse {
-                        0%, 100% { transform: scale(1); }
-                        50% { transform: scale(1.1); }
-                    }
+                    .message-bubble { max-width: 80%; word-break: break-word; }
+                    .message-from-me { background: linear-gradient(135deg, #FFB6C1, #DDA0DD); margin-left: auto; border-radius: 20px 20px 4px 20px; }
+                    .message-from-other { background: white; margin-right: auto; border-radius: 20px 20px 20px 4px; border: 2px solid #E5E7EB; }
+                    .voice-btn { animation: ${isRecording ? 'pulse 1s infinite' : 'none'}; }
+                    @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
                 </style>
 
                 <div class="h-full flex flex-col bg-gradient-to-b from-pink-50 to-purple-50">
-                    <!-- ヘッダー -->
                     <div class="bg-white shadow px-3 py-2 flex justify-between items-center">
-                        <button id="btn-back" class="text-gray-500 font-bold text-sm">
-                            ← もどる
-                        </button>
+                        <button id="btn-back" class="text-gray-500 font-bold text-sm">← もどる</button>
                         <h1 class="text-lg font-black text-pink-500 flex items-center gap-2">
                             💌 ${userType === 'child' ? 'パパママへ' : 'こどもへ'}
                         </h1>
                         <div class="text-xs text-gray-400 font-bold">${fromLabel}</div>
                     </div>
 
-                    <!-- メッセージ一覧 -->
                     <div id="message-list" class="flex-1 overflow-y-auto p-3 space-y-3">
                         ${messages.length === 0 ? `
                             <div class="h-full flex flex-col items-center justify-center text-gray-400">
@@ -232,12 +187,9 @@ export default {
                             return `
                                 <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}">
                                     <div class="message-bubble ${isMe ? 'message-from-me text-white' : 'message-from-other text-gray-700'} px-4 py-3 shadow-sm">
-                                        ${msg.type === 'text' ? `
-                                            <p class="font-bold">${msg.content}</p>
-                                        ` : `
+                                        ${msg.type === 'text' ? `<p class="font-bold">${msg.content}</p>` : `
                                             <button class="play-audio flex items-center gap-2 font-bold" data-audio="${msg.content}">
-                                                <span class="text-2xl">🔊</span>
-                                                <span>ボイスメッセージ</span>
+                                                <span class="text-2xl">🔊</span><span>ボイスメッセージ</span>
                                             </button>
                                         `}
                                     </div>
@@ -249,15 +201,11 @@ export default {
                         }).join('')}
                     </div>
 
-                    <!-- 入力エリア -->
                     <div class="bg-white border-t p-3">
                         <div class="flex gap-2 items-end">
-                            <!-- 音声ボタン -->
                             <button id="btn-voice" class="voice-btn flex-shrink-0 w-14 h-14 rounded-full ${isRecording ? 'bg-red-500' : 'bg-gradient-to-r from-purple-400 to-pink-400'} text-white text-2xl shadow-lg active:scale-95 transition flex items-center justify-center">
                                 ${isRecording ? '⏹️' : '🎤'}
                             </button>
-
-                            <!-- テキスト入力 -->
                             <div class="flex-1 flex gap-2">
                                 <input type="text" id="input-message" value="${inputText}" placeholder="メッセージを いれてね"
                                     class="flex-1 bg-gray-100 border-2 border-gray-200 rounded-full px-4 py-3 font-bold focus:outline-none focus:border-pink-300 text-lg">
@@ -266,12 +214,7 @@ export default {
                                 </button>
                             </div>
                         </div>
-
-                        ${isRecording ? `
-                            <div class="mt-2 text-center">
-                                <p class="text-red-500 font-bold animate-pulse">🎙️ ろくおん中... ボタンを おして おわる</p>
-                            </div>
-                        ` : ''}
+                        ${isRecording ? `<div class="mt-2 text-center"><p class="text-red-500 font-bold animate-pulse">🎙️ ろくおん中... ボタンを おして おわる</p></div>` : ''}
                     </div>
                 </div>
             `;
@@ -282,71 +225,51 @@ export default {
 
         const scrollToBottom = () => {
             const list = container.querySelector('#message-list');
-            if (list) {
-                list.scrollTop = list.scrollHeight;
-            }
+            if (list) list.scrollTop = list.scrollHeight;
         };
 
         const setupListeners = () => {
-            container.querySelector('#btn-back')?.onclick = () => system.goHome();
+            container.querySelector('#btn-back')?.addEventListener('click', () => system.goHome());
 
-            // テキスト入力
             const inputEl = container.querySelector('#input-message');
             inputEl?.addEventListener('input', (e) => {
                 inputText = e.target.value;
                 const sendBtn = container.querySelector('#btn-send');
                 if (sendBtn) {
-                    if (inputText) {
-                        sendBtn.classList.remove('opacity-50');
-                    } else {
-                        sendBtn.classList.add('opacity-50');
-                    }
+                    sendBtn.classList.toggle('opacity-50', !inputText);
                 }
             });
 
-            // 送信ボタン
-            container.querySelector('#btn-send')?.onclick = () => {
-                if (inputText.trim()) {
-                    sendMessage('text', inputText.trim());
-                }
-            };
+            container.querySelector('#btn-send')?.addEventListener('click', () => {
+                if (inputText.trim()) sendMessage('text', inputText.trim());
+            });
 
-            // Enterキーで送信
             inputEl?.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter' && inputText.trim()) {
-                    sendMessage('text', inputText.trim());
-                }
+                if (e.key === 'Enter' && inputText.trim()) sendMessage('text', inputText.trim());
             });
 
-            // 音声ボタン
-            container.querySelector('#btn-voice')?.onclick = () => {
-                if (isRecording) {
-                    stopRecording();
-                } else {
-                    startRecording();
-                }
-            };
+            container.querySelector('#btn-voice')?.addEventListener('click', () => {
+                if (isRecording) stopRecording();
+                else startRecording();
+            });
 
-            // 音声再生
             container.querySelectorAll('.play-audio').forEach(btn => {
-                btn.onclick = () => {
-                    playAudio(btn.dataset.audio);
-                };
+                btn.addEventListener('click', () => playAudio(btn.dataset.audio));
             });
         };
 
         // リアルタイム監視
         const startListening = () => {
+            if (!db || !window._msgFirestore) return;
+            const { collection, query, orderBy, onSnapshot } = window._msgFirestore;
+
             const q = query(
                 collection(db, 'family_messages'),
                 orderBy('timestamp', 'asc')
             );
 
             unsubscribe = onSnapshot(q, (snapshot) => {
-                messages = snapshot.docs.map(d => ({
-                    id: d.id,
-                    ...d.data()
-                }));
+                messages = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
                 render();
                 markAsRead();
             }, (error) => {
@@ -355,16 +278,29 @@ export default {
         };
 
         // 初期化
-        render();
-        startListening();
-        markAsRead();
+        const init = async () => {
+            render(); // まず画面を表示
+            const success = await initFirebase();
+            if (success) {
+                startListening();
+                markAsRead();
+            } else {
+                container.innerHTML = `
+                    <div class="h-full flex flex-col items-center justify-center text-gray-500 p-4">
+                        <div class="text-5xl mb-4">😢</div>
+                        <p class="font-bold">つながらないよ</p>
+                        <button id="btn-back-error" class="mt-4 bg-pink-400 text-white font-bold py-2 px-6 rounded-full">もどる</button>
+                    </div>
+                `;
+                container.querySelector('#btn-back-error')?.addEventListener('click', () => system.goHome());
+            }
+        };
 
-        // クリーンアップ
+        init();
+
         return () => {
             if (unsubscribe) unsubscribe();
-            if (mediaRecorder && isRecording) {
-                mediaRecorder.stop();
-            }
+            if (mediaRecorder && isRecording) mediaRecorder.stop();
         };
     }
 };
