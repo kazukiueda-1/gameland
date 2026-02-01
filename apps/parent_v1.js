@@ -163,34 +163,41 @@ export default {
             render();
         };
 
-        // テーマ設定を読み込み
+        // テーマ設定を読み込み（子供ごと）
         const loadThemeSetting = async () => {
             try {
-                const docRef = doc(db, 'settings', 'theme');
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    currentTheme = docSnap.data().theme || 'cute';
-                } else {
-                    currentTheme = 'cute';
+                const childId = system.currentChild?.id;
+                if (childId) {
+                    const childDocRef = doc(db, 'children', childId);
+                    const childDocSnap = await getDoc(childDocRef);
+                    if (childDocSnap.exists() && childDocSnap.data().theme) {
+                        currentTheme = childDocSnap.data().theme;
+                        return;
+                    }
                 }
+                currentTheme = 'cute';
             } catch (e) {
                 console.error('テーマ設定取得エラー:', e);
                 currentTheme = 'cute';
             }
         };
 
-        // テーマ設定を保存
+        // テーマ設定を保存（子供ごと）
         const saveThemeSetting = async (theme) => {
+            const childId = system.currentChild?.id;
+            if (!childId) {
+                alert('ログイン中の子供がいません');
+                return;
+            }
+
             isSaving = true;
             render();
             try {
-                const docRef = doc(db, 'settings', 'theme');
-                await setDoc(docRef, {
-                    theme: theme,
-                    updatedAt: new Date()
-                });
+                // 子供ドキュメントにテーマを保存
+                const childDocRef = doc(db, 'children', childId);
+                await updateDoc(childDocRef, { theme: theme });
                 currentTheme = theme;
-                alert('テーマを変更しました！\nトップページに戻ると反映されます。');
+                alert(`${system.currentChild.name}のテーマを変更しました！\nトップページに戻ると反映されます。`);
             } catch (e) {
                 console.error('テーマ設定保存エラー:', e);
                 alert('保存に失敗しました');
@@ -597,8 +604,8 @@ export default {
                             <div class="space-y-4">
                                 <div class="bg-purple-50 rounded-xl p-4 border border-purple-200">
                                     <p class="text-purple-700 font-bold text-sm">
-                                        🎨 トップページの背景テーマを選択できます。<br>
-                                        お子さまの好みに合わせてカスタマイズしましょう。
+                                        🎨 <strong>${system.currentChild?.name || 'ゲスト'}</strong>のテーマを選択できます。<br>
+                                        アカウントごとに別のテーマを設定できます。
                                     </p>
                                 </div>
 

@@ -578,18 +578,42 @@
             }
         };
 
-        // テーマ設定を取得
-        window.getThemeSetting = async () => {
+        // テーマ設定を取得（子供ごと）
+        window.getThemeSetting = async (childId = null) => {
             try {
-                const docRef = doc(db, 'settings', 'theme');
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    return docSnap.data().theme || 'cute';
+                // childIdが指定されていない場合、現在ログイン中の子供から取得
+                const targetChildId = childId || window.getCurrentChild()?.id;
+
+                if (targetChildId) {
+                    // 子供ドキュメントからテーマを取得
+                    const childDocRef = doc(db, 'children', targetChildId);
+                    const childDocSnap = await getDoc(childDocRef);
+                    if (childDocSnap.exists() && childDocSnap.data().theme) {
+                        return childDocSnap.data().theme;
+                    }
                 }
                 return 'cute'; // デフォルト
             } catch (e) {
                 console.error('テーマ設定取得エラー:', e);
                 return 'cute';
+            }
+        };
+
+        // テーマ設定を保存（子供ごと）
+        window.saveThemeSetting = async (themeName, childId = null) => {
+            try {
+                const targetChildId = childId || window.getCurrentChild()?.id;
+                if (!targetChildId) {
+                    console.error('テーマ保存: childIdがありません');
+                    return false;
+                }
+
+                const childDocRef = doc(db, 'children', targetChildId);
+                await updateDoc(childDocRef, { theme: themeName });
+                return true;
+            } catch (e) {
+                console.error('テーマ設定保存エラー:', e);
+                return false;
             }
         };
 
