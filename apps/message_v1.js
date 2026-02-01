@@ -21,6 +21,10 @@ export default {
         let userType = 'child';
         let emailjsLoaded = false;
 
+        // 現在ログイン中の子供を取得
+        const currentChild = window.getCurrentChild ? window.getCurrentChild() : null;
+        const childId = currentChild?.id || null;
+
         // EmailJS読み込み
         const loadEmailJS = async () => {
             if (emailjsLoaded) return true;
@@ -100,20 +104,25 @@ export default {
         };
         userType = isParentMode() ? 'parent' : 'child';
 
-        // メッセージを既読にする
+        // メッセージを既読にする（自分の子供のメッセージのみ）
         const markAsRead = async () => {
             if (!db || !window._msgFirestore) return;
             const { collection, query, where, getDocs, doc, updateDoc } = window._msgFirestore;
             try {
-                const q = query(
-                    collection(db, 'family_messages'),
-                    where('to', '==', userType),
-                    where('read', '==', false)
-                );
-                const snapshot = await getDocs(q);
-                const updates = snapshot.docs.map(d =>
-                    updateDoc(doc(db, 'family_messages', d.id), { read: true })
-                );
+                // 自分の子供のメッセージのみ取得
+                const baseQuery = collection(db, 'family_messages');
+                const snapshot = await getDocs(baseQuery);
+
+                // childIdでフィルタリングして未読のものを既読に
+                const updates = snapshot.docs
+                    .filter(d => {
+                        const data = d.data();
+                        return data.to === userType &&
+                               data.read === false &&
+                               (childId ? data.childId === childId : true);
+                    })
+                    .map(d => updateDoc(doc(db, 'family_messages', d.id), { read: true }));
+
                 await Promise.all(updates);
             } catch (e) {
                 console.error('既読更新エラー:', e);
@@ -132,7 +141,9 @@ export default {
                     from: userType,
                     to: userType === 'child' ? 'parent' : 'child',
                     read: false,
-                    timestamp: serverTimestamp()
+                    timestamp: serverTimestamp(),
+                    childId: childId,
+                    childName: currentChild?.name || null
                 });
 
                 // 子供が親にメッセージを送った場合、メール通知
@@ -312,18 +323,24 @@ export default {
             });
         };
 
-        // リアルタイム監視
+        // リアルタイム監視（自分の子供のメッセージのみ）
         const startListening = () => {
             if (!db || !window._msgFirestore) return;
-            const { collection, query, orderBy, onSnapshot } = window._msgFirestore;
+            const { collection, query, orderBy, onSnapshot, where } = window._msgFirestore;
 
-            const q = query(
-                collection(db, 'family_messages'),
-                orderBy('timestamp', 'asc')
-            );
+            // 自分の子供のメッセージのみ取得
+            const q = childId
+                ? query(collection(db, 'family_messages'), where('childId', '==', childId))
+                : query(collection(db, 'family_messages'));
 
             unsubscribe = onSnapshot(q, (snapshot) => {
                 messages = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                // timestampでソート
+                messages.sort((a, b) => {
+                    const timeA = a.timestamp?.toMillis?.() || 0;
+                    const timeB = b.timestamp?.toMillis?.() || 0;
+                    return timeA - timeB;
+                });
                 render();
                 markAsRead();
             }, (error) => {

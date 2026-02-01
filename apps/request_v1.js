@@ -11,10 +11,14 @@ export default {
         let inputText = '';
         let showForm = false;
 
+        // 現在ログイン中の子供を取得
+        const currentChild = window.getCurrentChild ? window.getCurrentChild() : null;
+        const childId = currentChild?.id || null;
+
         const initFirebase = async () => {
             try {
                 const { initializeApp, getApps } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
-                const { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, deleteDoc, doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+                const { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, deleteDoc, doc, updateDoc, where } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
 
                 const firebaseConfig = {
                     apiKey: "AIzaSyCcM38mjkSVXJDFJaxqZ8PXCuLr-bwNfsU",
@@ -32,7 +36,7 @@ export default {
                 }
                 db = getFirestore(app);
 
-                window._reqFirestore = { collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, deleteDoc, doc, updateDoc };
+                window._reqFirestore = { collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, deleteDoc, doc, updateDoc, where };
 
                 return true;
             } catch (e) {
@@ -54,7 +58,9 @@ export default {
                 await addDoc(collection(db, 'app_requests'), {
                     content: inputText.trim(),
                     status: 'new',
-                    createdAt: serverTimestamp()
+                    createdAt: serverTimestamp(),
+                    childId: childId,
+                    childName: currentChild?.name || null
                 });
                 inputText = '';
                 showForm = false;
@@ -193,15 +199,21 @@ export default {
         // リアルタイム監視
         const startListening = () => {
             if (!db || !window._reqFirestore) return;
-            const { collection, query, orderBy, onSnapshot } = window._reqFirestore;
+            const { collection, query, orderBy, onSnapshot, where } = window._reqFirestore;
 
-            const q = query(
-                collection(db, 'app_requests'),
-                orderBy('createdAt', 'desc')
-            );
+            // 自分のリクエストのみ取得
+            const q = childId
+                ? query(collection(db, 'app_requests'), where('childId', '==', childId))
+                : query(collection(db, 'app_requests'));
 
             unsubscribe = onSnapshot(q, (snapshot) => {
                 requests = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                // createdAtでソート（新しい順）
+                requests.sort((a, b) => {
+                    const timeA = a.createdAt?.toMillis?.() || 0;
+                    const timeB = b.createdAt?.toMillis?.() || 0;
+                    return timeB - timeA;
+                });
                 render();
             }, (error) => {
                 console.error('リクエスト監視エラー:', error);

@@ -15,7 +15,8 @@ import {
     query,
     orderBy,
     getDocs,
-    serverTimestamp
+    serverTimestamp,
+    where
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
 // ========================================
@@ -170,6 +171,10 @@ export default {
         let showDakuon = false; // 濁音モード表示フラグ
         let suggestions = []; // 現在の予測候補
 
+        // 現在ログイン中の子供を取得
+        const currentChild = window.getCurrentChild ? window.getCurrentChild() : null;
+        const childId = currentChild?.id || null;
+
         // ========================================
         // Firestore操作関数
         // ========================================
@@ -179,7 +184,9 @@ export default {
             try {
                 await addDoc(collection(db, 'shopping_list'), {
                     name: name,
-                    createdAt: serverTimestamp()
+                    createdAt: serverTimestamp(),
+                    childId: childId,
+                    childName: currentChild?.name || null
                 });
             } catch (e) {
                 console.error('追加エラー:', e);
@@ -196,10 +203,14 @@ export default {
             }
         };
 
-        // 全削除
+        // 全削除（自分のアイテムのみ）
         const deleteAll = async () => {
             try {
-                const snapshot = await getDocs(collection(db, 'shopping_list'));
+                // 自分のアイテムのみ削除
+                const q = childId
+                    ? query(collection(db, 'shopping_list'), where('childId', '==', childId))
+                    : query(collection(db, 'shopping_list'));
+                const snapshot = await getDocs(q);
                 const deletePromises = snapshot.docs.map(d => deleteDoc(doc(db, 'shopping_list', d.id)));
                 await Promise.all(deletePromises);
             } catch (e) {
@@ -403,16 +414,22 @@ export default {
         // Firestoreリアルタイム監視開始
         // ========================================
         const startListening = () => {
-            const q = query(
-                collection(db, 'shopping_list'),
-                orderBy('createdAt', 'asc')
-            );
+            // 自分のアイテムのみ取得
+            const q = childId
+                ? query(collection(db, 'shopping_list'), where('childId', '==', childId))
+                : query(collection(db, 'shopping_list'));
 
             unsubscribe = onSnapshot(q, (snapshot) => {
                 shoppingList = snapshot.docs.map(doc => ({
                     id: doc.id,
                     ...doc.data()
                 }));
+                // createdAtでソート
+                shoppingList.sort((a, b) => {
+                    const timeA = a.createdAt?.toMillis?.() || 0;
+                    const timeB = b.createdAt?.toMillis?.() || 0;
+                    return timeA - timeB;
+                });
                 render();
             }, (error) => {
                 console.error('Firestore監視エラー:', error);
