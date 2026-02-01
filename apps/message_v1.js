@@ -3,6 +3,11 @@
  * 子供と親がテキスト・ボイスメッセージをやり取りするアプリ
  */
 
+// EmailJS設定
+const EMAILJS_PUBLIC_KEY = 'SGmpo1Qk1dUUhM9m5';
+const EMAILJS_SERVICE_ID = 'service_zfirp4f';
+const EMAILJS_TEMPLATE_ID = 'template_brrkdem';
+
 export default {
     launch(container, system) {
         // Firebase初期化（launch内で遅延初期化）
@@ -14,6 +19,49 @@ export default {
         let mediaRecorder = null;
         let audioChunks = [];
         let userType = 'child';
+        let emailjsLoaded = false;
+
+        // EmailJS読み込み
+        const loadEmailJS = async () => {
+            if (emailjsLoaded) return true;
+            try {
+                // EmailJS SDKを動的に読み込み
+                if (!window.emailjs) {
+                    await new Promise((resolve, reject) => {
+                        const script = document.createElement('script');
+                        script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
+                        script.onload = resolve;
+                        script.onerror = reject;
+                        document.head.appendChild(script);
+                    });
+                }
+                window.emailjs.init(EMAILJS_PUBLIC_KEY);
+                emailjsLoaded = true;
+                return true;
+            } catch (e) {
+                console.error('EmailJS読み込みエラー:', e);
+                return false;
+            }
+        };
+
+        // メール通知送信
+        const sendEmailNotification = async (messageContent, messageType) => {
+            if (!emailjsLoaded) {
+                await loadEmailJS();
+            }
+            try {
+                const fromName = userType === 'child' ? 'こども' : 'おやこ';
+                const messageText = messageType === 'voice' ? '🎤 ボイスメッセージ' : messageContent;
+
+                await window.emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+                    from_name: fromName,
+                    message: messageText
+                });
+                console.log('メール通知送信成功');
+            } catch (e) {
+                console.error('メール通知送信エラー:', e);
+            }
+        };
 
         const initFirebase = async () => {
             try {
@@ -86,6 +134,12 @@ export default {
                     read: false,
                     timestamp: serverTimestamp()
                 });
+
+                // 子供が親にメッセージを送った場合、メール通知
+                if (userType === 'child') {
+                    sendEmailNotification(content, type);
+                }
+
                 inputText = '';
                 render();
             } catch (e) {
