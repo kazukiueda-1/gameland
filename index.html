@@ -96,6 +96,14 @@
             .landscape\:flex-shrink-0 { flex-shrink: 0 !important; }
             .landscape\:flex-1 { flex: 1 1 0% !important; }
         }
+        /* 通知バッジアニメーション */
+        @keyframes badge-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        #message-badge:not(.hidden) {
+            animation: badge-pulse 2s ease-in-out infinite;
+        }
     </style>
 </head>
 <body class="h-screen flex flex-col text-gray-800">
@@ -152,7 +160,7 @@
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getFirestore, collection, addDoc, serverTimestamp, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getFirestore, collection, addDoc, serverTimestamp, doc, getDoc, query, where, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
         // Firebase設定
         const firebaseConfig = {
@@ -217,6 +225,37 @@
                 return null;
             }
         };
+
+        // メッセージ通知: 未読メッセージをリアルタイム監視
+        window.messageUnreadCount = 0;
+        window.messageUnsubscribe = null;
+
+        window.startMessageListener = () => {
+            if (window.messageUnsubscribe) return; // 既に監視中
+
+            const q = query(
+                collection(db, 'family_messages'),
+                where('to', '==', 'child'),
+                where('read', '==', false)
+            );
+
+            window.messageUnsubscribe = onSnapshot(q, (snapshot) => {
+                window.messageUnreadCount = snapshot.size;
+                // バッジ更新イベントを発火
+                window.dispatchEvent(new CustomEvent('messageCountUpdate', {
+                    detail: { count: snapshot.size }
+                }));
+            }, (error) => {
+                console.error('メッセージ監視エラー:', error);
+            });
+        };
+
+        window.stopMessageListener = () => {
+            if (window.messageUnsubscribe) {
+                window.messageUnsubscribe();
+                window.messageUnsubscribe = null;
+            }
+        };
     </script>
 
     <!-- ▼▼▼ 4. システムロジック ▼▼▼ -->
@@ -261,14 +300,19 @@
 
         function unlockApp() {
             const ls = document.getElementById('lock-screen');
-            ls.style.transition = "opacity 0.5s ease"; 
+            ls.style.transition = "opacity 0.5s ease";
             ls.style.opacity = "0";
             // フェードアウト後にシステム起動
-            setTimeout(()=>{ 
-                ls.style.display="none"; 
-                AppSystem.init(); 
+            setTimeout(()=>{
+                ls.style.display="none";
+                AppSystem.init();
             }, 500);
         }
+
+        // メッセージカウント更新イベントリスナー
+        window.addEventListener('messageCountUpdate', (e) => {
+            AppSystem.updateMessageBadge();
+        });
 
         // --- アプリケーションシステム ---
         const AppSystem = {
@@ -374,7 +418,11 @@
                             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                                 ${allApps.length === 0 ? '<div class="col-span-full text-gray-400 font-bold p-8 text-center bg-white/50 rounded-xl">まだ アプリがないよ 🚧</div>' : allApps.map(app => `
                                     <div onclick="AppSystem.launchApp('${app.file}', '${app.title}')"
-                                         class="bg-white/90 backdrop-blur rounded-3xl p-6 shadow-lg border-4 border-white hover:border-pink-200 flex flex-col items-center cursor-pointer transform transition-all duration-200 hover:scale-105 hover:-translate-y-2 active:scale-95 group relative overflow-hidden">
+                                         class="bg-white/90 backdrop-blur rounded-3xl p-6 shadow-lg border-4 border-white hover:border-pink-200 flex flex-col items-center cursor-pointer transform transition-all duration-200 hover:scale-105 hover:-translate-y-2 active:scale-95 group relative overflow-hidden"
+                                         data-app-id="${app.id}">
+
+                                        <!-- 通知バッジ（メッセージアプリ用） -->
+                                        ${app.id === 'family_message_01' ? '<div id="message-badge" class="absolute top-2 right-2 bg-red-500 text-white text-sm font-black w-7 h-7 rounded-full flex items-center justify-center shadow-lg z-20 hidden animate-bounce">0</div>' : ''}
 
                                         <!-- 背景のキラキラ装飾（ホバー時） -->
                                         <div class="absolute inset-0 bg-gradient-to-b from-pink-100/50 to-purple-100/50 opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -402,6 +450,28 @@
 
                 // 浮かぶ装飾を生成
                 createFloatingDecorations();
+
+                // メッセージ通知リスナーを開始
+                if (window.startMessageListener) {
+                    window.startMessageListener();
+                }
+
+                // バッジを更新
+                this.updateMessageBadge();
+            },
+
+            // メッセージバッジ更新
+            updateMessageBadge() {
+                const badge = document.getElementById('message-badge');
+                if (badge) {
+                    const count = window.messageUnreadCount || 0;
+                    if (count > 0) {
+                        badge.textContent = count > 99 ? '99+' : count;
+                        badge.classList.remove('hidden');
+                    } else {
+                        badge.classList.add('hidden');
+                    }
+                }
             },
 
             // アプリ起動処理
