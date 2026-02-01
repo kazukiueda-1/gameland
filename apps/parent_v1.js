@@ -35,11 +35,12 @@ export default {
         let usageLogs = [];
         let quizLogs = [];
         let selectedDate = null;
-        let viewMode = 'usage'; // 'usage', 'quiz', or 'apps'
+        let viewMode = 'usage'; // 'usage', 'quiz', 'apps', or 'theme'
         let isLoading = true;
         let allApps = [];
         let visibleAppIds = [];
         let isSaving = false;
+        let currentTheme = 'cute';
 
         // 日付リストを取得（過去30日分）
         const getDateList = () => {
@@ -146,6 +147,42 @@ export default {
             render();
         };
 
+        // テーマ設定を読み込み
+        const loadThemeSetting = async () => {
+            try {
+                const docRef = doc(db, 'settings', 'theme');
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    currentTheme = docSnap.data().theme || 'cute';
+                } else {
+                    currentTheme = 'cute';
+                }
+            } catch (e) {
+                console.error('テーマ設定取得エラー:', e);
+                currentTheme = 'cute';
+            }
+        };
+
+        // テーマ設定を保存
+        const saveThemeSetting = async (theme) => {
+            isSaving = true;
+            render();
+            try {
+                const docRef = doc(db, 'settings', 'theme');
+                await setDoc(docRef, {
+                    theme: theme,
+                    updatedAt: new Date()
+                });
+                currentTheme = theme;
+                alert('テーマを変更しました！\nトップページに戻ると反映されます。');
+            } catch (e) {
+                console.error('テーマ設定保存エラー:', e);
+                alert('保存に失敗しました');
+            }
+            isSaving = false;
+            render();
+        };
+
         // アプリの表示/非表示を切り替え
         const toggleAppVisibility = (appId) => {
             if (visibleAppIds.includes(appId)) {
@@ -233,17 +270,21 @@ export default {
                     <!-- タブ切り替え -->
                     <div class="bg-white border-b flex">
                         <button class="tab-btn flex-1 py-2 font-bold text-xs ${viewMode === 'usage' ? 'active' : 'text-gray-500'}" data-mode="usage">
-                            📱 使用履歴
+                            📱 履歴
                         </button>
                         <button class="tab-btn flex-1 py-2 font-bold text-xs ${viewMode === 'quiz' ? 'active' : 'text-gray-500'}" data-mode="quiz">
                             📝 クイズ
                         </button>
                         <button class="tab-btn flex-1 py-2 font-bold text-xs ${viewMode === 'apps' ? 'active' : 'text-gray-500'}" data-mode="apps">
-                            ⚙️ アプリ設定
+                            ⚙️ アプリ
+                        </button>
+                        <button class="tab-btn flex-1 py-2 font-bold text-xs ${viewMode === 'theme' ? 'active' : 'text-gray-500'}" data-mode="theme">
+                            🎨 テーマ
                         </button>
                     </div>
 
-                    <!-- 日付選択 -->
+                    <!-- 日付選択（履歴・クイズタブのみ表示） -->
+                    ${viewMode === 'usage' || viewMode === 'quiz' ? `
                     <div class="bg-white border-b px-2 py-1.5 overflow-x-auto">
                         <div class="flex gap-1.5 min-w-max">
                             <button class="date-btn px-2.5 py-0.5 rounded-full text-xs font-bold ${!selectedDate ? 'active' : 'bg-gray-100 text-gray-600'}" data-date="">
@@ -256,6 +297,7 @@ export default {
                             `).join('')}
                         </div>
                     </div>
+                    ` : ''}
 
                     <!-- コンテンツ -->
                     <div class="flex-1 overflow-y-auto p-3">
@@ -356,7 +398,7 @@ export default {
                                     `).join('')}
                                 </div>
                             `}
-                        ` : `
+                        ` : viewMode === 'apps' ? `
                             <!-- アプリ設定 -->
                             <div class="space-y-4">
                                 <div class="bg-blue-50 rounded-xl p-4 border border-blue-200">
@@ -392,6 +434,89 @@ export default {
                                     現在 ${visibleAppIds.length} / ${allApps.length} 個のアプリが表示されています
                                 </p>
                             </div>
+                        ` : `
+                            <!-- テーマ設定 -->
+                            <div class="space-y-4">
+                                <div class="bg-purple-50 rounded-xl p-4 border border-purple-200">
+                                    <p class="text-purple-700 font-bold text-sm">
+                                        🎨 トップページの背景テーマを選択できます。<br>
+                                        お子さまの好みに合わせてカスタマイズしましょう。
+                                    </p>
+                                </div>
+
+                                <div class="space-y-4">
+                                    <!-- かわいいテーマ -->
+                                    <div class="theme-card cursor-pointer rounded-2xl overflow-hidden shadow-lg border-4 ${currentTheme === 'cute' ? 'border-pink-400 ring-4 ring-pink-200' : 'border-transparent hover:border-pink-200'}" data-theme="cute">
+                                        <div class="h-32 bg-gradient-to-br from-pink-200 via-purple-200 to-blue-200 relative">
+                                            <div class="absolute inset-0 flex items-center justify-center">
+                                                <span class="text-5xl">🏰</span>
+                                            </div>
+                                            <div class="absolute top-2 left-2 text-2xl opacity-60">🌸</div>
+                                            <div class="absolute top-4 right-4 text-xl opacity-60">💖</div>
+                                            <div class="absolute bottom-2 left-4 text-xl opacity-60">✨</div>
+                                            <div class="absolute bottom-4 right-2 text-2xl opacity-60">🦋</div>
+                                        </div>
+                                        <div class="bg-white p-4">
+                                            <div class="flex items-center justify-between">
+                                                <div>
+                                                    <h3 class="font-black text-pink-500 text-lg">かわいい</h3>
+                                                    <p class="text-gray-500 text-sm">ピンクと紫のファンタジー風</p>
+                                                    <p class="text-gray-400 text-xs mt-1">低学年の女の子におすすめ</p>
+                                                </div>
+                                                ${currentTheme === 'cute' ? '<span class="bg-pink-400 text-white px-3 py-1 rounded-full text-sm font-bold">選択中</span>' : ''}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- かっこいいテーマ -->
+                                    <div class="theme-card cursor-pointer rounded-2xl overflow-hidden shadow-lg border-4 ${currentTheme === 'cool' ? 'border-cyan-400 ring-4 ring-cyan-200' : 'border-transparent hover:border-cyan-200'}" data-theme="cool">
+                                        <div class="h-32 bg-gradient-to-br from-slate-800 via-cyan-800 to-teal-700 relative">
+                                            <div class="absolute inset-0 flex items-center justify-center">
+                                                <span class="text-5xl">🚀</span>
+                                            </div>
+                                            <div class="absolute top-2 left-2 text-2xl opacity-60">🦖</div>
+                                            <div class="absolute top-4 right-4 text-xl opacity-60">⚡</div>
+                                            <div class="absolute bottom-2 left-4 text-xl opacity-60">🎮</div>
+                                            <div class="absolute bottom-4 right-2 text-2xl opacity-60">🔥</div>
+                                        </div>
+                                        <div class="bg-white p-4">
+                                            <div class="flex items-center justify-between">
+                                                <div>
+                                                    <h3 class="font-black text-cyan-600 text-lg">かっこいい</h3>
+                                                    <p class="text-gray-500 text-sm">ダークブルーのアドベンチャー風</p>
+                                                    <p class="text-gray-400 text-xs mt-1">低学年の男の子におすすめ</p>
+                                                </div>
+                                                ${currentTheme === 'cool' ? '<span class="bg-cyan-500 text-white px-3 py-1 rounded-full text-sm font-bold">選択中</span>' : ''}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- スマートテーマ -->
+                                    <div class="theme-card cursor-pointer rounded-2xl overflow-hidden shadow-lg border-4 ${currentTheme === 'smart' ? 'border-slate-400 ring-4 ring-slate-200' : 'border-transparent hover:border-slate-200'}" data-theme="smart">
+                                        <div class="h-32 bg-gradient-to-br from-slate-200 via-gray-200 to-slate-300 relative">
+                                            <div class="absolute inset-0 flex items-center justify-center">
+                                                <span class="text-5xl">📱</span>
+                                            </div>
+                                            <div class="absolute top-2 left-2 text-2xl text-slate-400 opacity-60">◆</div>
+                                            <div class="absolute top-4 right-4 text-xl text-slate-400 opacity-60">○</div>
+                                            <div class="absolute bottom-2 left-4 text-xl text-slate-400 opacity-60">□</div>
+                                            <div class="absolute bottom-4 right-2 text-2xl text-slate-400 opacity-60">△</div>
+                                        </div>
+                                        <div class="bg-white p-4">
+                                            <div class="flex items-center justify-between">
+                                                <div>
+                                                    <h3 class="font-black text-slate-600 text-lg">スマート</h3>
+                                                    <p class="text-gray-500 text-sm">シンプルでモダンなデザイン</p>
+                                                    <p class="text-gray-400 text-xs mt-1">高学年の男女におすすめ</p>
+                                                </div>
+                                                ${currentTheme === 'smart' ? '<span class="bg-slate-500 text-white px-3 py-1 rounded-full text-sm font-bold">選択中</span>' : ''}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                ${isSaving ? '<p class="text-center text-gray-400 font-bold animate-pulse">保存中...</p>' : ''}
+                            </div>
                         `}
                     </div>
                 </div>
@@ -426,13 +551,23 @@ export default {
             });
 
             container.querySelector('#btn-save-settings')?.addEventListener('click', saveVisibilitySettings);
+
+            // テーマ設定用
+            container.querySelectorAll('.theme-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const theme = card.dataset.theme;
+                    if (theme && theme !== currentTheme) {
+                        saveThemeSetting(theme);
+                    }
+                });
+            });
         };
 
         // 初期化
         const init = async () => {
             render();
             await loadAppRegistry();
-            await Promise.all([loadUsageLogs(), loadQuizLogs(), loadVisibilitySettings()]);
+            await Promise.all([loadUsageLogs(), loadQuizLogs(), loadVisibilitySettings(), loadThemeSetting()]);
             isLoading = false;
             render();
         };

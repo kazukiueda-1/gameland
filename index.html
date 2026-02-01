@@ -37,13 +37,36 @@
         }
     </script>
     <style>
+        /* テーマ別背景 */
         body {
             font-family: "Zen Maru Gothic", sans-serif;
-            background: linear-gradient(135deg, #FFE4EC 0%, #E8D5F2 30%, #D4E5F7 60%, #FFE4EC 100%);
             background-attachment: fixed;
             overflow-x: hidden;
             touch-action: manipulation;
         }
+        /* テーマ1: かわいい（デフォルト） */
+        body.theme-cute {
+            background: linear-gradient(135deg, #FFE4EC 0%, #E8D5F2 30%, #D4E5F7 60%, #FFE4EC 100%);
+        }
+        body.theme-cute .nav-border { border-color: #F9A8D4; }
+        body.theme-cute .nav-title { background-image: linear-gradient(to right, #F472B6, #A78BFA, #60A5FA); }
+        body.theme-cute .star-badge { background: linear-gradient(to right, #FCD34D, #FB923C); border-color: #FBBF24; }
+
+        /* テーマ2: かっこいい（男の子向け） */
+        body.theme-cool {
+            background: linear-gradient(135deg, #0F172A 0%, #1E3A5F 30%, #0D9488 60%, #1E3A5F 100%);
+        }
+        body.theme-cool .nav-border { border-color: #22D3EE; }
+        body.theme-cool .nav-title { background-image: linear-gradient(to right, #22D3EE, #34D399, #FBBF24); }
+        body.theme-cool .star-badge { background: linear-gradient(to right, #F59E0B, #EF4444); border-color: #F59E0B; }
+
+        /* テーマ3: スマート（高学年向け） */
+        body.theme-smart {
+            background: linear-gradient(135deg, #F1F5F9 0%, #E2E8F0 30%, #CBD5E1 60%, #F1F5F9 100%);
+        }
+        body.theme-smart .nav-border { border-color: #94A3B8; }
+        body.theme-smart .nav-title { background-image: linear-gradient(to right, #475569, #64748B, #475569); }
+        body.theme-smart .star-badge { background: linear-gradient(to right, #64748B, #475569); border-color: #64748B; }
         /* 浮かぶ装飾 */
         .floating-decorations {
             position: fixed;
@@ -64,10 +87,9 @@
             90% { opacity: 0.6; }
             100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
         }
-        /* ロック画面用 */
+        /* ロック画面用 - テーマ別 */
         #lock-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, #FFB6C1 0%, #DDA0DD 50%, #87CEEB 100%);
             z-index: 9999;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
@@ -80,10 +102,40 @@
                 radial-gradient(circle at 80% 70%, rgba(255,255,255,0.2) 0%, transparent 40%);
             pointer-events: none;
         }
-        /* スクロールバー装飾 */
+        body.theme-cute #lock-screen { background: linear-gradient(135deg, #FFB6C1 0%, #DDA0DD 50%, #87CEEB 100%); }
+        body.theme-cool #lock-screen { background: linear-gradient(135deg, #0F172A 0%, #1E40AF 50%, #0D9488 100%); }
+        body.theme-smart #lock-screen { background: linear-gradient(135deg, #64748B 0%, #475569 50%, #334155 100%); }
+
+        /* ロック画面カードのテーマ別スタイル */
+        body.theme-cute .lock-card { background: rgba(255,255,255,0.95); border-color: #F9A8D4; }
+        body.theme-cute .lock-card .lock-title { background-image: linear-gradient(to right, #F472B6, #A78BFA, #60A5FA); }
+        body.theme-cute .lock-card .lock-hint { color: #F472B6; }
+        body.theme-cute .lock-card input { background: #FDF2F8; border-color: #FBCFE8; }
+        body.theme-cute .lock-card input:focus { border-color: #F472B6; }
+        body.theme-cute .lock-card .lock-btn { background: linear-gradient(to right, #F472B6, #A78BFA); }
+
+        body.theme-cool .lock-card { background: rgba(15,23,42,0.95); border-color: #22D3EE; }
+        body.theme-cool .lock-card .lock-title { background-image: linear-gradient(to right, #22D3EE, #34D399, #FBBF24); }
+        body.theme-cool .lock-card .lock-hint { color: #22D3EE; }
+        body.theme-cool .lock-card input { background: #1E293B; border-color: #334155; color: white; }
+        body.theme-cool .lock-card input::placeholder { color: #64748B; }
+        body.theme-cool .lock-card input:focus { border-color: #22D3EE; }
+        body.theme-cool .lock-card .lock-btn { background: linear-gradient(to right, #0891B2, #059669); }
+
+        body.theme-smart .lock-card { background: rgba(255,255,255,0.95); border-color: #94A3B8; }
+        body.theme-smart .lock-card .lock-title { background-image: linear-gradient(to right, #475569, #64748B, #475569); }
+        body.theme-smart .lock-card .lock-hint { color: #64748B; }
+        body.theme-smart .lock-card input { background: #F1F5F9; border-color: #CBD5E1; }
+        body.theme-smart .lock-card input:focus { border-color: #64748B; }
+        body.theme-smart .lock-card .lock-btn { background: linear-gradient(to right, #475569, #64748B); }
+        /* スクロールバー装飾 - テーマ別 */
         ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: rgba(255,182,193,0.2); }
-        ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #FFB6C1, #DDA0DD); border-radius: 4px; }
+        body.theme-cute ::-webkit-scrollbar-track { background: rgba(255,182,193,0.2); }
+        body.theme-cute ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #FFB6C1, #DDA0DD); border-radius: 4px; }
+        body.theme-cool ::-webkit-scrollbar-track { background: rgba(34,211,238,0.1); }
+        body.theme-cool ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #0891B2, #059669); border-radius: 4px; }
+        body.theme-smart ::-webkit-scrollbar-track { background: rgba(148,163,184,0.2); }
+        body.theme-smart ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #64748B, #475569); border-radius: 4px; }
         /* 虹色ボーダー */
         .rainbow-border {
             border-image: linear-gradient(90deg, #FF9AA2, #FFB7B2, #FFDAC1, #E2F0CB, #B5EAD7, #C7CEEA) 1;
@@ -106,29 +158,24 @@
         }
     </style>
 </head>
-<body class="h-screen flex flex-col text-gray-800">
+<body class="h-screen flex flex-col text-gray-800 theme-cute">
 
     <!-- ▼▼▼ 1. ロック画面 (セキュリティ) ▼▼▼ -->
     <div id="lock-screen">
         <!-- 浮かぶ装飾 -->
-        <div class="absolute inset-0 overflow-hidden pointer-events-none">
-            <span class="absolute text-4xl animate-float" style="top: 10%; left: 10%;">⭐</span>
-            <span class="absolute text-3xl animate-float-delay" style="top: 20%; right: 15%;">🌸</span>
-            <span class="absolute text-4xl animate-float" style="top: 60%; left: 5%;">💖</span>
-            <span class="absolute text-3xl animate-float-delay" style="top: 70%; right: 10%;">✨</span>
-            <span class="absolute text-4xl animate-float" style="top: 40%; right: 20%;">🦋</span>
-            <span class="absolute text-3xl animate-float-delay" style="top: 80%; left: 20%;">🌈</span>
+        <div id="lock-decorations" class="absolute inset-0 overflow-hidden pointer-events-none">
+            <!-- テーマに応じて動的に生成 -->
         </div>
 
-        <div class="bg-white/95 backdrop-blur p-8 rounded-3xl shadow-2xl max-w-sm w-full text-center mx-4 border-4 border-pink-200 relative z-10">
-            <div class="text-6xl mb-4 animate-float">🏰</div>
-            <h2 class="text-2xl font-black bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 bg-clip-text text-transparent mb-4">わくわくランド</h2>
-            <p class="text-pink-400 mb-6 font-bold text-sm">✨ あいことば をいれてね ✨</p>
+        <div class="lock-card backdrop-blur p-8 rounded-3xl shadow-2xl max-w-sm w-full text-center mx-4 border-4 relative z-10">
+            <div class="text-6xl mb-4 animate-float" id="lock-icon">🏰</div>
+            <h2 class="lock-title text-2xl font-black bg-clip-text text-transparent mb-4">わくわくランド</h2>
+            <p class="lock-hint mb-6 font-bold text-sm">✨ あいことば をいれてね ✨</p>
 
             <input type="text" id="pass-input" placeholder="ひらがな" autocomplete="off"
-                class="w-full bg-pink-50 border-2 border-pink-200 rounded-full py-3 px-6 text-center text-xl font-bold mb-4 focus:outline-none focus:border-pink-400 text-gray-700 placeholder-pink-300">
+                class="w-full border-2 rounded-full py-3 px-6 text-center text-xl font-bold mb-4 focus:outline-none">
 
-            <button onclick="checkPass()" class="w-full bg-gradient-to-r from-pink-400 to-purple-400 hover:from-pink-500 hover:to-purple-500 text-white font-bold py-3 rounded-full shadow-lg active:scale-95 transition text-lg">
+            <button onclick="checkPass()" class="lock-btn w-full text-white font-bold py-3 rounded-full shadow-lg active:scale-95 transition text-lg hover:opacity-90">
                 🔓 あける！
             </button>
             <p id="error-msg" class="text-red-400 font-bold mt-4 hidden">ちがうみたい... 💦</p>
@@ -136,17 +183,17 @@
     </div>
 
     <!-- ▼▼▼ 2. ナビゲーションバー (常時表示) ▼▼▼ -->
-    <nav class="bg-white/90 backdrop-blur-md sticky top-0 z-50 px-4 py-3 shadow-lg border-b-4 border-pink-300 flex justify-between items-center">
+    <nav class="bg-white/90 backdrop-blur-md sticky top-0 z-50 px-4 py-3 shadow-lg border-b-4 nav-border flex justify-between items-center">
         <div class="flex items-center gap-2 cursor-pointer select-none" onclick="AppSystem.loadHome()">
-            <span class="text-2xl animate-float">🏰</span>
-            <h1 class="font-black text-lg md:text-xl bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 bg-clip-text text-transparent tracking-wider">わくわくランド</h1>
+            <span class="text-2xl animate-float" id="nav-icon">🏰</span>
+            <h1 class="font-black text-lg md:text-xl bg-clip-text text-transparent tracking-wider nav-title">わくわくランド</h1>
         </div>
         <div class="flex items-center gap-3">
-            <div class="bg-gradient-to-r from-yellow-300 to-orange-300 text-white px-4 py-1.5 rounded-full font-black shadow-md flex items-center gap-2 select-none border-2 border-yellow-400">
+            <div class="star-badge text-white px-4 py-1.5 rounded-full font-black shadow-md flex items-center gap-2 select-none border-2">
                 <span class="text-xl animate-twinkle">⭐</span>
                 <span id="star-count" class="text-xl">0</span>
             </div>
-            <button onclick="AppSystem.launchApp('parent_v1.js', 'ほごしゃよう')" class="text-gray-400 hover:text-pink-400 text-sm font-bold px-2 py-1 rounded transition" title="保護者用">
+            <button onclick="AppSystem.launchApp('parent_v1.js', 'ほごしゃよう')" class="text-gray-400 hover:text-gray-600 text-sm font-bold px-2 py-1 rounded transition" title="保護者用">
                 👤
             </button>
         </div>
@@ -225,6 +272,74 @@
                 return null;
             }
         };
+
+        // テーマ設定を取得
+        window.getThemeSetting = async () => {
+            try {
+                const docRef = doc(db, 'settings', 'theme');
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    return docSnap.data().theme || 'cute';
+                }
+                return 'cute'; // デフォルト
+            } catch (e) {
+                console.error('テーマ設定取得エラー:', e);
+                return 'cute';
+            }
+        };
+
+        // テーマを適用（起動時に呼び出し）
+        window.applyTheme = (themeName) => {
+            const body = document.body;
+            body.classList.remove('theme-cute', 'theme-cool', 'theme-smart');
+            body.classList.add(`theme-${themeName}`);
+
+            // ナビアイコン更新
+            const navIcon = document.getElementById('nav-icon');
+            const lockIcon = document.getElementById('lock-icon');
+            const icons = { cute: '🏰', cool: '🚀', smart: '📱' };
+            if (navIcon) navIcon.textContent = icons[themeName] || '🏰';
+            if (lockIcon) lockIcon.textContent = icons[themeName] || '🏰';
+
+            // ロック画面の装飾を更新
+            updateLockDecorations(themeName);
+        };
+
+        // ロック画面の装飾を更新
+        function updateLockDecorations(themeName) {
+            const container = document.getElementById('lock-decorations');
+            if (!container) return;
+
+            const decorations = {
+                cute: ['⭐', '🌸', '💖', '✨', '🦋', '🌈'],
+                cool: ['🚀', '🦖', '⚡', '🎮', '🔥', '💥'],
+                smart: ['◆', '○', '□', '△', '●', '◇']
+            };
+
+            const items = decorations[themeName] || decorations.cute;
+            const positions = [
+                { top: '10%', left: '10%' },
+                { top: '20%', right: '15%' },
+                { top: '60%', left: '5%' },
+                { top: '70%', right: '10%' },
+                { top: '40%', right: '20%' },
+                { top: '80%', left: '20%' }
+            ];
+
+            container.innerHTML = positions.map((pos, i) => `
+                <span class="absolute text-${i % 2 === 0 ? '4xl' : '3xl'} animate-float${i % 2 === 1 ? '-delay' : ''} ${themeName === 'smart' ? 'text-gray-400' : ''}"
+                      style="top: ${pos.top}; ${pos.left ? 'left: ' + pos.left : 'right: ' + pos.right};">
+                    ${items[i % items.length]}
+                </span>
+            `).join('');
+        }
+
+        // 起動時にテーマを読み込み
+        window.initTheme = async () => {
+            const theme = await window.getThemeSetting();
+            window.applyTheme(theme);
+        };
+        window.initTheme();
 
         // メッセージ通知: 未読メッセージをリアルタイム監視
         window.messageUnreadCount = 0;
@@ -319,11 +434,71 @@
             registry: [],
             visibleAppIds: null,
             currentAppCleanup: null,
+            currentTheme: 'cute',
+
+            // テーマ設定を取得
+            getThemeConfig() {
+                const theme = this.currentTheme || 'cute';
+                const configs = {
+                    cute: {
+                        icon: '🏰',
+                        decorations: ['🌸', '💖', '✨', '🦋', '🌈', '⭐'],
+                        floatingDecorations: ['⭐', '💖', '🌸', '✨', '🦋', '🌈', '💫', '🎀', '💕', '🌟'],
+                        bgGradient: 'bg-gradient-to-b from-pink-50/80 via-purple-50/80 to-blue-50/80',
+                        titleGradient: 'bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400',
+                        cardClass: 'bg-white/90 border-white hover:border-pink-200',
+                        cardHoverBg: 'bg-gradient-to-b from-pink-100/50 to-purple-100/50',
+                        cardTextColor: 'text-gray-700',
+                        cardSubTextColor: 'text-gray-500',
+                        buttonGradient: 'bg-gradient-to-r from-pink-400 to-purple-400 hover:from-pink-500 hover:to-purple-500',
+                        footerColor: 'text-pink-300',
+                        footerIcon: '✨',
+                        decoClass: ''
+                    },
+                    cool: {
+                        icon: '🚀',
+                        decorations: ['🚀', '🦖', '⚡', '🎮', '🔥', '💥'],
+                        floatingDecorations: ['🚀', '🦖', '⚡', '🎮', '🔥', '💥', '⭐', '🏎️', '🦸', '🌟'],
+                        bgGradient: 'bg-gradient-to-b from-slate-900/90 via-cyan-900/80 to-teal-900/80',
+                        titleGradient: 'bg-gradient-to-r from-cyan-400 via-emerald-400 to-yellow-400',
+                        cardClass: 'bg-slate-800/90 border-slate-700 hover:border-cyan-400',
+                        cardHoverBg: 'bg-gradient-to-b from-cyan-500/20 to-emerald-500/20',
+                        cardTextColor: 'text-white',
+                        cardSubTextColor: 'text-gray-300',
+                        buttonGradient: 'bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400',
+                        footerColor: 'text-cyan-400',
+                        footerIcon: '🚀',
+                        decoClass: ''
+                    },
+                    smart: {
+                        icon: '📱',
+                        decorations: ['◆', '○', '□', '△', '●', '◇'],
+                        floatingDecorations: ['◆', '○', '□', '△', '●', '◇', '▪', '▫', '◈', '◉'],
+                        bgGradient: 'bg-gradient-to-b from-slate-100/90 via-gray-100/80 to-slate-200/80',
+                        titleGradient: 'bg-gradient-to-r from-slate-600 via-gray-500 to-slate-600',
+                        cardClass: 'bg-white/95 border-slate-200 hover:border-slate-400',
+                        cardHoverBg: 'bg-gradient-to-b from-slate-100/50 to-gray-100/50',
+                        cardTextColor: 'text-slate-700',
+                        cardSubTextColor: 'text-slate-500',
+                        buttonGradient: 'bg-gradient-to-r from-slate-600 to-gray-600 hover:from-slate-500 hover:to-gray-500',
+                        footerColor: 'text-slate-400',
+                        footerIcon: '◆',
+                        decoClass: 'text-slate-400'
+                    }
+                };
+                return configs[theme] || configs.cute;
+            },
 
             // 初期化: データ読み込み
             async init() {
                 this.updateStars();
                 try {
+                    // テーマ設定を取得して適用
+                    if (window.getThemeSetting) {
+                        this.currentTheme = await window.getThemeSetting();
+                        window.applyTheme(this.currentTheme);
+                    }
+
                     // キャッシュ回避のタイムスタンプ付きで取得
                     const res = await fetch(`./apps/registry.json?t=${Date.now()}`);
                     if(!res.ok) throw new Error("File not found");
@@ -388,29 +563,32 @@
                     ? this.registry.filter(app => this.visibleAppIds.includes(app.id))
                     : this.registry;
 
+                // テーマ別の設定
+                const themeConfig = this.getThemeConfig();
+
                 document.getElementById('app-container').innerHTML = `
                     <!-- 浮かぶ装飾（トップページ専用） -->
                     <div class="floating-decorations" id="floating-deco"></div>
 
                     <!-- メインエリア -->
-                    <div class="min-h-full bg-gradient-to-b from-pink-50/80 via-purple-50/80 to-blue-50/80 pt-6 px-4 pb-8 relative z-20">
+                    <div class="min-h-full ${themeConfig.bgGradient} pt-6 px-4 pb-8 relative z-20">
                         <!-- 装飾 -->
-                        <div class="absolute top-4 left-4 text-3xl opacity-40 animate-float">🌸</div>
-                        <div class="absolute top-8 right-8 text-3xl opacity-40 animate-float-delay">💖</div>
-                        <div class="absolute top-1/4 left-8 text-2xl opacity-30 animate-float">✨</div>
-                        <div class="absolute top-1/3 right-4 text-2xl opacity-30 animate-float-delay">🦋</div>
-                        <div class="absolute bottom-1/4 left-4 text-2xl opacity-30 animate-float">🌈</div>
-                        <div class="absolute bottom-1/3 right-8 text-2xl opacity-30 animate-float-delay">⭐</div>
+                        <div class="absolute top-4 left-4 text-3xl opacity-40 animate-float ${themeConfig.decoClass}">${themeConfig.decorations[0]}</div>
+                        <div class="absolute top-8 right-8 text-3xl opacity-40 animate-float-delay ${themeConfig.decoClass}">${themeConfig.decorations[1]}</div>
+                        <div class="absolute top-1/4 left-8 text-2xl opacity-30 animate-float ${themeConfig.decoClass}">${themeConfig.decorations[2]}</div>
+                        <div class="absolute top-1/3 right-4 text-2xl opacity-30 animate-float-delay ${themeConfig.decoClass}">${themeConfig.decorations[3]}</div>
+                        <div class="absolute bottom-1/4 left-4 text-2xl opacity-30 animate-float ${themeConfig.decoClass}">${themeConfig.decorations[4]}</div>
+                        <div class="absolute bottom-1/3 right-8 text-2xl opacity-30 animate-float-delay ${themeConfig.decoClass}">${themeConfig.decorations[5]}</div>
 
                         <div class="max-w-5xl mx-auto relative z-10">
                             <!-- タイトル -->
                             <div class="text-center mb-8">
                                 <div class="flex items-center justify-center gap-3 mb-2">
-                                    <span class="text-4xl animate-float">🏰</span>
-                                    <h2 class="text-3xl md:text-4xl font-black bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 bg-clip-text text-transparent">
+                                    <span class="text-4xl animate-float">${themeConfig.icon}</span>
+                                    <h2 class="text-3xl md:text-4xl font-black bg-clip-text text-transparent ${themeConfig.titleGradient}">
                                         なにして あそぶ？
                                     </h2>
-                                    <span class="text-4xl animate-float-delay">✨</span>
+                                    <span class="text-4xl animate-float-delay">${themeConfig.decorations[2]}</span>
                                 </div>
                             </div>
 
@@ -418,22 +596,22 @@
                             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                                 ${allApps.length === 0 ? '<div class="col-span-full text-gray-400 font-bold p-8 text-center bg-white/50 rounded-xl">まだ アプリがないよ 🚧</div>' : allApps.map(app => `
                                     <div onclick="AppSystem.launchApp('${app.file}', '${app.title}')"
-                                         class="bg-white/90 backdrop-blur rounded-3xl p-6 shadow-lg border-4 border-white hover:border-pink-200 flex flex-col items-center cursor-pointer transform transition-all duration-200 hover:scale-105 hover:-translate-y-2 active:scale-95 group relative overflow-hidden"
+                                         class="${themeConfig.cardClass} backdrop-blur rounded-3xl p-6 shadow-lg border-4 flex flex-col items-center cursor-pointer transform transition-all duration-200 hover:scale-105 hover:-translate-y-2 active:scale-95 group relative overflow-hidden"
                                          data-app-id="${app.id}">
 
                                         <!-- 通知バッジ（メッセージアプリ用） -->
                                         ${app.id === 'family_message_01' ? '<div id="message-badge" class="absolute top-2 right-2 bg-red-500 text-white text-sm font-black w-7 h-7 rounded-full flex items-center justify-center shadow-lg z-20 hidden animate-bounce">0</div>' : ''}
 
                                         <!-- 背景のキラキラ装飾（ホバー時） -->
-                                        <div class="absolute inset-0 bg-gradient-to-b from-pink-100/50 to-purple-100/50 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                        <div class="absolute inset-0 ${themeConfig.cardHoverBg} opacity-0 group-hover:opacity-100 transition-opacity"></div>
 
                                         <div class="bg-gradient-to-br from-${app.color.split('-')[0]}-100 to-${app.color.split('-')[0]}-200 w-24 h-24 rounded-full flex items-center justify-center text-5xl mb-4 group-hover:scale-110 group-hover:rotate-12 transition-transform duration-300 shadow-lg z-10 border-4 border-white">
                                             ${app.icon}
                                         </div>
-                                        <h4 class="text-xl font-black text-gray-700 mb-1 z-10 text-center leading-tight">${app.title}</h4>
-                                        <p class="text-sm text-gray-500 font-bold opacity-70 mb-4 z-10 text-center">${app.desc}</p>
+                                        <h4 class="text-xl font-black ${themeConfig.cardTextColor} mb-1 z-10 text-center leading-tight">${app.title}</h4>
+                                        <p class="text-sm ${themeConfig.cardSubTextColor} font-bold opacity-70 mb-4 z-10 text-center">${app.desc}</p>
 
-                                        <div class="mt-auto bg-gradient-to-r from-pink-400 to-purple-400 text-white font-bold py-2 px-8 rounded-full text-sm shadow-md group-hover:shadow-lg group-hover:from-pink-500 group-hover:to-purple-500 z-10 transition-all">
+                                        <div class="mt-auto ${themeConfig.buttonGradient} text-white font-bold py-2 px-8 rounded-full text-sm shadow-md group-hover:shadow-lg z-10 transition-all">
                                             あそぶ！
                                         </div>
                                     </div>
@@ -442,8 +620,8 @@
                         </div>
 
                         <!-- フッター -->
-                        <footer class="text-center py-8 text-pink-300 text-xs font-bold">
-                            ✨ わくわくランド ✨
+                        <footer class="text-center py-8 ${themeConfig.footerColor} text-xs font-bold">
+                            ${themeConfig.footerIcon} わくわくランド ${themeConfig.footerIcon}
                         </footer>
                     </div>
                 `;
@@ -542,7 +720,11 @@
             const container = document.getElementById('floating-deco');
             if (!container) return;
 
-            const decorations = ['⭐', '💖', '🌸', '✨', '🦋', '🌈', '💫', '🎀', '💕', '🌟'];
+            const themeConfig = AppSystem.getThemeConfig();
+            const decorations = themeConfig.floatingDecorations;
+            const isSmartTheme = AppSystem.currentTheme === 'smart';
+
+            container.innerHTML = ''; // 既存の装飾をクリア
 
             for (let i = 0; i < 15; i++) {
                 const span = document.createElement('span');
@@ -551,6 +733,10 @@
                 span.style.animationDelay = Math.random() * 15 + 's';
                 span.style.animationDuration = (15 + Math.random() * 10) + 's';
                 span.style.fontSize = (16 + Math.random() * 16) + 'px';
+                if (isSmartTheme) {
+                    span.style.color = '#94A3B8';
+                    span.style.opacity = '0.3';
+                }
                 container.appendChild(span);
             }
         }
