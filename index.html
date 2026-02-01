@@ -428,10 +428,25 @@
             }
         };
 
-        // === 初回起動時に「かりん」を自動作成 & 既存ログをマイグレーション ===
+        // === 初回起動時に「かりん」を自動作成 & 重複削除 ===
         window.ensureDefaultChild = async () => {
             try {
-                // 子供一覧を取得
+                // 全ての子供を取得（isActive関係なく）
+                const allSnapshot = await getDocs(collection(db, 'children'));
+                const allChildren = allSnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+
+                // 「かりん」の重複を削除（最初の1つだけ残す）
+                const karins = allChildren.filter(c => c.name === 'かりん' && c.isActive);
+                if (karins.length > 1) {
+                    console.log(`重複した「かりん」を削除中... (${karins.length - 1}件)`);
+                    const batch = writeBatch(db);
+                    karins.slice(1).forEach(k => {
+                        batch.update(doc(db, 'children', k.id), { isActive: false });
+                    });
+                    await batch.commit();
+                }
+
+                // アクティブな子供一覧を取得
                 const children = await window.loadChildren();
 
                 // 既に子供がいれば何もしない
