@@ -262,13 +262,21 @@ export default {
             if (!db || !window._reqFirestore) return;
             const { collection, query, orderBy, onSnapshot, where } = window._reqFirestore;
 
-            // 自分のリクエストのみ取得
-            const q = childId
-                ? query(collection(db, 'app_requests'), where('childId', '==', childId))
-                : query(collection(db, 'app_requests'));
+            // 全リクエストを取得し、JavaScriptでフィルタリング
+            // （childIdが一致 OR childIdがない古いデータも表示）
+            const q = query(collection(db, 'app_requests'));
 
             unsubscribe = onSnapshot(q, (snapshot) => {
-                requests = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                let allRequests = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+
+                // childIdでフィルター（自分のリクエスト + 古いデータ）
+                if (childId) {
+                    allRequests = allRequests.filter(req =>
+                        req.childId === childId || !req.childId
+                    );
+                }
+
+                requests = allRequests;
                 // createdAtでソート（新しい順）
                 requests.sort((a, b) => {
                     const timeA = a.createdAt?.toMillis?.() || 0;

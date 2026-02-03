@@ -548,13 +548,21 @@ export default {
             if (!db || !window._msgFirestore) return;
             const { collection, query, orderBy, onSnapshot, where } = window._msgFirestore;
 
-            // 自分の子供のメッセージのみ取得
-            const q = childId
-                ? query(collection(db, 'family_messages'), where('childId', '==', childId))
-                : query(collection(db, 'family_messages'));
+            // 全メッセージを取得し、JavaScriptでフィルタリング
+            // （childIdが一致 OR childIdがない古いデータも表示）
+            const q = query(collection(db, 'family_messages'));
 
             unsubscribe = onSnapshot(q, (snapshot) => {
-                messages = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                let allMessages = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+
+                // childIdでフィルター（自分のメッセージ + 古いデータ）
+                if (childId) {
+                    allMessages = allMessages.filter(msg =>
+                        msg.childId === childId || !msg.childId
+                    );
+                }
+
+                messages = allMessages;
                 // timestampでソート
                 messages.sort((a, b) => {
                     const timeA = a.timestamp?.toMillis?.() || 0;
