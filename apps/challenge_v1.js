@@ -96,6 +96,8 @@ export default {
         let inputTarget = 'title';  // 'title' or 'newCategory'
         let newCategoryName = '';
         let showAddCategory = false;
+        let showCelebration = false;
+        let celebrationChallenge = null;
 
         const currentChild = window.getCurrentChild ? window.getCurrentChild() : null;
         const childId = currentChild?.id || null;
@@ -249,8 +251,15 @@ export default {
             return logs.filter(l => l.date && l.date.startsWith(thisMonth)).length;
         };
 
-        // 「チャレンジした」を記録（何回でも可）
+        // 「チャレンジした」を記録（1日1回のみ）
         const recordChallenge = async (challengeId) => {
+            // 今日すでに記録済みかチェック
+            const todayCount = getTodayCount(challengeId);
+            if (todayCount > 0) {
+                alert('きょうは もう チャレンジしたよ！\nまた あした がんばろう！');
+                return;
+            }
+
             try {
                 await addDoc(collection(db, 'challenge_logs'), {
                     challengeId: challengeId,
@@ -269,11 +278,22 @@ export default {
 
                 await loadChallengeLogs(challengeId);
                 system.playSound('correct');
+
+                // お祝い演出を表示
+                celebrationChallenge = challenge;
+                showCelebration = true;
                 render();
             } catch (e) {
                 console.error('記録エラー:', e);
                 alert('きろくできませんでした');
             }
+        };
+
+        // お祝い演出を閉じる
+        const closeCelebration = () => {
+            showCelebration = false;
+            celebrationChallenge = null;
+            render();
         };
 
         const markAsCompleted = async (challengeId) => {
@@ -478,6 +498,36 @@ export default {
                         </div>
                     ` : ''}
                 </div>
+
+                ${showCelebration && celebrationChallenge ? `
+                    <div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50" id="celebration-overlay">
+                        <div class="bg-white rounded-3xl p-6 mx-4 text-center shadow-2xl max-w-sm w-full animate-bounce-in">
+                            <div class="text-6xl mb-3 animate-wiggle">${celebrationChallenge.icon}</div>
+                            <h3 class="text-2xl font-black text-emerald-500 mb-2">🎉 すごい！ 🎉</h3>
+                            <p class="text-lg font-bold text-gray-700 mb-1">${celebrationChallenge.title}</p>
+                            <p class="text-gray-500 font-bold mb-4">チャレンジ できたね！</p>
+                            <div class="bg-gradient-to-r from-yellow-100 to-orange-100 rounded-xl p-3 mb-4">
+                                <p class="text-orange-600 font-bold text-lg">🔥 ${getStreakDays(celebrationChallenge.id)}日 れんぞく！</p>
+                            </div>
+                            <button id="btn-close-celebration" class="bg-gradient-to-r from-emerald-400 to-teal-400 text-white font-bold text-lg py-3 px-8 rounded-full shadow-lg active:scale-95 transition">
+                                やったー！
+                            </button>
+                        </div>
+                    </div>
+                    <style>
+                        @keyframes bounce-in {
+                            0% { transform: scale(0.5); opacity: 0; }
+                            60% { transform: scale(1.1); }
+                            100% { transform: scale(1); opacity: 1; }
+                        }
+                        @keyframes wiggle {
+                            0%, 100% { transform: rotate(-5deg); }
+                            50% { transform: rotate(5deg); }
+                        }
+                        .animate-bounce-in { animation: bounce-in 0.5s ease-out; }
+                        .animate-wiggle { animation: wiggle 0.5s ease-in-out infinite; }
+                    </style>
+                ` : ''}
             `;
 
             setupEventListeners();
@@ -520,10 +570,16 @@ export default {
                                         <p class="font-bold text-gray-700 truncate">${challenge.title}</p>
                                     </div>
 
-                                    <button class="btn-record flex-shrink-0 bg-emerald-400 text-white font-bold py-2 px-3 rounded-xl text-sm active:scale-95 transition"
-                                        data-id="${challenge.id}">
-                                        チャレンジした！
-                                    </button>
+                                    ${todayCount > 0 ? `
+                                        <div class="flex-shrink-0 bg-gray-200 text-gray-500 font-bold py-2 px-3 rounded-xl text-sm flex items-center gap-1">
+                                            <span>✓</span> やったよ！
+                                        </div>
+                                    ` : `
+                                        <button class="btn-record flex-shrink-0 bg-emerald-400 hover:bg-emerald-500 text-white font-bold py-2 px-3 rounded-xl text-sm active:scale-95 transition"
+                                            data-id="${challenge.id}">
+                                            チャレンジ！
+                                        </button>
+                                    `}
                                 </div>
                             </div>
                         `;
@@ -649,9 +705,15 @@ export default {
                         </div>
                     </div>
 
-                    <button id="btn-record-detail" class="bg-gradient-to-r from-emerald-400 to-teal-400 text-white font-bold py-3 rounded-xl shadow-lg w-full text-lg active:scale-95 transition">
-                        🎉 チャレンジした！
-                    </button>
+                    ${todayCount > 0 ? `
+                        <div class="bg-gray-200 text-gray-500 font-bold py-3 rounded-xl w-full text-lg text-center flex items-center justify-center gap-2">
+                            <span>✓</span> きょうは やったよ！
+                        </div>
+                    ` : `
+                        <button id="btn-record-detail" class="bg-gradient-to-r from-emerald-400 to-teal-400 text-white font-bold py-3 rounded-xl shadow-lg w-full text-lg active:scale-95 transition">
+                            🎉 チャレンジした！
+                        </button>
+                    `}
 
                     ${challenge.status !== 'completed' ? `
                         <button id="btn-complete" class="bg-gradient-to-r from-yellow-400 to-orange-400 text-white font-bold py-2 rounded-xl w-full text-base active:scale-95 transition">
@@ -745,6 +807,12 @@ export default {
         };
 
         const setupEventListeners = () => {
+            // お祝い画面を閉じる
+            container.querySelector('#btn-close-celebration')?.addEventListener('click', closeCelebration);
+            container.querySelector('#celebration-overlay')?.addEventListener('click', (e) => {
+                if (e.target.id === 'celebration-overlay') closeCelebration();
+            });
+
             container.querySelector('#btn-back')?.addEventListener('click', () => {
                 if (currentView === 'list') {
                     system.goHome();
