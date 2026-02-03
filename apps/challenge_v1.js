@@ -833,7 +833,8 @@ export default {
             container.querySelector('#btn-add')?.addEventListener('click', () => {
                 currentView = 'add';
                 newChallenge = { title: '', icon: '🎯', category: 'other' };
-                showHiraganaKeyboard = false;
+                showHiraganaKeyboard = true;  // デフォルトでひらがなキーボードを表示
+                inputTarget = 'title';
                 showAddCategory = false;
                 render();
             });
