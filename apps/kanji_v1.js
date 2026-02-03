@@ -62,7 +62,7 @@ export default {
             let buttonsHtml = '';
             for (let i = 0; i < NUM_LEVELS; i++) {
                 buttonsHtml += `
-                    <button class="level-btn bg-orange-400 hover:bg-orange-500 text-white font-bold py-3 md:py-4 rounded-xl md:rounded-2xl shadow-md active:scale-95 transition text-lg md:text-xl" data-level="${i}">
+                    <button class="level-btn bg-orange-400 hover:bg-orange-500 text-white font-bold py-2 md:py-3 rounded-xl shadow-md active:scale-95 transition text-base md:text-lg" data-level="${i}">
                         レベル ${i + 1}
                     </button>
                 `;
@@ -70,12 +70,12 @@ export default {
 
             container.innerHTML = `
                 <div class="h-full flex flex-col items-center justify-center p-3">
-                    <button id="btn-quit-app" class="absolute top-3 left-3 bg-gray-100 text-gray-500 font-bold py-1.5 px-3 rounded-full text-sm">✕ やめる</button>
+                    <button id="btn-quit-app" class="absolute top-2 left-2 bg-gray-100 text-gray-500 font-bold py-1 px-2 rounded-full text-xs">✕ やめる</button>
 
-                    <h2 class="text-2xl md:text-3xl font-black text-blue-500 mb-1 text-center">かんじマスター</h2>
-                    <p class="text-gray-500 font-bold mb-4 md:mb-6 text-sm">どの レベル に チャレンジ する？</p>
+                    <h2 class="text-xl md:text-2xl font-black text-blue-500 mb-1 text-center">かんじマスター</h2>
+                    <p class="text-gray-500 font-bold mb-3 text-xs">どの レベル に チャレンジ する？</p>
 
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 w-full max-w-2xl">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 w-full max-w-2xl">
                         ${buttonsHtml}
                     </div>
                 </div>
@@ -94,19 +94,19 @@ export default {
         const renderModeSelect = () => {
             container.innerHTML = `
                 <div class="h-full flex flex-col items-center justify-center p-3 animate-pop">
-                    <h2 class="text-2xl md:text-3xl font-black text-orange-400 mb-1">レベル ${currentLevel + 1}</h2>
-                    <p class="text-gray-500 font-bold mb-4 md:mb-6 text-sm">なに を する？</p>
+                    <h2 class="text-xl md:text-2xl font-black text-orange-400 mb-1">レベル ${currentLevel + 1}</h2>
+                    <p class="text-gray-500 font-bold mb-3 text-xs">なに を する？</p>
 
-                    <div class="flex flex-col md:flex-row gap-4 w-full max-w-lg justify-center">
-                        <button id="btn-study" class="bg-green-400 hover:bg-green-500 text-white text-xl md:text-2xl font-bold py-4 md:py-5 px-6 rounded-2xl shadow-lg active:scale-95 transition flex-1">
+                    <div class="flex flex-col md:flex-row gap-3 w-full max-w-lg justify-center">
+                        <button id="btn-study" class="bg-green-400 hover:bg-green-500 text-white text-lg md:text-xl font-bold py-3 md:py-4 px-5 rounded-xl shadow-lg active:scale-95 transition flex-1">
                             📖 べんきょう
                         </button>
-                        <button id="btn-quiz" class="bg-blue-400 hover:bg-blue-500 text-white text-xl md:text-2xl font-bold py-4 md:py-5 px-6 rounded-2xl shadow-lg active:scale-95 transition flex-1">
+                        <button id="btn-quiz" class="bg-blue-400 hover:bg-blue-500 text-white text-lg md:text-xl font-bold py-3 md:py-4 px-5 rounded-xl shadow-lg active:scale-95 transition flex-1">
                             🔥 クイズ
                         </button>
                     </div>
 
-                    <button id="btn-back" class="mt-6 md:mt-8 bg-gray-200 text-gray-600 font-bold py-2 px-6 rounded-full text-sm">
+                    <button id="btn-back" class="mt-4 bg-gray-200 text-gray-600 font-bold py-1.5 px-4 rounded-full text-xs">
                         レベルをえらぶ
                     </button>
                 </div>

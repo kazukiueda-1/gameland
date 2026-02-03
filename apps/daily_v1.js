@@ -17,6 +17,7 @@ import {
     getDocs,
     getDoc,
     setDoc,
+    where,
     serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
@@ -161,6 +162,11 @@ export default {
         let newTaskIcon = '⭐';
         let showEmojiPicker = false;
 
+        // 現在のログイン中の子供を取得
+        const currentChild = window.getCurrentChild ? window.getCurrentChild() : null;
+        const childId = currentChild?.id || null;
+        const childName = currentChild?.name || null;
+
         const confetti = new ConfettiEffect(document.body);
 
         // 今日の日付を取得
@@ -181,10 +187,12 @@ export default {
         // Firestore操作
         // ========================================
 
-        // 今日のログを取得
+        // 今日のログを取得（childIdごと）
         const loadTodayLog = async () => {
             try {
-                const docRef = doc(db, 'task_logs', getTodayString());
+                // childIdがある場合は childId_date 形式のドキュメントIDを使う
+                const docId = childId ? `${childId}_${getTodayString()}` : getTodayString();
+                const docRef = doc(db, 'task_logs', docId);
                 const docSnap = await getDoc(docRef);
                 if (docSnap.exists()) {
                     todayLog = docSnap.data();
@@ -199,18 +207,20 @@ export default {
             }
         };
 
-        // 履歴ログを取得（過去30日分）
+        // 履歴ログを取得（過去30日分、childIdでフィルター）
         const loadHistoryLogs = async () => {
             try {
-                const q = query(
-                    collection(db, 'task_logs'),
-                    orderBy('date', 'desc')
-                );
+                // childIdでフィルター（複合インデックス不要のためorderByなし）
+                const q = childId
+                    ? query(collection(db, 'task_logs'), where('childId', '==', childId))
+                    : query(collection(db, 'task_logs'));
                 const snapshot = await getDocs(q);
                 historyLogs = snapshot.docs.map(doc => ({
                     id: doc.id,
                     ...doc.data()
                 }));
+                // JavaScriptで日付の降順ソート
+                historyLogs.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
                 render();
             } catch (e) {
                 console.error('履歴読み込みエラー:', e);
@@ -239,13 +249,21 @@ export default {
                     const task = tasks.find(t => t.id === id);
                     return task ? { id: task.id, title: task.title, icon: task.icon } : { id, title: '？', icon: '❓' };
                 });
-                const docRef = doc(db, 'task_logs', getTodayString());
-                await setDoc(docRef, {
+                // childIdがある場合は childId_date 形式のドキュメントIDを使う
+                const docId = childId ? `${childId}_${getTodayString()}` : getTodayString();
+                const docRef = doc(db, 'task_logs', docId);
+                const saveData = {
                     date: getTodayString(),
                     completedTasks: completedTaskDetails,
                     points: points,
                     updatedAt: serverTimestamp()
-                });
+                };
+                // childIdがある場合は保存
+                if (childId) {
+                    saveData.childId = childId;
+                    saveData.childName = childName;
+                }
+                await setDoc(docRef, saveData);
 
                 // 紙吹雪エフェクト
                 confetti.start();
@@ -262,18 +280,24 @@ export default {
             }
         };
 
-        // タスク追加
+        // タスク追加（childIdを含める）
         const addTask = async () => {
             if (!newTaskTitle.trim()) {
                 alert('なまえを いれてね');
                 return;
             }
             try {
-                await addDoc(collection(db, 'task_master'), {
+                const taskData = {
                     title: newTaskTitle.trim(),
                     icon: newTaskIcon,
                     createdAt: serverTimestamp()
-                });
+                };
+                // childIdがある場合は保存
+                if (childId) {
+                    taskData.childId = childId;
+                    taskData.childName = childName;
+                }
+                await addDoc(collection(db, 'task_master'), taskData);
                 newTaskTitle = '';
                 newTaskIcon = '⭐';
                 render();
@@ -706,19 +730,25 @@ export default {
         };
 
         // ========================================
-        // Firestoreリアルタイム監視
+        // Firestoreリアルタイム監視（childIdでフィルター）
         // ========================================
         const startListening = () => {
-            const q = query(
-                collection(db, 'task_master'),
-                orderBy('createdAt', 'asc')
-            );
+            // childIdでフィルター（複合インデックス不要のためorderByなし）
+            const q = childId
+                ? query(collection(db, 'task_master'), where('childId', '==', childId))
+                : query(collection(db, 'task_master'));
 
             unsubscribeTasks = onSnapshot(q, (snapshot) => {
                 tasks = snapshot.docs.map(doc => ({
                     id: doc.id,
                     ...doc.data()
                 }));
+                // JavaScriptでcreatedAtの昇順ソート
+                tasks.sort((a, b) => {
+                    const aTime = a.createdAt?.toMillis?.() || 0;
+                    const bTime = b.createdAt?.toMillis?.() || 0;
+                    return aTime - bTime;
+                });
                 render();
             }, (error) => {
                 console.error('Firestore監視エラー:', error);

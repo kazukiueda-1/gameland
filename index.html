@@ -563,13 +563,17 @@
         }
         window.getTodayString = getTodayString;
 
-        // 表示するアプリIDを取得
-        window.getVisibleAppIds = async () => {
+        // 表示するアプリIDを取得（子供ごと）
+        window.getVisibleAppIds = async (childId = null) => {
             try {
-                const docRef = doc(db, 'settings', 'visible_apps');
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    return docSnap.data().appIds || null;
+                const targetChildId = childId || window.getCurrentChild()?.id;
+                if (targetChildId) {
+                    // 子供ドキュメントからvisibleAppsを取得
+                    const childDocRef = doc(db, 'children', targetChildId);
+                    const childDocSnap = await getDoc(childDocRef);
+                    if (childDocSnap.exists() && childDocSnap.data().visibleApps) {
+                        return childDocSnap.data().visibleApps;
+                    }
                 }
                 return null; // 設定がない場合は全表示
             } catch (e) {

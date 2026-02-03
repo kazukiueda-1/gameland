@@ -127,34 +127,42 @@ export default {
             }
         };
 
-        // 表示設定を取得
+        // 表示設定を取得（子供ごと）
         const loadVisibilitySettings = async () => {
             try {
-                const docRef = doc(db, 'settings', 'visible_apps');
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    visibleAppIds = docSnap.data().appIds || [];
-                } else {
-                    // 初期状態：全アプリを表示
-                    visibleAppIds = allApps.map(app => app.id);
+                const childId = system.currentChild?.id;
+                if (childId) {
+                    const childDocRef = doc(db, 'children', childId);
+                    const childDocSnap = await getDoc(childDocRef);
+                    if (childDocSnap.exists() && childDocSnap.data().visibleApps) {
+                        visibleAppIds = childDocSnap.data().visibleApps;
+                        return;
+                    }
                 }
+                // 初期状態：全アプリを表示
+                visibleAppIds = allApps.map(app => app.id);
             } catch (e) {
                 console.error('表示設定取得エラー:', e);
                 visibleAppIds = allApps.map(app => app.id);
             }
         };
 
-        // 表示設定を保存
+        // 表示設定を保存（子供ごと）
         const saveVisibilitySettings = async () => {
+            const childId = system.currentChild?.id;
+            if (!childId) {
+                alert('ログイン中の子供がいません');
+                return;
+            }
+
             isSaving = true;
             render();
             try {
-                const docRef = doc(db, 'settings', 'visible_apps');
-                await setDoc(docRef, {
-                    appIds: visibleAppIds,
-                    updatedAt: new Date()
+                const childDocRef = doc(db, 'children', childId);
+                await updateDoc(childDocRef, {
+                    visibleApps: visibleAppIds
                 });
-                alert('保存しました！');
+                alert(`${system.currentChild.name}のアプリ設定を保存しました！`);
             } catch (e) {
                 console.error('表示設定保存エラー:', e);
                 alert('保存に失敗しました');

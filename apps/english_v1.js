@@ -170,21 +170,21 @@ export default {
         // ★ Level Selection Screen
         const renderLevelSelect = () => {
             const buttonsHtml = levels.map((level, index) => `
-                <button class="level-btn bg-white border-3 border-indigo-200 hover:bg-indigo-50 text-gray-600 font-bold p-2 md:p-3 rounded-2xl shadow-md transition transform active:scale-95 flex flex-col items-center gap-1" data-index="${index}">
-                    <span class="text-3xl md:text-4xl filter drop-shadow-sm">${level.emoji}</span>
-                    <span class="text-xs md:text-sm">${level.name}</span>
+                <button class="level-btn bg-white border-2 border-indigo-200 hover:bg-indigo-50 text-gray-600 font-bold p-2 rounded-xl shadow-md transition transform active:scale-95 flex flex-col items-center gap-0.5" data-index="${index}">
+                    <span class="text-2xl md:text-3xl filter drop-shadow-sm">${level.emoji}</span>
+                    <span class="text-xs leading-tight">${level.name}</span>
                 </button>
             `).join('');
 
             container.innerHTML = `
-                <div class="h-full flex flex-col items-center justify-center p-3 relative overflow-hidden">
-                    <button id="btn-quit" class="absolute top-3 left-3 bg-gray-100 text-gray-400 font-bold py-1.5 px-3 rounded-full text-sm hover:bg-gray-200">✕ Exit</button>
+                <div class="h-full flex flex-col items-center p-3 relative overflow-hidden">
+                    <button id="btn-quit" class="absolute top-2 left-2 bg-gray-100 text-gray-400 font-bold py-1 px-2 rounded-full text-xs hover:bg-gray-200">✕ Exit</button>
 
-                    <h2 class="text-2xl md:text-3xl font-black text-pink-400 mb-1 drop-shadow-sm">🦄 English Fun!</h2>
-                    <p class="text-gray-400 font-bold mb-3 text-sm">Choose a Level!</p>
+                    <h2 class="text-xl md:text-2xl font-black text-pink-400 mb-1 drop-shadow-sm mt-6">🦄 English Fun!</h2>
+                    <p class="text-gray-400 font-bold mb-2 text-xs">Choose a Level!</p>
 
-                    <div class="w-full max-w-4xl overflow-y-auto p-1">
-                        <div class="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-3">
+                    <div class="w-full max-w-4xl flex-1 overflow-y-auto p-1">
+                        <div class="grid grid-cols-2 md:grid-cols-5 gap-2">
                             ${buttonsHtml}
                         </div>
                     </div>
@@ -205,20 +205,20 @@ export default {
             const level = levels[currentLevelIndex];
             container.innerHTML = `
                 <div class="h-full flex flex-col items-center justify-center p-3 animate-pop">
-                    <div class="text-5xl mb-2">${level.emoji}</div>
-                    <h2 class="text-xl md:text-2xl font-black text-gray-700 mb-1">${level.name}</h2>
-                    <p class="text-gray-400 font-bold mb-4 text-sm">What do you want to do?</p>
+                    <div class="text-4xl mb-1">${level.emoji}</div>
+                    <h2 class="text-lg md:text-xl font-black text-gray-700 mb-1">${level.name}</h2>
+                    <p class="text-gray-400 font-bold mb-3 text-xs">What do you want to do?</p>
 
-                    <div class="flex flex-col w-full max-w-sm gap-3">
-                        <button id="btn-study" class="bg-indigo-200 hover:bg-indigo-300 text-white text-lg md:text-xl font-bold py-4 rounded-xl shadow-lg active:scale-95 transition flex items-center justify-center gap-2">
+                    <div class="flex flex-col w-full max-w-sm gap-2">
+                        <button id="btn-study" class="bg-indigo-200 hover:bg-indigo-300 text-white text-base md:text-lg font-bold py-3 rounded-xl shadow-lg active:scale-95 transition flex items-center justify-center gap-2">
                             <span>📖</span> Learn (Study)
                         </button>
-                        <button id="btn-quiz" class="bg-pink-300 hover:bg-pink-400 text-white text-lg md:text-xl font-bold py-4 rounded-xl shadow-lg active:scale-95 transition flex items-center justify-center gap-2">
+                        <button id="btn-quiz" class="bg-pink-300 hover:bg-pink-400 text-white text-base md:text-lg font-bold py-3 rounded-xl shadow-lg active:scale-95 transition flex items-center justify-center gap-2">
                             <span>🎮</span> Play (Quiz)
                         </button>
                     </div>
 
-                    <button id="btn-back" class="mt-5 border-2 border-gray-200 text-gray-400 font-bold py-1.5 px-5 rounded-full hover:bg-gray-50 transition text-sm">
+                    <button id="btn-back" class="mt-4 border-2 border-gray-200 text-gray-400 font-bold py-1 px-4 rounded-full hover:bg-gray-50 transition text-xs">
                         ⬅ Back
                     </button>
                 </div>

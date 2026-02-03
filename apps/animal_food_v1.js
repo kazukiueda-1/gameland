@@ -162,20 +162,20 @@ export default {
         // ========================================
         const renderStart = () => {
             container.innerHTML = `
-                <div class="h-full flex flex-col items-center justify-center p-4 bg-gradient-to-b from-green-100 to-yellow-100">
-                    <button id="btn-quit" class="absolute top-4 left-4 bg-white/80 text-gray-500 font-bold py-2 px-4 rounded-full text-sm">
+                <div class="h-full flex flex-col items-center justify-center p-3 bg-gradient-to-b from-green-100 to-yellow-100">
+                    <button id="btn-quit" class="absolute top-3 left-3 bg-white/80 text-gray-500 font-bold py-1.5 px-3 rounded-full text-sm">
                         ✕ やめる
                     </button>
 
-                    <div class="text-8xl md:text-9xl mb-4 animate-bounce">🐾</div>
-                    <h1 class="text-3xl md:text-5xl font-black text-green-600 mb-3 text-center">
+                    <div class="text-6xl md:text-7xl mb-2 animate-bounce">🐾</div>
+                    <h1 class="text-2xl md:text-3xl font-black text-green-600 mb-2 text-center">
                         どうぶつの ごはんクイズ
                     </h1>
-                    <p class="text-gray-600 font-bold mb-6 text-center text-lg md:text-xl">
+                    <p class="text-gray-600 font-bold mb-4 text-center text-base md:text-lg">
                         どうぶつが たべるものを<br>えらんでね！
                     </p>
 
-                    <button id="btn-start" class="bg-gradient-to-r from-green-400 to-emerald-400 hover:from-green-500 hover:to-emerald-500 text-white font-black text-2xl py-5 px-14 rounded-full shadow-lg active:scale-95 transition">
+                    <button id="btn-start" class="bg-gradient-to-r from-green-400 to-emerald-400 hover:from-green-500 hover:to-emerald-500 text-white font-black text-xl py-4 px-10 rounded-full shadow-lg active:scale-95 transition">
                         🎮 スタート！
                     </button>
                 </div>
@@ -201,43 +201,43 @@ export default {
             hasAnswered = false;
 
             container.innerHTML = `
-                <div class="h-full flex flex-col p-2 md:p-4 bg-gradient-to-b from-green-50 to-yellow-50">
+                <div class="h-full flex flex-col p-2 bg-gradient-to-b from-green-50 to-yellow-50">
                     <!-- ヘッダー -->
-                    <div class="flex justify-between items-center mb-2">
-                        <button id="btn-quit" class="bg-white/80 text-gray-400 font-bold py-1.5 px-3 rounded-full text-sm">
+                    <div class="flex justify-between items-center mb-1">
+                        <button id="btn-quit" class="bg-white/80 text-gray-400 font-bold py-1 px-2 rounded-full text-xs">
                             やめる
                         </button>
-                        <div class="bg-green-100 text-green-600 px-4 py-1.5 rounded-full font-bold">
+                        <div class="bg-green-100 text-green-600 px-3 py-1 rounded-full font-bold text-sm">
                             ${currentQuestionIndex + 1} / ${TOTAL_QUESTIONS}
                         </div>
-                        <div class="bg-yellow-100 text-yellow-600 px-4 py-1.5 rounded-full font-bold">
+                        <div class="bg-yellow-100 text-yellow-600 px-3 py-1 rounded-full font-bold text-sm">
                             ⭐ ${score}
                         </div>
                     </div>
 
                     <!-- 問題エリア（横向き対応のフレックスレイアウト） -->
-                    <div class="flex-1 flex flex-col landscape:flex-row landscape:items-center landscape:gap-8 items-center justify-center">
+                    <div class="flex-1 flex flex-col landscape:flex-row landscape:items-center landscape:gap-6 items-center justify-center overflow-y-auto">
                         <!-- 左側: 動物と質問 -->
                         <div class="flex flex-col items-center landscape:flex-shrink-0">
                             <!-- 動物 -->
-                            <div class="bg-white rounded-3xl p-4 md:p-8 shadow-xl border-4 border-green-200 mb-3 text-center">
-                                <div class="text-7xl md:text-9xl mb-2">${q.animal.emoji}</div>
-                                <h2 class="text-2xl md:text-3xl font-black text-gray-700">${q.animal.name}</h2>
+                            <div class="bg-white rounded-2xl p-3 md:p-6 shadow-xl border-4 border-green-200 mb-2 text-center">
+                                <div class="text-5xl md:text-7xl mb-1">${q.animal.emoji}</div>
+                                <h2 class="text-xl md:text-2xl font-black text-gray-700">${q.animal.name}</h2>
                             </div>
 
                             <!-- 質問 -->
-                            <div class="bg-yellow-100 rounded-2xl px-6 py-3 mb-3 border-2 border-yellow-300">
-                                <p class="text-lg md:text-xl font-bold text-yellow-700 text-center">
-                                    なにを たべる？ <span class="text-2xl text-orange-500">${q.correctCount}こ</span> えらんでね！
+                            <div class="bg-yellow-100 rounded-xl px-4 py-2 mb-2 border-2 border-yellow-300">
+                                <p class="text-sm md:text-base font-bold text-yellow-700 text-center">
+                                    なにを たべる？ <span class="text-lg text-orange-500">${q.correctCount}こ</span> えらんでね！
                                 </p>
                             </div>
 
                             <!-- 選択したもの表示 -->
-                            <div class="mb-2 h-12 flex items-center justify-center gap-2">
-                                <span class="text-gray-500 font-bold">えらんだ:</span>
-                                <div id="selected-display" class="flex gap-2">
+                            <div class="mb-1 h-10 flex items-center justify-center gap-2">
+                                <span class="text-gray-500 font-bold text-sm">えらんだ:</span>
+                                <div id="selected-display" class="flex gap-1">
                                     ${Array(q.correctCount).fill('').map((_, i) => `
-                                        <div class="w-10 h-10 md:w-12 md:h-12 bg-gray-200 rounded-full flex items-center justify-center text-gray-400 border-2 border-dashed border-gray-300">?</div>
+                                        <div class="w-8 h-8 md:w-10 md:h-10 bg-gray-200 rounded-full flex items-center justify-center text-gray-400 border-2 border-dashed border-gray-300 text-sm">?</div>
                                     `).join('')}
                                 </div>
                             </div>
@@ -246,18 +246,18 @@ export default {
                         <!-- 右側: 選択肢と決定ボタン -->
                         <div class="flex flex-col items-center w-full landscape:flex-1 landscape:max-w-xl">
                             <!-- 選択肢 -->
-                            <div class="grid grid-cols-3 gap-3 md:gap-4 w-full max-w-xl">
+                            <div class="grid grid-cols-3 gap-2 w-full max-w-xl">
                                 ${q.choices.map((choice, i) => `
-                                    <button class="choice-btn bg-white hover:bg-green-50 text-xl font-bold py-3 md:py-4 px-2 rounded-2xl shadow-md border-4 border-gray-200 active:scale-95 transition flex flex-col items-center justify-center min-h-[80px] md:min-h-[100px]"
+                                    <button class="choice-btn bg-white hover:bg-green-50 text-lg font-bold py-2 md:py-3 px-1 rounded-xl shadow-md border-3 border-gray-200 active:scale-95 transition flex flex-col items-center justify-center min-h-[60px] md:min-h-[80px]"
                                         data-choice="${choice}" data-index="${i}">
-                                        <span class="text-2xl md:text-3xl">${choice.match(/[\u{1F300}-\u{1F9FF}]/u)?.[0] || ''}</span>
-                                        <span class="text-sm md:text-base text-gray-600">${choice.replace(/[\u{1F300}-\u{1F9FF}]/gu, '')}</span>
+                                        <span class="text-xl md:text-2xl">${choice.match(/[\u{1F300}-\u{1F9FF}]/u)?.[0] || ''}</span>
+                                        <span class="text-xs md:text-sm text-gray-600">${choice.replace(/[\u{1F300}-\u{1F9FF}]/gu, '')}</span>
                                     </button>
                                 `).join('')}
                             </div>
 
                             <!-- 決定ボタン -->
-                            <button id="btn-submit" class="mt-4 bg-gradient-to-r from-orange-400 to-red-400 text-white font-black text-xl py-4 px-12 rounded-full shadow-lg opacity-50 cursor-not-allowed transition" disabled>
+                            <button id="btn-submit" class="mt-2 bg-gradient-to-r from-orange-400 to-red-400 text-white font-black text-lg py-3 px-8 rounded-full shadow-lg opacity-50 cursor-not-allowed transition" disabled>
                                 けってい！
                             </button>
                         </div>
@@ -267,7 +267,7 @@ export default {
                 <!-- 結果オーバーレイ -->
                 <div id="result-overlay" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                     <div class="bg-white rounded-3xl p-8 mx-4 text-center shadow-2xl max-w-sm w-full">
-                        <div id="result-emoji" class="text-8xl mb-4"></div>
+                        <div id="result-emoji" class="text-6xl mb-2"></div>
                         <h3 id="result-text" class="text-3xl font-black mb-4"></h3>
                         <p id="result-detail" class="text-gray-600 font-bold mb-6"></p>
                         <button id="btn-next" class="bg-gradient-to-r from-green-400 to-emerald-400 text-white font-bold text-xl py-3 px-8 rounded-full shadow-lg">
@@ -392,23 +392,23 @@ export default {
             }
 
             container.innerHTML = `
-                <div class="h-full flex flex-col items-center justify-center p-4 bg-gradient-to-b from-green-100 to-yellow-100 text-center">
-                    <div class="text-7xl md:text-9xl mb-4">${emoji}</div>
-                    <h2 class="text-3xl md:text-4xl font-black text-green-600 mb-3">おしまい！</h2>
+                <div class="h-full flex flex-col items-center justify-center p-3 bg-gradient-to-b from-green-100 to-yellow-100 text-center">
+                    <div class="text-5xl md:text-6xl mb-2">${emoji}</div>
+                    <h2 class="text-2xl md:text-3xl font-black text-green-600 mb-2">おしまい！</h2>
 
-                    <div class="bg-white rounded-3xl p-6 md:p-8 shadow-xl mb-4 w-full max-w-sm">
-                        <p class="text-gray-500 font-bold mb-1">スコア</p>
-                        <p class="text-5xl md:text-6xl font-black text-orange-500 mb-1">${score}</p>
-                        <p class="text-gray-400 font-bold">/ ${maxScore} てん</p>
+                    <div class="bg-white rounded-2xl p-4 md:p-6 shadow-xl mb-3 w-full max-w-sm">
+                        <p class="text-gray-500 font-bold mb-1 text-sm">スコア</p>
+                        <p class="text-4xl md:text-5xl font-black text-orange-500 mb-1">${score}</p>
+                        <p class="text-gray-400 font-bold text-sm">/ ${maxScore} てん</p>
                     </div>
 
-                    <p class="text-xl font-bold text-gray-600 mb-6">${message}</p>
+                    <p class="text-base font-bold text-gray-600 mb-4">${message}</p>
 
-                    <div class="flex flex-col md:flex-row gap-3 w-full max-w-md">
-                        <button id="btn-retry" class="bg-gradient-to-r from-green-400 to-emerald-400 text-white font-bold text-xl py-4 px-8 rounded-full shadow-lg flex-1">
+                    <div class="flex flex-col md:flex-row gap-2 w-full max-w-md">
+                        <button id="btn-retry" class="bg-gradient-to-r from-green-400 to-emerald-400 text-white font-bold text-lg py-3 px-6 rounded-full shadow-lg flex-1">
                             🔄 もういちど
                         </button>
-                        <button id="btn-home" class="bg-white text-gray-600 font-bold text-xl py-4 px-8 rounded-full shadow-md border-2 border-gray-200 flex-1">
+                        <button id="btn-home" class="bg-white text-gray-600 font-bold text-lg py-3 px-6 rounded-full shadow-md border-2 border-gray-200 flex-1">
                             🏠 ホームにもどる
                         </button>
                     </div>
