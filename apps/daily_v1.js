@@ -210,15 +210,23 @@ export default {
         // 履歴ログを取得（過去30日分、childIdでフィルター）
         const loadHistoryLogs = async () => {
             try {
-                // childIdでフィルター（複合インデックス不要のためorderByなし）
-                const q = childId
-                    ? query(collection(db, 'task_logs'), where('childId', '==', childId))
-                    : query(collection(db, 'task_logs'));
+                // 全ログを取得し、JavaScriptでフィルタリング
+                // （childIdが一致 OR childIdがない古いデータも表示）
+                const q = query(collection(db, 'task_logs'));
                 const snapshot = await getDocs(q);
-                historyLogs = snapshot.docs.map(doc => ({
+                let allLogs = snapshot.docs.map(doc => ({
                     id: doc.id,
                     ...doc.data()
                 }));
+
+                // childIdでフィルター（自分のログ + 古いデータ）
+                if (childId) {
+                    allLogs = allLogs.filter(log =>
+                        log.childId === childId || !log.childId
+                    );
+                }
+
+                historyLogs = allLogs;
                 // JavaScriptで日付の降順ソート
                 historyLogs.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
                 render();
@@ -733,16 +741,24 @@ export default {
         // Firestoreリアルタイム監視（childIdでフィルター）
         // ========================================
         const startListening = () => {
-            // childIdでフィルター（複合インデックス不要のためorderByなし）
-            const q = childId
-                ? query(collection(db, 'task_master'), where('childId', '==', childId))
-                : query(collection(db, 'task_master'));
+            // 全タスクを取得し、JavaScriptでフィルタリング
+            // （childIdが一致 OR childIdがない古いデータも表示）
+            const q = query(collection(db, 'task_master'));
 
             unsubscribeTasks = onSnapshot(q, (snapshot) => {
-                tasks = snapshot.docs.map(doc => ({
+                let allTasks = snapshot.docs.map(doc => ({
                     id: doc.id,
                     ...doc.data()
                 }));
+
+                // childIdでフィルター（自分のタスク + 古いデータ）
+                if (childId) {
+                    allTasks = allTasks.filter(task =>
+                        task.childId === childId || !task.childId
+                    );
+                }
+
+                tasks = allTasks;
                 // JavaScriptでcreatedAtの昇順ソート
                 tasks.sort((a, b) => {
                     const aTime = a.createdAt?.toMillis?.() || 0;
