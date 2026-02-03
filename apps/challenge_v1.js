@@ -32,12 +32,12 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig, 'challenge-app');
 const db = getFirestore(app);
 
-// カテゴリ定義
-const categories = [
+// デフォルトカテゴリ定義
+const defaultCategories = [
     { id: 'sports', name: 'うんどう', icon: '🏃', color: 'green' },
     { id: 'study', name: 'べんきょう', icon: '📖', color: 'blue' },
-    { id: 'life', name: 'せいかつ', icon: '🏠', color: 'orange' },
-    { id: 'hobby', name: 'しゅみ', icon: '🎨', color: 'purple' },
+    { id: 'craft', name: 'こうさく', icon: '✂️', color: 'pink' },
+    { id: 'cooking', name: 'りょうり', icon: '🍳', color: 'orange' },
     { id: 'other', name: 'その他', icon: '⭐', color: 'gray' }
 ];
 
@@ -45,40 +45,89 @@ const categories = [
 const emojisByCategory = {
     'sports': ['🏃', '🚴', '⚽', '🏊', '💪', '🎾', '🧗', '⛷️', '🏀', '🎯'],
     'study': ['📖', '✏️', '🎹', '🎨', '🔢', '💡', '📚', '🔬', '🌍', '✍️'],
-    'life': ['🧹', '🍳', '👕', '🌱', '⏰', '🛁', '🦷', '🧺', '🛏️', '🍽️'],
-    'hobby': ['🎮', '🎬', '🎤', '📷', '🧩', '♟️', '🎨', '🎸', '📕', '✂️'],
-    'other': ['⭐', '🌈', '🎯', '🔥', '💖', '✨', '🚀', '🌟', '🎪', '🎁']
+    'craft': ['✂️', '🎨', '🧶', '📐', '🖍️', '📎', '🧵', '🪡', '🎭', '🖼️'],
+    'cooking': ['🍳', '🥗', '🍰', '🍪', '🥞', '🍙', '🥪', '🍜', '🧁', '🍱'],
+    'other': ['⭐', '🌈', '🎯', '🔥', '💖', '✨', '🚀', '🌟', '🎪', '🎁'],
+    'custom': ['🌸', '🎵', '🎮', '📷', '🌻', '🦋', '🐾', '🎈', '💫', '🌙']
+};
+
+// ひらがなキーボード配列
+const hiraganaRows = [
+    ['あ', 'い', 'う', 'え', 'お'],
+    ['か', 'き', 'く', 'け', 'こ'],
+    ['さ', 'し', 'す', 'せ', 'そ'],
+    ['た', 'ち', 'つ', 'て', 'と'],
+    ['な', 'に', 'ぬ', 'ね', 'の'],
+    ['は', 'ひ', 'ふ', 'へ', 'ほ'],
+    ['ま', 'み', 'む', 'め', 'も'],
+    ['や', '', 'ゆ', '', 'よ'],
+    ['ら', 'り', 'る', 'れ', 'ろ'],
+    ['わ', 'を', 'ん', 'ー', '']
+];
+
+const dakutenMap = {
+    'か': 'が', 'き': 'ぎ', 'く': 'ぐ', 'け': 'げ', 'こ': 'ご',
+    'さ': 'ざ', 'し': 'じ', 'す': 'ず', 'せ': 'ぜ', 'そ': 'ぞ',
+    'た': 'だ', 'ち': 'ぢ', 'つ': 'づ', 'て': 'で', 'と': 'ど',
+    'は': 'ば', 'ひ': 'び', 'ふ': 'ぶ', 'へ': 'べ', 'ほ': 'ぼ'
+};
+
+const handakutenMap = {
+    'は': 'ぱ', 'ひ': 'ぴ', 'ふ': 'ぷ', 'へ': 'ぺ', 'ほ': 'ぽ'
+};
+
+const smallKanaMap = {
+    'あ': 'ぁ', 'い': 'ぃ', 'う': 'ぅ', 'え': 'ぇ', 'お': 'ぉ',
+    'や': 'ゃ', 'ゆ': 'ゅ', 'よ': 'ょ', 'つ': 'っ'
 };
 
 export default {
     launch(container, system) {
         let unsubscribeChallenges = null;
+        let unsubscribeCategories = null;
         let challenges = [];
-        let challengeLogs = {};  // challengeId -> logs array
-        let currentView = 'list';  // 'list', 'add', 'detail', 'history'
+        let customCategories = [];  // ユーザー追加カテゴリ
+        let challengeLogs = {};
+        let currentView = 'list';
         let selectedChallenge = null;
         let newChallenge = { title: '', icon: '🎯', category: 'other' };
         let showEmojiPicker = false;
+        let showHiraganaKeyboard = false;
+        let inputTarget = 'title';  // 'title' or 'newCategory'
+        let newCategoryName = '';
+        let showAddCategory = false;
 
-        // 現在のログイン中の子供を取得
         const currentChild = window.getCurrentChild ? window.getCurrentChild() : null;
         const childId = currentChild?.id || null;
         const childName = currentChild?.name || null;
 
-        // 今日の日付
+        // 全カテゴリを取得（デフォルト + カスタム）
+        const getAllCategories = () => {
+            return [...defaultCategories, ...customCategories];
+        };
+
+        // カテゴリを取得
+        const getCategory = (categoryId) => {
+            return getAllCategories().find(c => c.id === categoryId) || defaultCategories[4];
+        };
+
         const getTodayString = () => {
             const now = new Date();
             return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
         };
 
-        // 日付を表示用にフォーマット
         const formatDate = (dateStr) => {
             if (!dateStr) return '';
             const [year, month, day] = dateStr.split('-').map(Number);
             return `${month}/${day}`;
         };
 
-        // ステータス情報
+        const formatTime = (timestamp) => {
+            if (!timestamp) return '';
+            const d = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            return `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
+        };
+
         const getStatusInfo = (status) => {
             switch (status) {
                 case 'pending': return { text: 'チャレンジまち', color: 'blue', emoji: '🔵' };
@@ -88,7 +137,54 @@ export default {
             }
         };
 
-        // チャレンジのログを取得
+        // カスタムカテゴリを読み込み
+        const loadCustomCategories = async () => {
+            try {
+                const q = query(
+                    collection(db, 'challenge_categories'),
+                    where('childId', '==', childId)
+                );
+                const snapshot = await getDocs(q);
+                customCategories = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data(),
+                    color: 'purple'  // カスタムカテゴリは紫色
+                }));
+            } catch (e) {
+                console.error('カテゴリ取得エラー:', e);
+            }
+        };
+
+        // カスタムカテゴリを追加
+        const addCustomCategory = async () => {
+            if (!newCategoryName.trim()) {
+                alert('カテゴリの なまえを いれてね');
+                return;
+            }
+
+            try {
+                const docRef = await addDoc(collection(db, 'challenge_categories'), {
+                    name: newCategoryName.trim(),
+                    icon: '🏷️',
+                    childId: childId,
+                    createdAt: serverTimestamp()
+                });
+
+                customCategories.push({
+                    id: docRef.id,
+                    name: newCategoryName.trim(),
+                    icon: '🏷️',
+                    color: 'purple'
+                });
+
+                newCategoryName = '';
+                showAddCategory = false;
+                render();
+            } catch (e) {
+                console.error('カテゴリ追加エラー:', e);
+            }
+        };
+
         const loadChallengeLogs = async (challengeId) => {
             try {
                 const q = query(
@@ -101,7 +197,14 @@ export default {
                     id: doc.id,
                     ...doc.data()
                 }));
-                logs.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+                // 日付と時間でソート（新しい順）
+                logs.sort((a, b) => {
+                    const dateCompare = (b.date || '').localeCompare(a.date || '');
+                    if (dateCompare !== 0) return dateCompare;
+                    const timeA = a.createdAt?.toMillis?.() || 0;
+                    const timeB = b.createdAt?.toMillis?.() || 0;
+                    return timeB - timeA;
+                });
                 challengeLogs[challengeId] = logs;
                 return logs;
             } catch (e) {
@@ -110,28 +213,27 @@ export default {
             }
         };
 
-        // 今日既に記録があるか確認
-        const hasLoggedToday = (challengeId) => {
+        // 今日のチャレンジ回数を取得
+        const getTodayCount = (challengeId) => {
             const logs = challengeLogs[challengeId] || [];
-            return logs.some(log => log.date === getTodayString());
+            return logs.filter(log => log.date === getTodayString()).length;
         };
 
-        // 連続日数を計算
+        // 連続日数を計算（1日1回以上で連続とみなす）
         const getStreakDays = (challengeId) => {
             const logs = challengeLogs[challengeId] || [];
             if (logs.length === 0) return 0;
 
-            const dates = logs.map(l => l.date).sort().reverse();
+            const uniqueDates = [...new Set(logs.map(l => l.date))].sort().reverse();
             let streak = 0;
             let checkDate = new Date();
 
             for (let i = 0; i < 365; i++) {
                 const dateStr = `${checkDate.getFullYear()}-${String(checkDate.getMonth() + 1).padStart(2, '0')}-${String(checkDate.getDate()).padStart(2, '0')}`;
-                if (dates.includes(dateStr)) {
+                if (uniqueDates.includes(dateStr)) {
                     streak++;
                     checkDate.setDate(checkDate.getDate() - 1);
                 } else if (i === 0) {
-                    // 今日やってない場合は昨日から数える
                     checkDate.setDate(checkDate.getDate() - 1);
                 } else {
                     break;
@@ -140,7 +242,6 @@ export default {
             return streak;
         };
 
-        // 今月の回数を計算
         const getMonthlyCount = (challengeId) => {
             const logs = challengeLogs[challengeId] || [];
             const now = new Date();
@@ -148,13 +249,8 @@ export default {
             return logs.filter(l => l.date && l.date.startsWith(thisMonth)).length;
         };
 
-        // 「きょうやった！」を記録
-        const recordToday = async (challengeId) => {
-            if (hasLoggedToday(challengeId)) {
-                alert('きょうは もう きろくしたよ！');
-                return;
-            }
-
+        // 「チャレンジした」を記録（何回でも可）
+        const recordChallenge = async (challengeId) => {
             try {
                 await addDoc(collection(db, 'challenge_logs'), {
                     challengeId: challengeId,
@@ -164,7 +260,6 @@ export default {
                     createdAt: serverTimestamp()
                 });
 
-                // ステータスをactiveに更新（pendingの場合のみ）
                 const challenge = challenges.find(c => c.id === challengeId);
                 if (challenge && challenge.status === 'pending') {
                     await updateDoc(doc(db, 'challenges', challengeId), {
@@ -172,12 +267,8 @@ export default {
                     });
                 }
 
-                // ログを再読み込み
                 await loadChallengeLogs(challengeId);
-
-                // 効果音と演出
                 system.playSound('correct');
-
                 render();
             } catch (e) {
                 console.error('記録エラー:', e);
@@ -185,7 +276,6 @@ export default {
             }
         };
 
-        // ステータスを「できた！」に変更
         const markAsCompleted = async (challengeId) => {
             try {
                 await updateDoc(doc(db, 'challenges', challengeId), {
@@ -193,12 +283,17 @@ export default {
                     completedAt: serverTimestamp()
                 });
                 system.playSound('correct');
+
+                // selectedChallengeを更新
+                if (selectedChallenge && selectedChallenge.id === challengeId) {
+                    selectedChallenge.status = 'completed';
+                }
+                render();
             } catch (e) {
                 console.error('更新エラー:', e);
             }
         };
 
-        // チャレンジを追加
         const addChallenge = async () => {
             if (!newChallenge.title.trim()) {
                 alert('チャレンジの なまえを いれてね');
@@ -217,6 +312,7 @@ export default {
                 });
 
                 newChallenge = { title: '', icon: '🎯', category: 'other' };
+                showHiraganaKeyboard = false;
                 currentView = 'list';
                 render();
             } catch (e) {
@@ -225,15 +321,12 @@ export default {
             }
         };
 
-        // チャレンジを削除
         const deleteChallenge = async (challengeId) => {
             if (!confirm('このチャレンジを けす？\nきろくも ぜんぶ きえるよ')) return;
 
             try {
-                // チャレンジを削除
                 await deleteDoc(doc(db, 'challenges', challengeId));
 
-                // 関連するログも削除
                 const logs = challengeLogs[challengeId] || [];
                 for (const log of logs) {
                     await deleteDoc(doc(db, 'challenge_logs', log.id));
@@ -248,9 +341,106 @@ export default {
             }
         };
 
-        // メイン描画
+        // ひらがなキーボード入力処理
+        const handleHiraganaInput = (char) => {
+            if (inputTarget === 'title') {
+                newChallenge.title += char;
+            } else if (inputTarget === 'newCategory') {
+                newCategoryName += char;
+            }
+            render();
+        };
+
+        const handleBackspace = () => {
+            if (inputTarget === 'title') {
+                newChallenge.title = newChallenge.title.slice(0, -1);
+            } else if (inputTarget === 'newCategory') {
+                newCategoryName = newCategoryName.slice(0, -1);
+            }
+            render();
+        };
+
+        const handleDakuten = () => {
+            let text = inputTarget === 'title' ? newChallenge.title : newCategoryName;
+            if (text.length === 0) return;
+
+            const lastChar = text.slice(-1);
+            let newChar = dakutenMap[lastChar] || handakutenMap[lastChar] || lastChar;
+
+            // 濁点→半濁点→元に戻る
+            if (dakutenMap[lastChar]) {
+                newChar = dakutenMap[lastChar];
+            } else if (Object.values(dakutenMap).includes(lastChar)) {
+                const original = Object.keys(dakutenMap).find(k => dakutenMap[k] === lastChar);
+                newChar = handakutenMap[original] || lastChar;
+            } else if (Object.values(handakutenMap).includes(lastChar)) {
+                const original = Object.keys(handakutenMap).find(k => handakutenMap[k] === lastChar);
+                newChar = original;
+            }
+
+            if (inputTarget === 'title') {
+                newChallenge.title = text.slice(0, -1) + newChar;
+            } else {
+                newCategoryName = text.slice(0, -1) + newChar;
+            }
+            render();
+        };
+
+        const handleSmallKana = () => {
+            let text = inputTarget === 'title' ? newChallenge.title : newCategoryName;
+            if (text.length === 0) return;
+
+            const lastChar = text.slice(-1);
+            let newChar = smallKanaMap[lastChar];
+
+            if (!newChar) {
+                const original = Object.keys(smallKanaMap).find(k => smallKanaMap[k] === lastChar);
+                newChar = original || lastChar;
+            }
+
+            if (inputTarget === 'title') {
+                newChallenge.title = text.slice(0, -1) + newChar;
+            } else {
+                newCategoryName = text.slice(0, -1) + newChar;
+            }
+            render();
+        };
+
+        // ひらがなキーボードHTML
+        const renderHiraganaKeyboard = () => {
+            return `
+                <div class="bg-gray-100 rounded-xl p-2 mt-2">
+                    <div class="grid gap-1">
+                        ${hiraganaRows.map(row => `
+                            <div class="flex justify-center gap-1">
+                                ${row.map(char => char ? `
+                                    <button class="kana-btn bg-white hover:bg-emerald-100 w-10 h-10 rounded-lg font-bold text-lg text-gray-700 active:scale-95 transition shadow-sm" data-char="${char}">
+                                        ${char}
+                                    </button>
+                                ` : '<div class="w-10 h-10"></div>').join('')}
+                            </div>
+                        `).join('')}
+                        <div class="flex justify-center gap-1 mt-1">
+                            <button id="btn-dakuten" class="bg-yellow-100 hover:bg-yellow-200 px-3 h-10 rounded-lg font-bold text-sm text-gray-700 active:scale-95 transition">
+                                ゛゜
+                            </button>
+                            <button id="btn-small" class="bg-yellow-100 hover:bg-yellow-200 px-3 h-10 rounded-lg font-bold text-sm text-gray-700 active:scale-95 transition">
+                                小
+                            </button>
+                            <button class="kana-btn bg-white hover:bg-emerald-100 px-4 h-10 rounded-lg font-bold text-gray-700 active:scale-95 transition shadow-sm" data-char=" ">
+                                スペース
+                            </button>
+                            <button id="btn-backspace" class="bg-red-100 hover:bg-red-200 px-3 h-10 rounded-lg font-bold text-gray-700 active:scale-95 transition">
+                                ←けす
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        };
+
         const render = () => {
-            const categoryInfo = categories.find(c => c.id === newChallenge.category) || categories[4];
+            const allCategories = getAllCategories();
 
             container.innerHTML = `
                 <style>
@@ -261,7 +451,6 @@ export default {
                 </style>
 
                 <div class="h-full flex flex-col bg-gradient-to-b from-emerald-50 to-teal-50">
-                    <!-- ヘッダー -->
                     <div class="bg-white shadow px-3 py-2 flex justify-between items-center">
                         <button id="btn-back" class="text-gray-500 font-bold text-sm">
                             ${currentView === 'list' ? '← もどる' : '← いちらん'}
@@ -274,15 +463,13 @@ export default {
                         ` : '<div class="w-8"></div>'}
                     </div>
 
-                    <!-- メインコンテンツ -->
                     <div class="flex-1 overflow-y-auto p-3">
                         ${currentView === 'list' ? renderListView() : ''}
-                        ${currentView === 'add' ? renderAddView(categoryInfo) : ''}
+                        ${currentView === 'add' ? renderAddView(allCategories) : ''}
                         ${currentView === 'detail' ? renderDetailView() : ''}
                         ${currentView === 'history' ? renderHistoryView() : ''}
                     </div>
 
-                    <!-- 追加ボタン（リスト画面のみ） -->
                     ${currentView === 'list' ? `
                         <div class="p-3 bg-white border-t">
                             <button id="btn-add" class="w-full bg-gradient-to-r from-emerald-400 to-teal-400 text-white font-bold py-3 rounded-xl shadow-lg active:scale-95 transition text-lg">
@@ -296,7 +483,6 @@ export default {
             setupEventListeners();
         };
 
-        // リスト画面
         const renderListView = () => {
             if (challenges.length === 0) {
                 return `
@@ -313,32 +499,30 @@ export default {
                     ${challenges.map(challenge => {
                         const status = getStatusInfo(challenge.status);
                         const streak = getStreakDays(challenge.id);
-                        const todayDone = hasLoggedToday(challenge.id);
-                        const category = categories.find(c => c.id === challenge.category) || categories[4];
+                        const todayCount = getTodayCount(challenge.id);
+                        const category = getCategory(challenge.category);
 
                         return `
                             <div class="challenge-card bg-white rounded-2xl p-3 shadow-md border-2 border-${category.color}-100" data-id="${challenge.id}">
                                 <div class="flex items-center gap-3">
-                                    <!-- アイコン -->
                                     <div class="text-4xl w-14 h-14 bg-${category.color}-50 rounded-xl flex items-center justify-center">
                                         ${challenge.icon}
                                     </div>
 
-                                    <!-- 情報 -->
                                     <div class="flex-1 min-w-0">
-                                        <div class="flex items-center gap-2 mb-1">
+                                        <div class="flex items-center gap-2 mb-1 flex-wrap">
                                             <span class="status-badge bg-${status.color}-100 text-${status.color}-600 px-2 py-0.5 rounded-full font-bold">
                                                 ${status.emoji} ${status.text}
                                             </span>
                                             ${streak > 0 ? `<span class="status-badge bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full font-bold">🔥${streak}日</span>` : ''}
+                                            ${todayCount > 0 ? `<span class="status-badge bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded-full font-bold">きょう${todayCount}回</span>` : ''}
                                         </div>
                                         <p class="font-bold text-gray-700 truncate">${challenge.title}</p>
                                     </div>
 
-                                    <!-- やった！ボタン -->
-                                    <button class="btn-record flex-shrink-0 ${todayDone ? 'bg-gray-100 text-gray-400' : 'bg-emerald-400 text-white'} font-bold py-2 px-3 rounded-xl text-sm active:scale-95 transition"
-                                        data-id="${challenge.id}" ${todayDone ? 'disabled' : ''}>
-                                        ${todayDone ? '✓ きろくずみ' : 'きょうやった！'}
+                                    <button class="btn-record flex-shrink-0 bg-emerald-400 text-white font-bold py-2 px-3 rounded-xl text-sm active:scale-95 transition"
+                                        data-id="${challenge.id}">
+                                        チャレンジした！
                                     </button>
                                 </div>
                             </div>
@@ -348,8 +532,9 @@ export default {
             `;
         };
 
-        // 追加画面
-        const renderAddView = (categoryInfo) => {
+        const renderAddView = (allCategories) => {
+            const currentCategoryEmojis = emojisByCategory[newChallenge.category] || emojisByCategory['other'];
+
             return `
                 <div class="space-y-4">
                     <div class="bg-white rounded-2xl p-4 shadow-md">
@@ -366,7 +551,7 @@ export default {
                         ${showEmojiPicker ? `
                             <div class="bg-gray-50 rounded-xl p-3 mb-4 border-2 border-gray-200">
                                 <div class="grid grid-cols-5 gap-2">
-                                    ${emojisByCategory[newChallenge.category].map(emoji => `
+                                    ${currentCategoryEmojis.map(emoji => `
                                         <button class="emoji-btn text-2xl p-2 rounded-lg hover:bg-emerald-100 ${newChallenge.icon === emoji ? 'bg-emerald-100 ring-2 ring-emerald-400' : ''}" data-emoji="${emoji}">
                                             ${emoji}
                                         </button>
@@ -379,22 +564,47 @@ export default {
                         <div class="mb-4">
                             <label class="block text-sm font-bold text-gray-600 mb-2">カテゴリ</label>
                             <div class="flex flex-wrap gap-2">
-                                ${categories.map(cat => `
+                                ${allCategories.map(cat => `
                                     <button class="cat-btn px-3 py-1.5 rounded-full font-bold text-sm transition ${newChallenge.category === cat.id ? `bg-${cat.color}-400 text-white` : `bg-${cat.color}-100 text-${cat.color}-600`}" data-cat="${cat.id}">
                                         ${cat.icon} ${cat.name}
                                     </button>
                                 `).join('')}
+                                <button id="btn-add-category" class="px-3 py-1.5 rounded-full font-bold text-sm bg-gray-200 text-gray-600 hover:bg-gray-300 transition">
+                                    ＋ ついか
+                                </button>
                             </div>
                         </div>
+
+                        <!-- カテゴリ追加フォーム -->
+                        ${showAddCategory ? `
+                            <div class="bg-purple-50 rounded-xl p-3 mb-4 border-2 border-purple-200">
+                                <label class="block text-sm font-bold text-purple-600 mb-2">あたらしいカテゴリ</label>
+                                <div class="flex gap-2">
+                                    <input type="text" id="input-category" value="${newCategoryName}" placeholder="カテゴリのなまえ"
+                                        class="flex-1 border-2 border-purple-200 rounded-lg py-2 px-3 text-sm font-bold focus:outline-none focus:border-purple-400"
+                                        onfocus="inputTarget='newCategory'">
+                                    <button id="btn-save-category" class="bg-purple-400 text-white font-bold px-4 rounded-lg text-sm">
+                                        ついか
+                                    </button>
+                                </div>
+                                ${showHiraganaKeyboard && inputTarget === 'newCategory' ? renderHiraganaKeyboard() : ''}
+                            </div>
+                        ` : ''}
 
                         <!-- 名前入力 -->
                         <div class="mb-4">
                             <label class="block text-sm font-bold text-gray-600 mb-2">チャレンジの なまえ</label>
                             <input type="text" id="input-title" value="${newChallenge.title}" placeholder="れい: まいにち 10ぷん はしる"
-                                class="w-full border-2 border-gray-200 rounded-xl py-2 px-3 text-base font-bold focus:outline-none focus:border-emerald-400">
+                                class="w-full border-2 border-gray-200 rounded-xl py-2 px-3 text-base font-bold focus:outline-none focus:border-emerald-400"
+                                onfocus="inputTarget='title'">
+
+                            <button id="btn-toggle-keyboard" class="mt-2 text-sm text-emerald-600 font-bold">
+                                ${showHiraganaKeyboard && inputTarget === 'title' ? '⌨️ キーボードをとじる' : '⌨️ ひらがなキーボード'}
+                            </button>
+
+                            ${showHiraganaKeyboard && inputTarget === 'title' ? renderHiraganaKeyboard() : ''}
                         </div>
 
-                        <!-- 追加ボタン -->
                         <button id="btn-submit" class="w-full bg-gradient-to-r from-emerald-400 to-teal-400 text-white font-bold py-3 rounded-xl shadow-lg active:scale-95 transition text-lg">
                             ついか する！
                         </button>
@@ -403,7 +613,6 @@ export default {
             `;
         };
 
-        // 詳細画面
         const renderDetailView = () => {
             if (!selectedChallenge) return '<p>エラー</p>';
 
@@ -412,12 +621,11 @@ export default {
             const logs = challengeLogs[challenge.id] || [];
             const streak = getStreakDays(challenge.id);
             const monthlyCount = getMonthlyCount(challenge.id);
-            const category = categories.find(c => c.id === challenge.category) || categories[4];
-            const todayDone = hasLoggedToday(challenge.id);
+            const todayCount = getTodayCount(challenge.id);
+            const category = getCategory(challenge.category);
 
             return `
                 <div class="space-y-4">
-                    <!-- チャレンジ情報 -->
                     <div class="bg-white rounded-2xl p-4 shadow-md text-center">
                         <div class="text-5xl mb-2">${challenge.icon}</div>
                         <h2 class="text-xl font-black text-gray-700 mb-2">${challenge.title}</h2>
@@ -426,49 +634,49 @@ export default {
                         </span>
                     </div>
 
-                    <!-- 統計 -->
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="bg-white rounded-xl p-3 shadow text-center">
-                            <p class="text-2xl font-black text-orange-500">🔥 ${streak}</p>
-                            <p class="text-xs font-bold text-gray-500">れんぞく日すう</p>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div class="bg-white rounded-xl p-2 shadow text-center">
+                            <p class="text-xl font-black text-orange-500">🔥 ${streak}</p>
+                            <p class="text-xs font-bold text-gray-500">れんぞく</p>
                         </div>
-                        <div class="bg-white rounded-xl p-3 shadow text-center">
-                            <p class="text-2xl font-black text-blue-500">📊 ${monthlyCount}</p>
-                            <p class="text-xs font-bold text-gray-500">こんげつの かいすう</p>
+                        <div class="bg-white rounded-xl p-2 shadow text-center">
+                            <p class="text-xl font-black text-blue-500">📊 ${monthlyCount}</p>
+                            <p class="text-xs font-bold text-gray-500">こんげつ</p>
+                        </div>
+                        <div class="bg-white rounded-xl p-2 shadow text-center">
+                            <p class="text-xl font-black text-emerald-500">✨ ${todayCount}</p>
+                            <p class="text-xs font-bold text-gray-500">きょう</p>
                         </div>
                     </div>
 
-                    <!-- やった！ボタン -->
-                    <button id="btn-record-detail" class="${todayDone ? 'bg-gray-200 text-gray-400' : 'bg-gradient-to-r from-emerald-400 to-teal-400 text-white'} font-bold py-3 rounded-xl shadow-lg w-full text-lg active:scale-95 transition" ${todayDone ? 'disabled' : ''}>
-                        ${todayDone ? '✓ きょうは きろくずみ' : '🎉 きょう やった！'}
+                    <button id="btn-record-detail" class="bg-gradient-to-r from-emerald-400 to-teal-400 text-white font-bold py-3 rounded-xl shadow-lg w-full text-lg active:scale-95 transition">
+                        🎉 チャレンジした！
                     </button>
 
-                    <!-- できた！ボタン -->
                     ${challenge.status !== 'completed' ? `
                         <button id="btn-complete" class="bg-gradient-to-r from-yellow-400 to-orange-400 text-white font-bold py-2 rounded-xl w-full text-base active:scale-95 transition">
                             🏆 できるように なった！
                         </button>
                     ` : ''}
 
-                    <!-- 記録一覧 -->
                     <div class="bg-white rounded-2xl p-4 shadow-md">
                         <h3 class="font-bold text-gray-700 mb-3">📝 きろく</h3>
                         ${logs.length === 0 ? `
                             <p class="text-gray-400 text-sm text-center py-4">まだ きろくが ないよ</p>
                         ` : `
                             <div class="space-y-2 max-h-48 overflow-y-auto">
-                                ${logs.slice(0, 20).map(log => `
+                                ${logs.slice(0, 30).map(log => `
                                     <div class="flex items-center gap-2 text-sm">
                                         <div class="log-dot bg-emerald-400"></div>
                                         <span class="font-bold text-gray-600">${formatDate(log.date)}</span>
-                                        <span class="text-gray-400">${log.date === getTodayString() ? 'きょう' : ''}</span>
+                                        <span class="text-gray-400 text-xs">${formatTime(log.createdAt)}</span>
+                                        ${log.date === getTodayString() ? '<span class="text-emerald-500 text-xs font-bold">きょう</span>' : ''}
                                     </div>
                                 `).join('')}
                             </div>
                         `}
                     </div>
 
-                    <!-- 削除ボタン -->
                     <button id="btn-delete" class="text-red-400 font-bold text-sm w-full py-2">
                         🗑️ このチャレンジを けす
                     </button>
@@ -476,9 +684,7 @@ export default {
             `;
         };
 
-        // 履歴画面（全チャレンジのタイムライン）
         const renderHistoryView = () => {
-            // 全ログを集めて日付順にソート
             let allLogs = [];
             for (const challenge of challenges) {
                 const logs = challengeLogs[challenge.id] || [];
@@ -490,9 +696,14 @@ export default {
                     });
                 }
             }
-            allLogs.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+            allLogs.sort((a, b) => {
+                const dateCompare = (b.date || '').localeCompare(a.date || '');
+                if (dateCompare !== 0) return dateCompare;
+                const timeA = a.createdAt?.toMillis?.() || 0;
+                const timeB = b.createdAt?.toMillis?.() || 0;
+                return timeB - timeA;
+            });
 
-            // 日付でグループ化
             const grouped = {};
             for (const log of allLogs) {
                 if (!grouped[log.date]) grouped[log.date] = [];
@@ -515,6 +726,7 @@ export default {
                                         <div class="flex items-center gap-2 mb-2">
                                             <span class="font-bold text-emerald-600">${formatDate(date)}</span>
                                             ${date === getTodayString() ? '<span class="text-xs bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded-full font-bold">きょう</span>' : ''}
+                                            <span class="text-xs text-gray-400">(${grouped[date].length}回)</span>
                                         </div>
                                         <div class="flex flex-wrap gap-2 ml-4">
                                             ${grouped[date].map(log => `
@@ -532,36 +744,34 @@ export default {
             `;
         };
 
-        // イベントリスナー設定
         const setupEventListeners = () => {
-            // 戻るボタン
             container.querySelector('#btn-back')?.addEventListener('click', () => {
                 if (currentView === 'list') {
                     system.goHome();
                 } else {
                     currentView = 'list';
                     selectedChallenge = null;
+                    showHiraganaKeyboard = false;
+                    showAddCategory = false;
                     render();
                 }
             });
 
-            // 履歴ボタン
             container.querySelector('#btn-history')?.addEventListener('click', () => {
                 currentView = 'history';
                 render();
             });
 
-            // 追加ボタン
             container.querySelector('#btn-add')?.addEventListener('click', () => {
                 currentView = 'add';
                 newChallenge = { title: '', icon: '🎯', category: 'other' };
+                showHiraganaKeyboard = false;
+                showAddCategory = false;
                 render();
             });
 
-            // チャレンジカードクリック（詳細へ）
             container.querySelectorAll('.challenge-card').forEach(card => {
                 card.addEventListener('click', async (e) => {
-                    // ボタンクリックは除外
                     if (e.target.closest('.btn-record')) return;
 
                     const id = card.dataset.id;
@@ -574,16 +784,14 @@ export default {
                 });
             });
 
-            // やった！ボタン（リスト画面）
             container.querySelectorAll('.btn-record').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     e.stopPropagation();
                     const id = btn.dataset.id;
-                    recordToday(id);
+                    recordChallenge(id);
                 });
             });
 
-            // 追加画面のイベント
             if (currentView === 'add') {
                 container.querySelector('#btn-emoji')?.addEventListener('click', () => {
                     showEmojiPicker = !showEmojiPicker;
@@ -601,22 +809,59 @@ export default {
                 container.querySelectorAll('.cat-btn').forEach(btn => {
                     btn.addEventListener('click', () => {
                         newChallenge.category = btn.dataset.cat;
-                        newChallenge.icon = emojisByCategory[newChallenge.category][0];
+                        const catEmojis = emojisByCategory[newChallenge.category] || emojisByCategory['custom'];
+                        newChallenge.icon = catEmojis[0];
                         render();
                     });
+                });
+
+                container.querySelector('#btn-add-category')?.addEventListener('click', () => {
+                    showAddCategory = !showAddCategory;
+                    inputTarget = 'newCategory';
+                    render();
+                });
+
+                container.querySelector('#btn-save-category')?.addEventListener('click', addCustomCategory);
+
+                container.querySelector('#input-category')?.addEventListener('input', (e) => {
+                    newCategoryName = e.target.value;
+                });
+
+                container.querySelector('#input-category')?.addEventListener('focus', () => {
+                    inputTarget = 'newCategory';
                 });
 
                 container.querySelector('#input-title')?.addEventListener('input', (e) => {
                     newChallenge.title = e.target.value;
                 });
 
+                container.querySelector('#input-title')?.addEventListener('focus', () => {
+                    inputTarget = 'title';
+                });
+
+                container.querySelector('#btn-toggle-keyboard')?.addEventListener('click', () => {
+                    showHiraganaKeyboard = !showHiraganaKeyboard;
+                    inputTarget = 'title';
+                    render();
+                });
+
+                container.querySelectorAll('.kana-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const char = btn.dataset.char;
+                        if (char) handleHiraganaInput(char);
+                    });
+                });
+
+                container.querySelector('#btn-dakuten')?.addEventListener('click', handleDakuten);
+                container.querySelector('#btn-small')?.addEventListener('click', handleSmallKana);
+                container.querySelector('#btn-backspace')?.addEventListener('click', handleBackspace);
+
                 container.querySelector('#btn-submit')?.addEventListener('click', addChallenge);
             }
 
-            // 詳細画面のイベント
             if (currentView === 'detail' && selectedChallenge) {
                 container.querySelector('#btn-record-detail')?.addEventListener('click', () => {
-                    recordToday(selectedChallenge.id);
+                    recordChallenge(selectedChallenge.id);
                 });
 
                 container.querySelector('#btn-complete')?.addEventListener('click', () => {
@@ -629,7 +874,6 @@ export default {
             }
         };
 
-        // Firestoreリアルタイム監視
         const startListening = () => {
             const q = childId
                 ? query(collection(db, 'challenges'), where('childId', '==', childId))
@@ -641,14 +885,12 @@ export default {
                     ...doc.data()
                 }));
 
-                // createdAtでソート
                 challenges.sort((a, b) => {
                     const timeA = a.createdAt?.toMillis?.() || 0;
                     const timeB = b.createdAt?.toMillis?.() || 0;
                     return timeB - timeA;
                 });
 
-                // 各チャレンジのログを読み込み
                 for (const challenge of challenges) {
                     await loadChallengeLogs(challenge.id);
                 }
@@ -660,10 +902,14 @@ export default {
         };
 
         // 初期化
-        render();
-        startListening();
+        const init = async () => {
+            await loadCustomCategories();
+            render();
+            startListening();
+        };
 
-        // クリーンアップ
+        init();
+
         return () => {
             if (unsubscribeChallenges) unsubscribeChallenges();
         };
