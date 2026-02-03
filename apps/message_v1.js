@@ -20,6 +20,7 @@ export default {
         let audioChunks = [];
         let userType = 'child';
         let emailjsLoaded = false;
+        let showHistory = false;
 
         // 現在ログイン中の子供を取得
         const currentChild = window.getCurrentChild ? window.getCurrentChild() : null;
@@ -217,6 +218,32 @@ export default {
             }
         };
 
+        // 日付を詳細フォーマット
+        const formatDateDetail = (timestamp) => {
+            if (!timestamp) return '';
+            const d = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            const weekdays = ['にち', 'げつ', 'か', 'すい', 'もく', 'きん', 'ど'];
+            return `${d.getMonth() + 1}/${d.getDate()}(${weekdays[d.getDay()]})`;
+        };
+
+        // メッセージを日付でグループ化
+        const groupMessagesByDate = () => {
+            const groups = {};
+            messages.forEach(msg => {
+                if (!msg.timestamp) return;
+                const d = msg.timestamp.toDate ? msg.timestamp.toDate() : new Date(msg.timestamp);
+                const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                if (!groups[dateKey]) {
+                    groups[dateKey] = { date: d, messages: [] };
+                }
+                groups[dateKey].messages.push(msg);
+            });
+            // 日付の新しい順にソート
+            return Object.entries(groups)
+                .sort((a, b) => b[0].localeCompare(a[0]))
+                .map(([key, value]) => value);
+        };
+
         // 描画
         const render = () => {
             const fromLabel = userType === 'child' ? 'わたし' : 'ほごしゃ';
@@ -237,7 +264,7 @@ export default {
                         <h1 class="text-lg font-black text-pink-500 flex items-center gap-2">
                             💌 ${userType === 'child' ? 'パパママへ' : 'こどもへ'}
                         </h1>
-                        <div class="text-xs text-gray-400 font-bold">${fromLabel}</div>
+                        <button id="btn-history" class="text-purple-500 font-bold text-sm">📖 きろく</button>
                     </div>
 
                     <div id="message-list" class="flex-1 overflow-y-auto p-3 space-y-3">
@@ -282,6 +309,43 @@ export default {
                         ${isRecording ? `<div class="mt-2 text-center"><p class="text-red-500 font-bold animate-pulse">🎙️ ろくおん中... ボタンを おして おわる</p></div>` : ''}
                     </div>
                 </div>
+
+                ${showHistory ? `
+                    <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" id="history-overlay">
+                        <div class="bg-white rounded-2xl p-5 max-w-lg w-[90%] max-h-[80vh] overflow-hidden flex flex-col shadow-2xl">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-xl font-black text-purple-600 flex items-center gap-2">📖 メッセージの きろく</h3>
+                                <button id="btn-close-history" class="text-2xl text-gray-400 hover:text-gray-600">×</button>
+                            </div>
+                            <div class="flex-1 overflow-y-auto space-y-4">
+                                ${messages.length === 0 ? `
+                                    <div class="text-center py-8 text-gray-400">
+                                        <span class="text-5xl block mb-3">💬</span>
+                                        <p class="font-bold">まだ きろくが ないよ</p>
+                                    </div>
+                                ` : groupMessagesByDate().map(group => `
+                                    <div class="bg-gradient-to-r from-pink-50 to-purple-50 rounded-xl p-4 border-2 border-pink-200">
+                                        <div class="flex items-center gap-2 mb-3">
+                                            <span class="text-lg">📅</span>
+                                            <span class="font-black text-purple-600">${formatDateDetail(group.date)}</span>
+                                            <span class="text-xs text-gray-400">(${group.messages.length}けん)</span>
+                                        </div>
+                                        <div class="space-y-2">
+                                            ${group.messages.map(msg => `
+                                                <div class="flex items-start gap-2 ${msg.from === userType ? 'flex-row-reverse' : ''}">
+                                                    <span class="text-lg">${msg.from === 'child' ? '👧' : '👨‍👩‍👧'}</span>
+                                                    <div class="${msg.from === userType ? 'bg-pink-200 text-pink-800' : 'bg-white border border-gray-200 text-gray-700'} rounded-lg px-3 py-2 text-sm font-bold max-w-[80%]">
+                                                        ${msg.type === 'text' ? msg.content : '🎤 ボイスメッセージ'}
+                                                    </div>
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                ` : ''}
             `;
 
             setupListeners();
@@ -320,6 +384,25 @@ export default {
 
             container.querySelectorAll('.play-audio').forEach(btn => {
                 btn.addEventListener('click', () => playAudio(btn.dataset.audio));
+            });
+
+            // 履歴ボタン
+            container.querySelector('#btn-history')?.addEventListener('click', () => {
+                showHistory = true;
+                render();
+            });
+
+            // 履歴閉じる
+            container.querySelector('#btn-close-history')?.addEventListener('click', () => {
+                showHistory = false;
+                render();
+            });
+
+            container.querySelector('#history-overlay')?.addEventListener('click', (e) => {
+                if (e.target.id === 'history-overlay') {
+                    showHistory = false;
+                    render();
+                }
             });
         };
 

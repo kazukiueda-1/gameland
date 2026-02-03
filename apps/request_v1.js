@@ -10,6 +10,7 @@ export default {
         let unsubscribe = null;
         let inputText = '';
         let showForm = false;
+        let showHistory = false;
 
         // 現在ログイン中の子供を取得
         const currentChild = window.getCurrentChild ? window.getCurrentChild() : null;
@@ -101,6 +102,14 @@ export default {
             return `${d.getMonth() + 1}/${d.getDate()}`;
         };
 
+        // 日付を詳細フォーマット
+        const formatDateDetail = (timestamp) => {
+            if (!timestamp) return '';
+            const d = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            const weekdays = ['にち', 'げつ', 'か', 'すい', 'もく', 'きん', 'ど'];
+            return `${d.getMonth() + 1}/${d.getDate()}(${weekdays[d.getDay()]})`;
+        };
+
         // 描画
         const render = () => {
             container.innerHTML = `
@@ -158,13 +167,46 @@ export default {
                             </div>
                         </div>
                     ` : `
-                        <div class="p-4">
+                        <div class="p-4 space-y-2">
                             <button id="btn-new" class="w-full bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-500 hover:to-orange-500 text-white font-black text-xl py-4 rounded-2xl shadow-lg active:scale-95 transition flex items-center justify-center gap-3">
                                 <span class="text-2xl">✨</span> あたらしい リクエスト
+                            </button>
+                            <button id="btn-history" class="w-full bg-gradient-to-r from-purple-300 to-indigo-300 hover:from-purple-400 hover:to-indigo-400 text-white font-bold text-lg py-3 rounded-xl shadow-md active:scale-95 transition flex items-center justify-center gap-2">
+                                📖 きろく
                             </button>
                         </div>
                     `}
                 </div>
+
+                ${showHistory ? `
+                    <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" id="history-overlay">
+                        <div class="bg-white rounded-2xl p-5 max-w-lg w-[90%] max-h-[80vh] overflow-hidden flex flex-col shadow-2xl">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-xl font-black text-purple-600 flex items-center gap-2">📖 リクエストの きろく</h3>
+                                <button id="btn-close-history" class="text-2xl text-gray-400 hover:text-gray-600">×</button>
+                            </div>
+                            <div class="flex-1 overflow-y-auto space-y-3">
+                                ${requests.length === 0 ? `
+                                    <div class="text-center py-8 text-gray-400">
+                                        <span class="text-5xl block mb-3">📝</span>
+                                        <p class="font-bold">まだ きろくが ないよ</p>
+                                    </div>
+                                ` : requests.map(req => {
+                                    const status = getStatusLabel(req.status);
+                                    return `
+                                        <div class="bg-gradient-to-r from-orange-50 to-yellow-50 rounded-xl p-4 border-2 border-orange-200">
+                                            <div class="flex justify-between items-start mb-2">
+                                                <span class="text-sm font-bold text-orange-600">📅 ${formatDateDetail(req.createdAt)}</span>
+                                                <span class="${status.color} text-xs font-bold px-2 py-1 rounded-full">${status.emoji} ${status.text}</span>
+                                            </div>
+                                            <p class="text-gray-700 font-bold">${req.content}</p>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    </div>
+                ` : ''}
             `;
 
             setupListeners();
@@ -193,6 +235,25 @@ export default {
 
             container.querySelectorAll('.delete-btn').forEach(btn => {
                 btn.addEventListener('click', () => deleteRequest(btn.dataset.id));
+            });
+
+            // 履歴ボタン
+            container.querySelector('#btn-history')?.addEventListener('click', () => {
+                showHistory = true;
+                render();
+            });
+
+            // 履歴閉じる
+            container.querySelector('#btn-close-history')?.addEventListener('click', () => {
+                showHistory = false;
+                render();
+            });
+
+            container.querySelector('#history-overlay')?.addEventListener('click', (e) => {
+                if (e.target.id === 'history-overlay') {
+                    showHistory = false;
+                    render();
+                }
             });
         };
 
