@@ -28,6 +28,37 @@ export default {
         let recordingTimer = null;
         let recordingSeconds = 0;
         const MAX_RECORDING_SECONDS = 20;
+        let showHiraganaKeyboard = false;
+
+        // ひらがなキーボード配列
+        const hiraganaRows = [
+            ['あ', 'い', 'う', 'え', 'お'],
+            ['か', 'き', 'く', 'け', 'こ'],
+            ['さ', 'し', 'す', 'せ', 'そ'],
+            ['た', 'ち', 'つ', 'て', 'と'],
+            ['な', 'に', 'ぬ', 'ね', 'の'],
+            ['は', 'ひ', 'ふ', 'へ', 'ほ'],
+            ['ま', 'み', 'む', 'め', 'も'],
+            ['や', '', 'ゆ', '', 'よ'],
+            ['ら', 'り', 'る', 'れ', 'ろ'],
+            ['わ', 'を', 'ん', 'ー', '']
+        ];
+
+        const dakutenMap = {
+            'か': 'が', 'き': 'ぎ', 'く': 'ぐ', 'け': 'げ', 'こ': 'ご',
+            'さ': 'ざ', 'し': 'じ', 'す': 'ず', 'せ': 'ぜ', 'そ': 'ぞ',
+            'た': 'だ', 'ち': 'ぢ', 'つ': 'づ', 'て': 'で', 'と': 'ど',
+            'は': 'ば', 'ひ': 'び', 'ふ': 'ぶ', 'へ': 'べ', 'ほ': 'ぼ'
+        };
+
+        const handakutenMap = {
+            'は': 'ぱ', 'ひ': 'ぴ', 'ふ': 'ぷ', 'へ': 'ぺ', 'ほ': 'ぽ'
+        };
+
+        const smallKanaMap = {
+            'あ': 'ぁ', 'い': 'ぃ', 'う': 'ぅ', 'え': 'ぇ', 'お': 'ぉ',
+            'や': 'ゃ', 'ゆ': 'ゅ', 'よ': 'ょ', 'つ': 'っ'
+        };
 
         // 現在ログイン中の子供を取得
         const currentChild = window.getCurrentChild ? window.getCurrentChild() : null;
@@ -296,6 +327,83 @@ export default {
                 .map(([key, value]) => value);
         };
 
+        // ひらがなキーボード入力処理
+        const handleHiraganaInput = (char) => {
+            inputText += char;
+            render();
+        };
+
+        const handleBackspace = () => {
+            inputText = inputText.slice(0, -1);
+            render();
+        };
+
+        const handleDakuten = () => {
+            if (inputText.length === 0) return;
+            const lastChar = inputText.slice(-1);
+            let newChar = dakutenMap[lastChar] || handakutenMap[lastChar] || lastChar;
+
+            if (dakutenMap[lastChar]) {
+                newChar = dakutenMap[lastChar];
+            } else if (Object.values(dakutenMap).includes(lastChar)) {
+                const original = Object.keys(dakutenMap).find(k => dakutenMap[k] === lastChar);
+                newChar = handakutenMap[original] || lastChar;
+            } else if (Object.values(handakutenMap).includes(lastChar)) {
+                const original = Object.keys(handakutenMap).find(k => handakutenMap[k] === lastChar);
+                newChar = original;
+            }
+
+            inputText = inputText.slice(0, -1) + newChar;
+            render();
+        };
+
+        const handleSmallKana = () => {
+            if (inputText.length === 0) return;
+            const lastChar = inputText.slice(-1);
+            let newChar = smallKanaMap[lastChar];
+
+            if (!newChar) {
+                const original = Object.keys(smallKanaMap).find(k => smallKanaMap[k] === lastChar);
+                newChar = original || lastChar;
+            }
+
+            inputText = inputText.slice(0, -1) + newChar;
+            render();
+        };
+
+        // ひらがなキーボードHTML
+        const renderHiraganaKeyboard = () => {
+            return `
+                <div class="bg-gray-100 rounded-xl p-2">
+                    <div class="grid gap-1">
+                        ${hiraganaRows.map(row => `
+                            <div class="flex justify-center gap-1">
+                                ${row.map(char => char ? `
+                                    <button class="kana-btn bg-white hover:bg-pink-100 w-9 h-9 rounded-lg font-bold text-lg text-gray-700 active:scale-95 transition shadow-sm" data-char="${char}">
+                                        ${char}
+                                    </button>
+                                ` : '<div class="w-9 h-9"></div>').join('')}
+                            </div>
+                        `).join('')}
+                        <div class="flex justify-center gap-1 mt-1">
+                            <button id="btn-dakuten" class="bg-yellow-100 hover:bg-yellow-200 px-2 h-9 rounded-lg font-bold text-sm text-gray-700 active:scale-95 transition">
+                                ゛゜
+                            </button>
+                            <button id="btn-small" class="bg-yellow-100 hover:bg-yellow-200 px-2 h-9 rounded-lg font-bold text-sm text-gray-700 active:scale-95 transition">
+                                小
+                            </button>
+                            <button class="kana-btn bg-white hover:bg-pink-100 px-3 h-9 rounded-lg font-bold text-gray-700 active:scale-95 transition shadow-sm" data-char=" ">
+                                スペース
+                            </button>
+                            <button id="btn-backspace" class="bg-red-100 hover:bg-red-200 px-2 h-9 rounded-lg font-bold text-gray-700 active:scale-95 transition">
+                                ←けす
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        };
+
         // 描画
         const render = () => {
             const fromLabel = userType === 'child' ? 'わたし' : 'ほごしゃ';
@@ -347,19 +455,24 @@ export default {
                         }).join('')}
                     </div>
 
-                    <div class="bg-white border-t p-3">
-                        <div class="flex gap-2 items-end">
-                            <button id="btn-voice" class="voice-btn flex-shrink-0 w-14 h-14 rounded-full ${isRecording ? 'bg-red-500' : 'bg-gradient-to-r from-purple-400 to-pink-400'} text-white text-2xl shadow-lg active:scale-95 transition flex items-center justify-center">
+                    <div class="bg-white border-t p-2">
+                        <div class="flex gap-2 items-center mb-2">
+                            <button id="btn-voice" class="voice-btn flex-shrink-0 w-12 h-12 rounded-full ${isRecording ? 'bg-red-500' : 'bg-gradient-to-r from-purple-400 to-pink-400'} text-white text-xl shadow-lg active:scale-95 transition flex items-center justify-center">
                                 ${isRecording ? '⏹️' : '🎤'}
                             </button>
                             <div class="flex-1 flex gap-2">
                                 <input type="text" id="input-message" value="${inputText}" placeholder="メッセージを いれてね"
-                                    class="flex-1 bg-gray-100 border-2 border-gray-200 rounded-full px-4 py-3 font-bold focus:outline-none focus:border-pink-300 text-lg">
-                                <button id="btn-send" class="flex-shrink-0 w-14 h-14 rounded-full bg-gradient-to-r from-pink-400 to-purple-400 text-white text-2xl shadow-lg active:scale-95 transition flex items-center justify-center ${!inputText ? 'opacity-50' : ''}">
+                                    autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+                                    class="flex-1 bg-gray-100 border-2 border-gray-200 rounded-full px-4 py-2 font-bold focus:outline-none focus:border-pink-300 text-base">
+                                <button id="btn-send" class="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-r from-pink-400 to-purple-400 text-white text-xl shadow-lg active:scale-95 transition flex items-center justify-center ${!inputText ? 'opacity-50' : ''}">
                                     📨
                                 </button>
                             </div>
+                            <button id="btn-toggle-keyboard" class="flex-shrink-0 w-10 h-10 rounded-full ${showHiraganaKeyboard ? 'bg-pink-400 text-white' : 'bg-gray-200 text-gray-600'} font-bold text-sm shadow active:scale-95 transition flex items-center justify-center">
+                                あ
+                            </button>
                         </div>
+                        ${showHiraganaKeyboard ? renderHiraganaKeyboard() : ''}
                         ${isRecording ? `
                             <div class="mt-2 text-center">
                                 <p class="text-red-500 font-bold animate-pulse">
@@ -488,6 +601,24 @@ export default {
             container.querySelectorAll('.play-audio').forEach(btn => {
                 btn.addEventListener('click', () => playAudio(btn.dataset.audio));
             });
+
+            // ひらがなキーボードトグル
+            container.querySelector('#btn-toggle-keyboard')?.addEventListener('click', () => {
+                showHiraganaKeyboard = !showHiraganaKeyboard;
+                render();
+            });
+
+            // ひらがなキーボードのキー
+            container.querySelectorAll('.kana-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const char = btn.dataset.char;
+                    if (char) handleHiraganaInput(char);
+                });
+            });
+
+            container.querySelector('#btn-dakuten')?.addEventListener('click', handleDakuten);
+            container.querySelector('#btn-small')?.addEventListener('click', handleSmallKana);
+            container.querySelector('#btn-backspace')?.addEventListener('click', handleBackspace);
 
             // 履歴ボタン
             container.querySelector('#btn-history')?.addEventListener('click', () => {
