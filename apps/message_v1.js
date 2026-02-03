@@ -21,6 +21,13 @@ export default {
         let userType = 'child';
         let emailjsLoaded = false;
         let showHistory = false;
+        let showSenderSelect = false;
+        let pendingMessage = null; // 送信待ちのメッセージ
+        let senderName = '';
+        let customSenderName = '';
+        let recordingTimer = null;
+        let recordingSeconds = 0;
+        const MAX_RECORDING_SECONDS = 20;
 
         // 現在ログイン中の子供を取得
         const currentChild = window.getCurrentChild ? window.getCurrentChild() : null;
@@ -130,8 +137,17 @@ export default {
             }
         };
 
-        // メッセージ送信
-        const sendMessage = async (type, content) => {
+        // 送信前に送信者選択モーダルを表示
+        const showSenderSelectModal = (type, content) => {
+            pendingMessage = { type, content };
+            senderName = '';
+            customSenderName = '';
+            showSenderSelect = true;
+            render();
+        };
+
+        // 実際のメッセージ送信
+        const sendMessage = async (type, content, sender) => {
             if (!content || !db || !window._msgFirestore) return;
             const { collection, addDoc, serverTimestamp } = window._msgFirestore;
 
@@ -144,7 +160,8 @@ export default {
                     read: false,
                     timestamp: serverTimestamp(),
                     childId: childId,
-                    childName: currentChild?.name || null
+                    childName: currentChild?.name || null,
+                    senderName: sender // 送信者名を追加
                 });
 
                 // 子供が親にメッセージを送った場合、メール通知
@@ -153,10 +170,24 @@ export default {
                 }
 
                 inputText = '';
+                pendingMessage = null;
+                showSenderSelect = false;
                 render();
             } catch (e) {
                 console.error('送信エラー:', e);
                 alert('おくれませんでした');
+            }
+        };
+
+        // 送信者選択後に送信を実行
+        const confirmSend = () => {
+            const finalSender = senderName === 'custom' ? customSenderName.trim() : senderName;
+            if (!finalSender) {
+                alert('だれが おくるか えらんでね');
+                return;
+            }
+            if (pendingMessage) {
+                sendMessage(pendingMessage.type, pendingMessage.content, finalSender);
             }
         };
 
@@ -166,16 +197,23 @@ export default {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 mediaRecorder = new MediaRecorder(stream);
                 audioChunks = [];
+                recordingSeconds = 0;
 
                 mediaRecorder.ondataavailable = (e) => {
                     audioChunks.push(e.data);
                 };
 
                 mediaRecorder.onstop = async () => {
+                    // タイマーをクリア
+                    if (recordingTimer) {
+                        clearInterval(recordingTimer);
+                        recordingTimer = null;
+                    }
+
                     const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
                     const reader = new FileReader();
                     reader.onloadend = () => {
-                        sendMessage('voice', reader.result);
+                        showSenderSelectModal('voice', reader.result);
                     };
                     reader.readAsDataURL(audioBlob);
                     stream.getTracks().forEach(track => track.stop());
@@ -183,6 +221,16 @@ export default {
 
                 mediaRecorder.start();
                 isRecording = true;
+
+                // 録音タイマー開始（20秒上限）
+                recordingTimer = setInterval(() => {
+                    recordingSeconds++;
+                    render();
+                    if (recordingSeconds >= MAX_RECORDING_SECONDS) {
+                        stopRecording();
+                    }
+                }, 1000);
+
                 render();
             } catch (e) {
                 console.error('録音エラー:', e);
@@ -193,6 +241,10 @@ export default {
         // 音声録音停止
         const stopRecording = () => {
             if (mediaRecorder && isRecording) {
+                if (recordingTimer) {
+                    clearInterval(recordingTimer);
+                    recordingTimer = null;
+                }
                 mediaRecorder.stop();
                 isRecording = false;
                 render();
@@ -276,8 +328,10 @@ export default {
                             </div>
                         ` : messages.map(msg => {
                             const isMe = msg.from === userType;
+                            const displayName = msg.senderName || (msg.from === 'child' ? '👧' : '👨‍👩‍👧');
                             return `
                                 <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}">
+                                    ${!isMe ? `<span class="text-xs text-purple-500 font-bold px-2 mb-1">${displayName}</span>` : ''}
                                     <div class="message-bubble ${isMe ? 'message-from-me text-white' : 'message-from-other text-gray-700'} px-4 py-3 shadow-sm">
                                         ${msg.type === 'text' ? `<p class="font-bold">${msg.content}</p>` : `
                                             <button class="play-audio flex items-center gap-2 font-bold" data-audio="${msg.content}">
@@ -286,7 +340,7 @@ export default {
                                         `}
                                     </div>
                                     <span class="text-xs text-gray-400 mt-1 px-2">
-                                        ${isMe ? '' : (msg.from === 'child' ? '👧' : '👨‍👩‍👧')} ${formatTime(msg.timestamp)}
+                                        ${isMe ? displayName + ' ' : ''}${formatTime(msg.timestamp)}
                                     </span>
                                 </div>
                             `;
@@ -306,9 +360,53 @@ export default {
                                 </button>
                             </div>
                         </div>
-                        ${isRecording ? `<div class="mt-2 text-center"><p class="text-red-500 font-bold animate-pulse">🎙️ ろくおん中... ボタンを おして おわる</p></div>` : ''}
+                        ${isRecording ? `
+                            <div class="mt-2 text-center">
+                                <p class="text-red-500 font-bold animate-pulse">
+                                    🎙️ ろくおん中... ${MAX_RECORDING_SECONDS - recordingSeconds}びょう
+                                </p>
+                                <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                                    <div class="bg-red-500 h-2 rounded-full transition-all" style="width: ${(recordingSeconds / MAX_RECORDING_SECONDS) * 100}%"></div>
+                                </div>
+                            </div>
+                        ` : ''}
                     </div>
                 </div>
+
+                ${showSenderSelect ? `
+                    <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" id="sender-overlay">
+                        <div class="bg-white rounded-2xl p-5 max-w-sm w-[90%] shadow-2xl">
+                            <h3 class="text-xl font-black text-pink-500 text-center mb-4">📨 だれが おくる？</h3>
+
+                            <div class="space-y-3 mb-4">
+                                <!-- アカウント名を選択 -->
+                                <button id="btn-sender-account" class="w-full p-4 rounded-xl border-2 ${senderName === (currentChild?.name || 'わたし') ? 'border-pink-400 bg-pink-50' : 'border-gray-200'} text-left font-bold text-lg flex items-center gap-3 active:scale-95 transition">
+                                    <span class="text-2xl">👧</span>
+                                    <span>${currentChild?.name || 'わたし'}</span>
+                                    ${senderName === (currentChild?.name || 'わたし') ? '<span class="ml-auto text-pink-500">✓</span>' : ''}
+                                </button>
+
+                                <!-- 自由入力 -->
+                                <button id="btn-sender-custom" class="w-full p-4 rounded-xl border-2 ${senderName === 'custom' ? 'border-pink-400 bg-pink-50' : 'border-gray-200'} text-left font-bold text-lg flex items-center gap-3 active:scale-95 transition">
+                                    <span class="text-2xl">✏️</span>
+                                    <span>じぶんで にゅうりょく</span>
+                                    ${senderName === 'custom' ? '<span class="ml-auto text-pink-500">✓</span>' : ''}
+                                </button>
+
+                                ${senderName === 'custom' ? `
+                                    <input type="text" id="input-custom-sender" value="${customSenderName}"
+                                        placeholder="なまえを いれてね"
+                                        class="w-full bg-gray-100 border-2 border-pink-200 rounded-xl px-4 py-3 font-bold text-lg focus:outline-none focus:border-pink-400">
+                                ` : ''}
+                            </div>
+
+                            <div class="flex gap-3">
+                                <button id="btn-cancel-send" class="flex-1 bg-gray-200 text-gray-600 font-bold py-3 rounded-xl">やめる</button>
+                                <button id="btn-confirm-send" class="flex-1 bg-gradient-to-r from-pink-400 to-purple-400 text-white font-bold py-3 rounded-xl shadow-lg ${!senderName ? 'opacity-50' : ''}">おくる！</button>
+                            </div>
+                        </div>
+                    </div>
+                ` : ''}
 
                 ${showHistory ? `
                     <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" id="history-overlay">
@@ -331,14 +429,19 @@ export default {
                                             <span class="text-xs text-gray-400">(${group.messages.length}けん)</span>
                                         </div>
                                         <div class="space-y-2">
-                                            ${group.messages.map(msg => `
+                                            ${group.messages.map(msg => {
+                                                const displayName = msg.senderName || (msg.from === 'child' ? '👧' : '👨‍👩‍👧');
+                                                return `
                                                 <div class="flex items-start gap-2 ${msg.from === userType ? 'flex-row-reverse' : ''}">
-                                                    <span class="text-lg">${msg.from === 'child' ? '👧' : '👨‍👩‍👧'}</span>
+                                                    <div class="text-center">
+                                                        <span class="text-lg">${msg.from === 'child' ? '👧' : '👨‍👩‍👧'}</span>
+                                                        <p class="text-xs text-gray-500">${displayName}</p>
+                                                    </div>
                                                     <div class="${msg.from === userType ? 'bg-pink-200 text-pink-800' : 'bg-white border border-gray-200 text-gray-700'} rounded-lg px-3 py-2 text-sm font-bold max-w-[80%]">
                                                         ${msg.type === 'text' ? msg.content : '🎤 ボイスメッセージ'}
                                                     </div>
                                                 </div>
-                                            `).join('')}
+                                            `}).join('')}
                                         </div>
                                     </div>
                                 `).join('')}
@@ -370,11 +473,11 @@ export default {
             });
 
             container.querySelector('#btn-send')?.addEventListener('click', () => {
-                if (inputText.trim()) sendMessage('text', inputText.trim());
+                if (inputText.trim()) showSenderSelectModal('text', inputText.trim());
             });
 
             inputEl?.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter' && inputText.trim()) sendMessage('text', inputText.trim());
+                if (e.key === 'Enter' && inputText.trim()) showSenderSelectModal('text', inputText.trim());
             });
 
             container.querySelector('#btn-voice')?.addEventListener('click', () => {
@@ -401,6 +504,40 @@ export default {
             container.querySelector('#history-overlay')?.addEventListener('click', (e) => {
                 if (e.target.id === 'history-overlay') {
                     showHistory = false;
+                    render();
+                }
+            });
+
+            // 送信者選択モーダル
+            container.querySelector('#btn-sender-account')?.addEventListener('click', () => {
+                senderName = currentChild?.name || 'わたし';
+                render();
+            });
+
+            container.querySelector('#btn-sender-custom')?.addEventListener('click', () => {
+                senderName = 'custom';
+                render();
+                setTimeout(() => {
+                    container.querySelector('#input-custom-sender')?.focus();
+                }, 100);
+            });
+
+            container.querySelector('#input-custom-sender')?.addEventListener('input', (e) => {
+                customSenderName = e.target.value;
+            });
+
+            container.querySelector('#btn-cancel-send')?.addEventListener('click', () => {
+                showSenderSelect = false;
+                pendingMessage = null;
+                render();
+            });
+
+            container.querySelector('#btn-confirm-send')?.addEventListener('click', confirmSend);
+
+            container.querySelector('#sender-overlay')?.addEventListener('click', (e) => {
+                if (e.target.id === 'sender-overlay') {
+                    showSenderSelect = false;
+                    pendingMessage = null;
                     render();
                 }
             });
