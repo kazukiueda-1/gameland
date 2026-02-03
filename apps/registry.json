@@ -70,5 +70,14 @@
         "file": "request_v1.js",
         "color": "yellow-400",
         "category": "play"
+    },
+    {
+        "id": "challenge_01",
+        "title": "チャレンジきろく",
+        "desc": "やりたいことに ちょうせん！",
+        "icon": "🎯",
+        "file": "challenge_v1.js",
+        "color": "emerald-400",
+        "category": "play"
     }
 ]
