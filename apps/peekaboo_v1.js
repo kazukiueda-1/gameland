@@ -146,7 +146,7 @@ export default {
 
             state.timeout = setTimeout(() => {
                 closeSpot(spot, index);
-            }, 4000);
+            }, 2000);
         };
 
         // 隠れ場所を閉じる
@@ -174,21 +174,40 @@ export default {
             }
         };
 
-        // タップ処理
+        // タップ処理（どこを押しても必ず動物が出る）
         const handleSpotTap = (spot) => {
             const index = parseInt(spot.dataset.index);
-            const state = spotStates[index];
 
             const rect = spot.getBoundingClientRect();
             const x = rect.left + rect.width / 2;
             const y = rect.top + rect.height / 2;
 
+            // 他の開いている隠れ場所を閉じる
+            const allSpots = document.querySelectorAll('.peekaboo-spot');
+            allSpots.forEach((s, i) => {
+                if (spotStates[i] && spotStates[i].isOpen && i !== index) {
+                    closeSpot(s, i);
+                }
+            });
+
+            // タップした場所を開く（既に開いていても新しい動物で再表示）
+            const state = spotStates[index];
             if (state.isOpen) {
-                closeSpot(spot, index);
+                // 既に開いている場合は新しい動物に変えて再表示
+                const animalEl = spot.querySelector('.peekaboo-animal');
+                const newAnimal = animals[Math.floor(Math.random() * animals.length)];
+                animalEl.textContent = newAnimal.emoji;
+                animalEl.dataset.name = newAnimal.name;
+
+                // タイマーリセット
+                if (state.timeout) clearTimeout(state.timeout);
+                state.timeout = setTimeout(() => {
+                    closeSpot(spot, index);
+                }, 2000);
             } else {
                 openSpot(spot, index);
-                createParticles(x, y);
             }
+            createParticles(x, y);
         };
 
         // 隠れ場所のHTML生成
