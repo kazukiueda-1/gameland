@@ -79,5 +79,14 @@
         "file": "challenge_v1.js",
         "color": "emerald-400",
         "category": "play"
+    },
+    {
+        "id": "maze_01",
+        "title": "めいろあそび",
+        "desc": "ゴールを めざそう！",
+        "icon": "🌳",
+        "file": "maze_v1.js",
+        "color": "green-400",
+        "category": "play"
     }
 ]
