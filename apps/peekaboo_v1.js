@@ -6,90 +6,172 @@
 
 export default {
     launch(container, system) {
-        // 動物の絵文字リスト
-        const animals = ['🐼', '🦁', '🐰', '🐘', '🐶', '🐱', '🐻', '🐨', '🦊', '🐷', '🐮', '🐸'];
+        // 背景テーマ（10種類）
+        const themes = [
+            { id: 'flower', name: '🌸 おはなばたけ', bg: 'linear-gradient(180deg, #FFE4EC 0%, #FFCCE5 50%, #FFB6D3 100%)', accent: '#FF69B4' },
+            { id: 'sky', name: '☁️ おそら', bg: 'linear-gradient(180deg, #E0F4FF 0%, #B8E4FF 50%, #87CEEB 100%)', accent: '#4FC3F7' },
+            { id: 'forest', name: '🌲 もり', bg: 'linear-gradient(180deg, #E8F5E9 0%, #C8E6C9 50%, #A5D6A7 100%)', accent: '#66BB6A' },
+            { id: 'candy', name: '🍭 おかし', bg: 'linear-gradient(180deg, #FCE4EC 0%, #F8BBD9 50%, #F48FB1 100%)', accent: '#EC407A' },
+            { id: 'rainbow', name: '🌈 にじいろ', bg: 'linear-gradient(180deg, #FFECB3 0%, #FFE0B2 30%, #FFCCBC 60%, #F8BBD9 100%)', accent: '#FF8A65' },
+            { id: 'ocean', name: '🐚 うみ', bg: 'linear-gradient(180deg, #E1F5FE 0%, #B3E5FC 50%, #81D4FA 100%)', accent: '#29B6F6' },
+            { id: 'sunset', name: '🌅 ゆうやけ', bg: 'linear-gradient(180deg, #FFF3E0 0%, #FFE0B2 50%, #FFCC80 100%)', accent: '#FFA726' },
+            { id: 'lavender', name: '💜 ラベンダー', bg: 'linear-gradient(180deg, #F3E5F5 0%, #E1BEE7 50%, #CE93D8 100%)', accent: '#AB47BC' },
+            { id: 'peach', name: '🍑 もも', bg: 'linear-gradient(180deg, #FFF8E1 0%, #FFECB3 50%, #FFE082 100%)', accent: '#FFCA28' },
+            { id: 'mint', name: '🍃 ミント', bg: 'linear-gradient(180deg, #E0F2F1 0%, #B2DFDB 50%, #80CBC4 100%)', accent: '#26A69A' },
+        ];
 
-        // パーティクルの絵文字
-        const particleEmojis = ['⭐', '✨', '💫', '🌟', '💖', '💕', '🎀'];
+        let currentTheme = 0;
+        let showThemeSelect = false;
 
-        // 各隠れ場所の状態
+        // かわいい動物データ（SVGベース）
+        const animals = [
+            { name: 'うさぎ', color: '#FFB6C1', earColor: '#FF69B4', face: '◕ᴗ◕' },
+            { name: 'くま', color: '#DEB887', earColor: '#D2691E', face: '●ᴗ●' },
+            { name: 'ねこ', color: '#FFE4B5', earColor: '#FFA07A', face: '◕ω◕' },
+            { name: 'いぬ', color: '#F5DEB3', earColor: '#D2B48C', face: '◕‿◕' },
+            { name: 'パンダ', color: '#FFFFFF', earColor: '#333333', face: '◉ᴗ◉' },
+            { name: 'ひよこ', color: '#FFD700', earColor: '#FFA500', face: '◕◡◕' },
+            { name: 'ぶた', color: '#FFB6C1', earColor: '#FF69B4', face: '◉◡◉' },
+            { name: 'こあら', color: '#A9A9A9', earColor: '#696969', face: '◕‿◕' },
+        ];
+
+        // 隠れ場所の状態
         const spotStates = {};
 
+        // かわいい動物のHTML生成
+        const createAnimalHTML = (animal) => {
+            const isRabbit = animal.name === 'うさぎ';
+            const isBear = animal.name === 'くま' || animal.name === 'こあら';
+            const isCat = animal.name === 'ねこ';
+            const isChick = animal.name === 'ひよこ';
+            const isPanda = animal.name === 'パンダ';
+
+            let ears = '';
+            if (isRabbit) {
+                ears = `
+                    <div style="position:absolute;top:-45px;left:15px;width:18px;height:50px;background:${animal.color};border-radius:50%;border:3px solid ${animal.earColor};transform:rotate(-10deg);"></div>
+                    <div style="position:absolute;top:-45px;right:15px;width:18px;height:50px;background:${animal.color};border-radius:50%;border:3px solid ${animal.earColor};transform:rotate(10deg);"></div>
+                `;
+            } else if (isBear || isPanda) {
+                const earBg = isPanda ? '#333' : animal.earColor;
+                ears = `
+                    <div style="position:absolute;top:-15px;left:5px;width:25px;height:25px;background:${earBg};border-radius:50%;"></div>
+                    <div style="position:absolute;top:-15px;right:5px;width:25px;height:25px;background:${earBg};border-radius:50%;"></div>
+                `;
+            } else if (isCat) {
+                ears = `
+                    <div style="position:absolute;top:-20px;left:5px;width:0;height:0;border-left:15px solid transparent;border-right:15px solid transparent;border-bottom:25px solid ${animal.earColor};"></div>
+                    <div style="position:absolute;top:-20px;right:5px;width:0;height:0;border-left:15px solid transparent;border-right:15px solid transparent;border-bottom:25px solid ${animal.earColor};"></div>
+                `;
+            } else if (isChick) {
+                ears = `<div style="position:absolute;top:-15px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-bottom:15px solid ${animal.earColor};"></div>`;
+            } else {
+                ears = `
+                    <div style="position:absolute;top:-10px;left:0;width:22px;height:22px;background:${animal.earColor};border-radius:50%;"></div>
+                    <div style="position:absolute;top:-10px;right:0;width:22px;height:22px;background:${animal.earColor};border-radius:50%;"></div>
+                `;
+            }
+
+            const eyeStyle = isPanda ?
+                `<div style="position:absolute;top:25px;left:15px;width:25px;height:20px;background:#333;border-radius:50%;display:flex;align-items:center;justify-content:center;"><div style="width:8px;height:8px;background:white;border-radius:50%;"></div></div>
+                 <div style="position:absolute;top:25px;right:15px;width:25px;height:20px;background:#333;border-radius:50%;display:flex;align-items:center;justify-content:center;"><div style="width:8px;height:8px;background:white;border-radius:50%;"></div></div>` :
+                `<div style="position:absolute;top:28px;left:22px;width:14px;height:14px;background:#333;border-radius:50%;"></div>
+                 <div style="position:absolute;top:28px;right:22px;width:14px;height:14px;background:#333;border-radius:50%;"></div>
+                 <div style="position:absolute;top:30px;left:25px;width:5px;height:5px;background:white;border-radius:50%;"></div>
+                 <div style="position:absolute;top:30px;right:25px;width:5px;height:5px;background:white;border-radius:50%;"></div>`;
+
+            const nose = isChick ?
+                `<div style="position:absolute;top:45px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-top:10px solid #FF6B35;"></div>` :
+                `<div style="position:absolute;top:48px;left:50%;transform:translateX(-50%);width:12px;height:10px;background:${animal.name === 'ぶた' ? '#FF69B4' : '#333'};border-radius:50%;"></div>`;
+
+            const mouth = `<div style="position:absolute;top:58px;left:50%;transform:translateX(-50%);width:20px;height:10px;border-bottom:3px solid #333;border-radius:0 0 50% 50%;"></div>`;
+
+            const cheeks = `
+                <div style="position:absolute;top:40px;left:8px;width:15px;height:10px;background:rgba(255,182,193,0.7);border-radius:50%;"></div>
+                <div style="position:absolute;top:40px;right:8px;width:15px;height:10px;background:rgba(255,182,193,0.7);border-radius:50%;"></div>
+            `;
+
+            return `
+                <div class="peekaboo-animal-body" style="background:${animal.color};">
+                    ${ears}
+                    ${eyeStyle}
+                    ${nose}
+                    ${mouth}
+                    ${cheeks}
+                </div>
+            `;
+        };
+
         // パーティクルエフェクト
-        const createParticles = (x, y) => {
-            const count = 8;
+        const createParticles = (x, y, theme) => {
+            const particleTypes = ['✨', '💖', '⭐', '🌟', '💕', '🎀', '♡'];
+            const count = 12;
             for (let i = 0; i < count; i++) {
                 const particle = document.createElement('div');
                 particle.className = 'peekaboo-particle';
-                particle.textContent = particleEmojis[Math.floor(Math.random() * particleEmojis.length)];
+                particle.textContent = particleTypes[Math.floor(Math.random() * particleTypes.length)];
 
                 const angle = (i / count) * Math.PI * 2;
-                const distance = 80 + Math.random() * 60;
+                const distance = 100 + Math.random() * 80;
                 const tx = Math.cos(angle) * distance;
-                const ty = Math.sin(angle) * distance - 50;
+                const ty = Math.sin(angle) * distance - 60;
 
                 particle.style.cssText = `
                     position: fixed;
                     left: ${x}px;
                     top: ${y}px;
-                    font-size: 24px;
+                    font-size: ${20 + Math.random() * 15}px;
                     pointer-events: none;
                     z-index: 1000;
-                    animation: peekaboo-particle-fly 1s ease-out forwards;
+                    animation: peekaboo-particle-fly 1.2s ease-out forwards;
                     --tx: ${tx}px;
                     --ty: ${ty}px;
                 `;
 
                 document.body.appendChild(particle);
-                setTimeout(() => particle.remove(), 1000);
+                setTimeout(() => particle.remove(), 1200);
             }
         };
 
         // 隠れ場所を開く
         const openSpot = (spot, index, type) => {
             const state = spotStates[index];
-            const animal = spot.querySelector('.peekaboo-animal');
+            const animalContainer = spot.querySelector('.peekaboo-animal-container');
             const baaText = spot.querySelector('.peekaboo-baa');
+            const hideElement = spot.querySelector('.peekaboo-hide-element');
 
             state.isOpen = true;
 
-            if (type === 'door') {
-                spot.querySelector('.peekaboo-door').classList.add('open');
-            } else if (type === 'box') {
-                spot.querySelector('.peekaboo-lid').classList.add('open');
-            }
+            hideElement.classList.add('open');
 
             setTimeout(() => {
-                animal.classList.add('visible');
+                animalContainer.classList.add('visible');
                 baaText.classList.add('visible');
                 system.playSound('correct');
-            }, type === 'grass' ? 0 : 200);
+            }, 150);
 
             if (state.timeout) clearTimeout(state.timeout);
 
             state.timeout = setTimeout(() => {
                 closeSpot(spot, index, type);
-            }, 3000);
+            }, 3500);
         };
 
         // 隠れ場所を閉じる
         const closeSpot = (spot, index, type) => {
             const state = spotStates[index];
-            const animal = spot.querySelector('.peekaboo-animal');
+            const animalContainer = spot.querySelector('.peekaboo-animal-container');
             const baaText = spot.querySelector('.peekaboo-baa');
+            const hideElement = spot.querySelector('.peekaboo-hide-element');
 
             state.isOpen = false;
-            animal.classList.remove('visible');
+            animalContainer.classList.remove('visible');
             baaText.classList.remove('visible');
-
-            if (type === 'door') {
-                spot.querySelector('.peekaboo-door').classList.remove('open');
-            } else if (type === 'box') {
-                spot.querySelector('.peekaboo-lid').classList.remove('open');
-            }
+            hideElement.classList.remove('open');
 
             setTimeout(() => {
-                animal.textContent = animals[Math.floor(Math.random() * animals.length)];
+                const newAnimal = animals[Math.floor(Math.random() * animals.length)];
+                animalContainer.innerHTML = createAnimalHTML(newAnimal);
             }, 400);
 
             if (state.timeout) {
@@ -112,7 +194,7 @@ export default {
                 closeSpot(spot, index, type);
             } else {
                 openSpot(spot, index, type);
-                createParticles(x, y);
+                createParticles(x, y, themes[currentTheme]);
             }
         };
 
@@ -122,27 +204,61 @@ export default {
             spotStates[index] = { isOpen: false, timeout: null };
 
             let hideElement = '';
-            if (type === 'grass') {
-                hideElement = '<div class="peekaboo-grass"></div>';
-            } else if (type === 'door') {
+            if (type === 'flower') {
                 hideElement = `
-                    <div class="peekaboo-door-container">
-                        <div class="peekaboo-door-frame"></div>
-                        <div class="peekaboo-door"></div>
+                    <div class="peekaboo-hide-element peekaboo-flower-hide">
+                        <div class="flower-petal p1"></div>
+                        <div class="flower-petal p2"></div>
+                        <div class="flower-petal p3"></div>
+                        <div class="flower-petal p4"></div>
+                        <div class="flower-petal p5"></div>
+                        <div class="flower-center"></div>
                     </div>
                 `;
-            } else if (type === 'box') {
+            } else if (type === 'cloud') {
                 hideElement = `
-                    <div class="peekaboo-box-container">
-                        <div class="peekaboo-box"></div>
-                        <div class="peekaboo-lid"></div>
+                    <div class="peekaboo-hide-element peekaboo-cloud-hide">
+                        <div class="cloud-puff c1"></div>
+                        <div class="cloud-puff c2"></div>
+                        <div class="cloud-puff c3"></div>
+                    </div>
+                `;
+            } else if (type === 'present') {
+                hideElement = `
+                    <div class="peekaboo-hide-element peekaboo-present-hide">
+                        <div class="present-box"></div>
+                        <div class="present-lid"></div>
+                        <div class="present-ribbon"></div>
+                        <div class="present-bow"></div>
+                    </div>
+                `;
+            } else if (type === 'heart') {
+                hideElement = `
+                    <div class="peekaboo-hide-element peekaboo-heart-hide">
+                        <div class="heart-shape"></div>
+                    </div>
+                `;
+            } else if (type === 'star') {
+                hideElement = `
+                    <div class="peekaboo-hide-element peekaboo-star-hide">
+                        <div class="star-shape"></div>
+                    </div>
+                `;
+            } else {
+                hideElement = `
+                    <div class="peekaboo-hide-element peekaboo-bush-hide">
+                        <div class="bush-leaf l1"></div>
+                        <div class="bush-leaf l2"></div>
+                        <div class="bush-leaf l3"></div>
                     </div>
                 `;
             }
 
             return `
                 <div class="peekaboo-spot" data-type="${type}" data-index="${index}">
-                    <div class="peekaboo-animal">${animal}</div>
+                    <div class="peekaboo-animal-container">
+                        ${createAnimalHTML(animal)}
+                    </div>
                     <div class="peekaboo-baa">ばぁ！</div>
                     ${hideElement}
                 </div>
@@ -150,368 +266,533 @@ export default {
         };
 
         // 描画
-        container.innerHTML = `
-            <style>
-                @keyframes peekaboo-particle-fly {
-                    0% { opacity: 1; transform: translate(0, 0) scale(1) rotate(0deg); }
-                    100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0) rotate(360deg); }
-                }
-                @keyframes peekaboo-bounce {
-                    0% { transform: translateY(30px) scale(0.5); opacity: 0; }
-                    50% { transform: translateY(-20px) scale(1.2); opacity: 1; }
-                    100% { transform: translateY(-10px) scale(1); opacity: 1; }
-                }
-                @keyframes peekaboo-pop {
-                    0% { transform: translateX(-50%) scale(0); }
-                    50% { transform: translateX(-50%) scale(1.3); }
-                    100% { transform: translateX(-50%) scale(1); }
-                }
-                @keyframes peekaboo-float {
-                    0%, 100% { transform: translateY(0); }
-                    50% { transform: translateY(-5px); }
-                }
-                @keyframes peekaboo-sway {
-                    0%, 100% { transform: rotate(-5deg); }
-                    50% { transform: rotate(5deg); }
-                }
+        const render = () => {
+            const theme = themes[currentTheme];
 
-                .peekaboo-container {
-                    height: 100%;
-                    background: linear-gradient(180deg, #87CEEB 0%, #98FB98 50%, #90EE90 100%);
-                    position: relative;
-                    overflow: hidden;
-                }
+            container.innerHTML = `
+                <style>
+                    @keyframes peekaboo-particle-fly {
+                        0% { opacity: 1; transform: translate(0, 0) scale(1) rotate(0deg); }
+                        100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0) rotate(720deg); }
+                    }
+                    @keyframes peekaboo-pop-animal {
+                        0% { transform: translateY(60px) scale(0); opacity: 0; }
+                        50% { transform: translateY(-30px) scale(1.3); opacity: 1; }
+                        70% { transform: translateY(10px) scale(0.9); }
+                        100% { transform: translateY(0) scale(1); opacity: 1; }
+                    }
+                    @keyframes peekaboo-pop-text {
+                        0% { transform: translateX(-50%) scale(0) rotate(-20deg); }
+                        50% { transform: translateX(-50%) scale(1.4) rotate(10deg); }
+                        100% { transform: translateX(-50%) scale(1) rotate(0deg); }
+                    }
+                    @keyframes peekaboo-wiggle {
+                        0%, 100% { transform: rotate(-3deg); }
+                        50% { transform: rotate(3deg); }
+                    }
+                    @keyframes peekaboo-float {
+                        0%, 100% { transform: translateY(0); }
+                        50% { transform: translateY(-8px); }
+                    }
+                    @keyframes peekaboo-sparkle {
+                        0%, 100% { opacity: 0.5; transform: scale(1); }
+                        50% { opacity: 1; transform: scale(1.2); }
+                    }
 
-                .peekaboo-header {
-                    background: white;
-                    padding: 8px 12px;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                }
+                    .peekaboo-container {
+                        height: 100%;
+                        background: ${theme.bg};
+                        position: relative;
+                        overflow: hidden;
+                    }
 
-                .peekaboo-title {
-                    font-size: 20px;
-                    font-weight: 900;
-                    color: #FF69B4;
-                    text-shadow: 2px 2px 0 white;
-                }
+                    .peekaboo-header {
+                        background: rgba(255,255,255,0.9);
+                        padding: 8px 12px;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                        border-bottom: 3px solid ${theme.accent};
+                    }
 
-                .peekaboo-sky {
-                    position: absolute;
-                    top: 50px;
-                    left: 0;
-                    right: 0;
-                    height: 100px;
-                    pointer-events: none;
-                }
+                    .peekaboo-title {
+                        font-size: 18px;
+                        font-weight: 900;
+                        color: ${theme.accent};
+                        text-shadow: 1px 1px 0 white;
+                    }
 
-                .peekaboo-sun {
-                    position: absolute;
-                    top: 10px;
-                    right: 20px;
-                    width: 50px;
-                    height: 50px;
-                    background: #FFD700;
-                    border-radius: 50%;
-                    box-shadow: 0 0 20px #FFD700, 0 0 40px #FFA500;
-                    animation: peekaboo-float 3s ease-in-out infinite;
-                }
+                    .peekaboo-theme-btn {
+                        background: ${theme.accent};
+                        color: white;
+                        border: none;
+                        padding: 6px 12px;
+                        border-radius: 15px;
+                        font-size: 12px;
+                        font-weight: bold;
+                        cursor: pointer;
+                    }
 
-                .peekaboo-cloud {
-                    position: absolute;
-                    background: white;
-                    border-radius: 30px;
-                    opacity: 0.9;
-                }
+                    /* 背景デコレーション */
+                    .peekaboo-deco {
+                        position: absolute;
+                        pointer-events: none;
+                        font-size: 30px;
+                        opacity: 0.6;
+                        animation: peekaboo-float 4s ease-in-out infinite;
+                    }
 
-                .peekaboo-cloud-1 {
-                    width: 60px;
-                    height: 25px;
-                    top: 20px;
-                    left: 10%;
-                }
+                    .peekaboo-game-area {
+                        position: absolute;
+                        top: 60px;
+                        left: 0;
+                        right: 0;
+                        bottom: 50px;
+                        display: grid;
+                        grid-template-columns: repeat(3, 1fr);
+                        grid-template-rows: repeat(2, 1fr);
+                        gap: 15px;
+                        padding: 15px;
+                    }
 
-                .peekaboo-cloud-2 {
-                    width: 80px;
-                    height: 30px;
-                    top: 5px;
-                    left: 40%;
-                }
+                    .peekaboo-spot {
+                        position: relative;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        cursor: pointer;
+                    }
 
-                .peekaboo-game-area {
-                    position: absolute;
-                    top: 120px;
-                    left: 0;
-                    right: 0;
-                    bottom: 60px;
-                    display: grid;
-                    grid-template-columns: repeat(3, 1fr);
-                    grid-template-rows: repeat(2, 1fr);
-                    gap: 10px;
-                    padding: 10px;
-                }
+                    /* 動物コンテナ */
+                    .peekaboo-animal-container {
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%) translateY(60px) scale(0);
+                        opacity: 0;
+                        z-index: 5;
+                        transition: none;
+                    }
 
-                .peekaboo-spot {
-                    position: relative;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    cursor: pointer;
-                    min-height: 100px;
-                }
+                    .peekaboo-animal-container.visible {
+                        animation: peekaboo-pop-animal 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+                    }
 
-                .peekaboo-animal {
-                    position: absolute;
-                    font-size: 50px;
-                    z-index: 1;
-                    opacity: 0;
-                    transform: translateY(30px) scale(0.5);
-                    transition: none;
-                    filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
-                }
+                    .peekaboo-animal-body {
+                        width: 90px;
+                        height: 85px;
+                        border-radius: 50% 50% 45% 45%;
+                        position: relative;
+                        box-shadow: 0 8px 25px rgba(0,0,0,0.2), inset 0 -5px 15px rgba(0,0,0,0.1);
+                        border: 4px solid rgba(255,255,255,0.5);
+                    }
 
-                .peekaboo-animal.visible {
-                    animation: peekaboo-bounce 0.5s ease forwards;
-                }
+                    /* ばぁ！テキスト */
+                    .peekaboo-baa {
+                        position: absolute;
+                        top: 5px;
+                        left: 50%;
+                        transform: translateX(-50%) scale(0);
+                        font-size: 26px;
+                        font-weight: 900;
+                        color: ${theme.accent};
+                        text-shadow: 2px 2px 0 white, -1px -1px 0 white, 3px 3px 5px rgba(0,0,0,0.2);
+                        white-space: nowrap;
+                        z-index: 20;
+                        opacity: 0;
+                        letter-spacing: 0.1em;
+                    }
 
-                .peekaboo-baa {
-                    position: absolute;
-                    top: 5px;
-                    left: 50%;
-                    transform: translateX(-50%) scale(0);
-                    font-size: 18px;
-                    font-weight: 900;
-                    color: #FF1493;
-                    text-shadow: 1px 1px 0 white;
-                    white-space: nowrap;
-                    z-index: 10;
-                    opacity: 0;
-                }
+                    .peekaboo-baa.visible {
+                        opacity: 1;
+                        animation: peekaboo-pop-text 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+                    }
 
-                .peekaboo-baa.visible {
-                    opacity: 1;
-                    animation: peekaboo-pop 0.4s ease forwards;
-                }
+                    /* お花の隠れ場所 */
+                    .peekaboo-flower-hide {
+                        position: absolute;
+                        width: 120px;
+                        height: 120px;
+                        z-index: 10;
+                        transition: transform 0.4s ease;
+                    }
 
-                /* 草むら */
-                .peekaboo-grass {
-                    position: absolute;
-                    bottom: 0;
-                    width: 100%;
-                    height: 65%;
-                    background: linear-gradient(180deg, #32CD32 0%, #228B22 50%, #006400 100%);
-                    border-radius: 50% 50% 0 0;
-                    z-index: 2;
-                    box-shadow: inset 0 10px 20px rgba(255,255,255,0.3);
-                    transition: transform 0.2s ease;
-                }
+                    .peekaboo-flower-hide.open {
+                        transform: scale(0.3) translateY(80px);
+                        opacity: 0.5;
+                    }
 
-                .peekaboo-spot:active .peekaboo-grass {
-                    transform: scale(1.05);
-                }
+                    .flower-petal {
+                        position: absolute;
+                        width: 45px;
+                        height: 55px;
+                        background: linear-gradient(135deg, #FFB6C1, #FF69B4);
+                        border-radius: 50% 50% 50% 50%;
+                        top: 50%;
+                        left: 50%;
+                        transform-origin: center bottom;
+                        box-shadow: inset 0 5px 15px rgba(255,255,255,0.5);
+                    }
 
-                /* ドア */
-                .peekaboo-door-container {
-                    position: absolute;
-                    bottom: 0;
-                    width: 70%;
-                    height: 85%;
-                    perspective: 400px;
-                }
+                    .flower-petal.p1 { transform: translate(-50%, -100%) rotate(0deg); }
+                    .flower-petal.p2 { transform: translate(-50%, -100%) rotate(72deg); }
+                    .flower-petal.p3 { transform: translate(-50%, -100%) rotate(144deg); }
+                    .flower-petal.p4 { transform: translate(-50%, -100%) rotate(216deg); }
+                    .flower-petal.p5 { transform: translate(-50%, -100%) rotate(288deg); }
 
-                .peekaboo-door-frame {
-                    position: absolute;
-                    width: 100%;
-                    height: 100%;
-                    background: linear-gradient(180deg, #FFB6C1 0%, #FF69B4 100%);
-                    border-radius: 8px 8px 0 0;
-                    z-index: 1;
-                }
+                    .flower-center {
+                        position: absolute;
+                        width: 40px;
+                        height: 40px;
+                        background: linear-gradient(135deg, #FFD700, #FFA500);
+                        border-radius: 50%;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+                    }
 
-                .peekaboo-door {
-                    position: absolute;
-                    width: 100%;
-                    height: 100%;
-                    background: linear-gradient(180deg, #DEB887 0%, #D2691E 100%);
-                    border-radius: 8px 8px 0 0;
-                    border: 3px solid #8B4513;
-                    z-index: 2;
-                    transform-origin: left center;
-                    transition: transform 0.4s ease;
-                    box-shadow: inset -15px 0 25px rgba(0,0,0,0.2);
-                }
+                    /* 雲の隠れ場所 */
+                    .peekaboo-cloud-hide {
+                        position: absolute;
+                        width: 130px;
+                        height: 80px;
+                        z-index: 10;
+                        transition: transform 0.4s ease, opacity 0.4s ease;
+                    }
 
-                .peekaboo-door::before {
-                    content: '';
-                    position: absolute;
-                    right: 15%;
-                    top: 45%;
-                    width: 10px;
-                    height: 10px;
-                    background: #FFD700;
-                    border-radius: 50%;
-                }
+                    .peekaboo-cloud-hide.open {
+                        transform: translateY(-60px) scale(0.5);
+                        opacity: 0;
+                    }
 
-                .peekaboo-door.open {
-                    transform: rotateY(-70deg);
-                }
+                    .cloud-puff {
+                        position: absolute;
+                        background: white;
+                        border-radius: 50%;
+                        box-shadow: 0 5px 15px rgba(0,0,0,0.1), inset 0 -10px 20px rgba(200,200,255,0.3);
+                    }
 
-                /* 箱 */
-                .peekaboo-box-container {
-                    position: absolute;
-                    bottom: 0;
-                    width: 80%;
-                    height: 70%;
-                }
+                    .cloud-puff.c1 { width: 70px; height: 60px; bottom: 0; left: 30px; }
+                    .cloud-puff.c2 { width: 55px; height: 50px; bottom: 10px; left: 0; }
+                    .cloud-puff.c3 { width: 55px; height: 50px; bottom: 10px; right: 0; }
 
-                .peekaboo-box {
-                    position: absolute;
-                    bottom: 0;
-                    width: 100%;
-                    height: 75%;
-                    background: linear-gradient(180deg, #FF69B4 0%, #FF1493 100%);
-                    border-radius: 6px;
-                    border: 3px solid #C71585;
-                    z-index: 1;
-                }
+                    /* プレゼントの隠れ場所 */
+                    .peekaboo-present-hide {
+                        position: absolute;
+                        width: 100px;
+                        height: 100px;
+                        z-index: 10;
+                    }
 
-                .peekaboo-box::before {
-                    content: '♡';
-                    position: absolute;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%);
-                    font-size: 24px;
-                    color: white;
-                    opacity: 0.5;
-                }
+                    .present-box {
+                        position: absolute;
+                        bottom: 0;
+                        left: 5px;
+                        width: 90px;
+                        height: 70px;
+                        background: linear-gradient(135deg, #FF69B4, #FF1493);
+                        border-radius: 8px;
+                        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                    }
 
-                .peekaboo-lid {
-                    position: absolute;
-                    top: 15%;
-                    width: 110%;
-                    left: -5%;
-                    height: 22%;
-                    background: linear-gradient(180deg, #FF69B4 0%, #C71585 100%);
-                    border-radius: 4px;
-                    border: 3px solid #C71585;
-                    z-index: 2;
-                    transform-origin: bottom center;
-                    transition: transform 0.3s ease;
-                }
+                    .present-lid {
+                        position: absolute;
+                        bottom: 65px;
+                        left: 0;
+                        width: 100px;
+                        height: 25px;
+                        background: linear-gradient(135deg, #FF69B4, #C71585);
+                        border-radius: 5px;
+                        transition: transform 0.4s ease;
+                        transform-origin: bottom left;
+                    }
 
-                .peekaboo-lid.open {
-                    transform: rotateX(-120deg) translateY(-8px);
-                }
+                    .peekaboo-present-hide.open .present-lid {
+                        transform: rotateZ(-30deg) translateY(-20px);
+                    }
 
-                /* 花の装飾 */
-                .peekaboo-flowers {
-                    position: absolute;
-                    bottom: 50px;
-                    left: 0;
-                    right: 0;
-                    height: 40px;
-                    pointer-events: none;
-                    display: flex;
-                    justify-content: space-around;
-                    padding: 0 20px;
-                }
+                    .present-ribbon {
+                        position: absolute;
+                        bottom: 0;
+                        left: 42px;
+                        width: 16px;
+                        height: 90px;
+                        background: linear-gradient(90deg, #FFD700, #FFC107);
+                    }
 
-                .peekaboo-flower {
-                    font-size: 28px;
-                    animation: peekaboo-sway 3s ease-in-out infinite;
-                }
+                    .present-bow {
+                        position: absolute;
+                        bottom: 85px;
+                        left: 35px;
+                        width: 30px;
+                        height: 20px;
+                        background: #FFD700;
+                        border-radius: 50%;
+                        transition: transform 0.4s ease;
+                    }
 
-                .peekaboo-flower:nth-child(2) { animation-delay: -1s; }
-                .peekaboo-flower:nth-child(3) { animation-delay: -2s; }
+                    .peekaboo-present-hide.open .present-bow {
+                        transform: translateY(-25px) rotate(-30deg);
+                    }
 
-                .peekaboo-hint {
-                    position: absolute;
-                    bottom: 10px;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    font-size: 14px;
-                    color: #666;
-                    background: rgba(255,255,255,0.8);
-                    padding: 6px 14px;
-                    border-radius: 15px;
-                }
-            </style>
+                    /* ハートの隠れ場所 */
+                    .peekaboo-heart-hide {
+                        position: absolute;
+                        z-index: 10;
+                        transition: transform 0.4s ease;
+                    }
 
-            <div class="peekaboo-container">
-                <div class="peekaboo-header">
-                    <button id="peekaboo-back" class="text-gray-500 font-bold text-sm">← もどる</button>
-                    <span class="peekaboo-title">🎀 いないいない ばぁ！</span>
-                    <div style="width: 50px;"></div>
+                    .peekaboo-heart-hide.open {
+                        transform: scale(0.3) translateY(60px);
+                        opacity: 0.5;
+                    }
+
+                    .heart-shape {
+                        width: 100px;
+                        height: 90px;
+                        background: linear-gradient(135deg, #FF6B9D, #FF1493);
+                        position: relative;
+                        transform: rotate(-45deg);
+                        box-shadow: 0 5px 20px rgba(255,20,147,0.4);
+                        animation: peekaboo-wiggle 2s ease-in-out infinite;
+                    }
+
+                    .heart-shape::before,
+                    .heart-shape::after {
+                        content: '';
+                        position: absolute;
+                        width: 100px;
+                        height: 90px;
+                        background: linear-gradient(135deg, #FF6B9D, #FF1493);
+                        border-radius: 50%;
+                    }
+
+                    .heart-shape::before { top: -45px; left: 0; }
+                    .heart-shape::after { left: 45px; top: 0; }
+
+                    /* 星の隠れ場所 */
+                    .peekaboo-star-hide {
+                        position: absolute;
+                        z-index: 10;
+                        transition: transform 0.4s ease;
+                        animation: peekaboo-sparkle 2s ease-in-out infinite;
+                    }
+
+                    .peekaboo-star-hide.open {
+                        transform: scale(0.2) rotate(180deg);
+                        opacity: 0;
+                    }
+
+                    .star-shape {
+                        width: 100px;
+                        height: 100px;
+                        background: linear-gradient(135deg, #FFD700, #FFA500);
+                        clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+                        box-shadow: 0 0 30px rgba(255,215,0,0.6);
+                    }
+
+                    /* 草むらの隠れ場所 */
+                    .peekaboo-bush-hide {
+                        position: absolute;
+                        width: 130px;
+                        height: 90px;
+                        z-index: 10;
+                        transition: transform 0.3s ease;
+                    }
+
+                    .peekaboo-bush-hide.open {
+                        transform: scale(0.4) translateY(60px);
+                        opacity: 0.5;
+                    }
+
+                    .bush-leaf {
+                        position: absolute;
+                        background: linear-gradient(180deg, #7CB342, #558B2F);
+                        border-radius: 50%;
+                        box-shadow: inset 0 5px 15px rgba(255,255,255,0.3);
+                    }
+
+                    .bush-leaf.l1 { width: 80px; height: 70px; bottom: 0; left: 25px; }
+                    .bush-leaf.l2 { width: 60px; height: 55px; bottom: 15px; left: 0; background: linear-gradient(180deg, #8BC34A, #689F38); }
+                    .bush-leaf.l3 { width: 60px; height: 55px; bottom: 15px; right: 0; background: linear-gradient(180deg, #8BC34A, #689F38); }
+
+                    .peekaboo-spot:active .peekaboo-hide-element:not(.open) {
+                        transform: scale(1.05);
+                    }
+
+                    .peekaboo-hint {
+                        position: absolute;
+                        bottom: 12px;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        font-size: 14px;
+                        color: #666;
+                        background: rgba(255,255,255,0.9);
+                        padding: 8px 20px;
+                        border-radius: 20px;
+                        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                        border: 2px solid ${theme.accent};
+                    }
+
+                    /* テーマ選択モーダル */
+                    .theme-modal {
+                        position: fixed;
+                        inset: 0;
+                        background: rgba(0,0,0,0.5);
+                        display: ${showThemeSelect ? 'flex' : 'none'};
+                        align-items: center;
+                        justify-content: center;
+                        z-index: 100;
+                    }
+
+                    .theme-modal-content {
+                        background: white;
+                        border-radius: 20px;
+                        padding: 20px;
+                        max-width: 90%;
+                        max-height: 80%;
+                        overflow-y: auto;
+                    }
+
+                    .theme-modal h3 {
+                        text-align: center;
+                        color: #FF69B4;
+                        margin-bottom: 15px;
+                        font-size: 18px;
+                    }
+
+                    .theme-grid {
+                        display: grid;
+                        grid-template-columns: repeat(2, 1fr);
+                        gap: 10px;
+                    }
+
+                    .theme-option {
+                        padding: 12px;
+                        border-radius: 12px;
+                        border: 3px solid transparent;
+                        cursor: pointer;
+                        font-size: 14px;
+                        font-weight: bold;
+                        text-align: center;
+                        transition: transform 0.2s;
+                    }
+
+                    .theme-option:active {
+                        transform: scale(0.95);
+                    }
+
+                    .theme-option.selected {
+                        border-color: #333;
+                    }
+                </style>
+
+                <div class="peekaboo-container">
+                    <div class="peekaboo-header">
+                        <button id="peekaboo-back" class="text-gray-500 font-bold text-sm">← もどる</button>
+                        <span class="peekaboo-title">🎀 いないいない ばぁ！</span>
+                        <button class="peekaboo-theme-btn" id="theme-btn">🎨</button>
+                    </div>
+
+                    <!-- 背景デコレーション -->
+                    <div class="peekaboo-deco" style="top:15%;left:5%;">✨</div>
+                    <div class="peekaboo-deco" style="top:25%;right:8%;animation-delay:-1s;">💖</div>
+                    <div class="peekaboo-deco" style="top:60%;left:3%;animation-delay:-2s;">🌟</div>
+                    <div class="peekaboo-deco" style="top:70%;right:5%;animation-delay:-3s;">⭐</div>
+
+                    <div class="peekaboo-game-area">
+                        ${createSpotHTML(0, 'flower')}
+                        ${createSpotHTML(1, 'cloud')}
+                        ${createSpotHTML(2, 'present')}
+                        ${createSpotHTML(3, 'heart')}
+                        ${createSpotHTML(4, 'star')}
+                        ${createSpotHTML(5, 'bush')}
+                    </div>
+
+                    <div class="peekaboo-hint">👆 タップしてね</div>
+
+                    <!-- テーマ選択モーダル -->
+                    <div class="theme-modal" id="theme-modal">
+                        <div class="theme-modal-content">
+                            <h3>🎨 テーマを えらんでね</h3>
+                            <div class="theme-grid">
+                                ${themes.map((t, i) => `
+                                    <div class="theme-option ${i === currentTheme ? 'selected' : ''}"
+                                         data-theme="${i}"
+                                         style="background: ${t.bg}; color: ${t.accent};">
+                                        ${t.name}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
                 </div>
+            `;
 
-                <div class="peekaboo-sky">
-                    <div class="peekaboo-sun"></div>
-                    <div class="peekaboo-cloud peekaboo-cloud-1"></div>
-                    <div class="peekaboo-cloud peekaboo-cloud-2"></div>
-                </div>
+            // イベント設定
+            container.querySelector('#peekaboo-back').addEventListener('click', () => system.goHome());
 
-                <div class="peekaboo-game-area">
-                    ${createSpotHTML(0, 'grass')}
-                    ${createSpotHTML(1, 'door')}
-                    ${createSpotHTML(2, 'box')}
-                    ${createSpotHTML(3, 'box')}
-                    ${createSpotHTML(4, 'door')}
-                    ${createSpotHTML(5, 'grass')}
-                </div>
+            container.querySelector('#theme-btn').addEventListener('click', () => {
+                showThemeSelect = true;
+                render();
+            });
 
-                <div class="peekaboo-flowers">
-                    <span class="peekaboo-flower">🌸</span>
-                    <span class="peekaboo-flower">🌷</span>
-                    <span class="peekaboo-flower">🌼</span>
-                </div>
-
-                <div class="peekaboo-hint">👆 タップしてね</div>
-            </div>
-        `;
-
-        // イベント設定
-        container.querySelector('#peekaboo-back').addEventListener('click', () => system.goHome());
-
-        const spots = container.querySelectorAll('.peekaboo-spot');
-        spots.forEach(spot => {
-            spot.addEventListener('click', () => handleSpotTap(spot));
-            spot.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                handleSpotTap(spot);
-            }, { passive: false });
-        });
-
-        // 画面全体のタッチで最も近い隠れ場所を判定（1歳児対応）
-        container.querySelector('.peekaboo-game-area').addEventListener('touchstart', (e) => {
-            if (e.target.closest('.peekaboo-spot')) return;
-
-            const touch = e.touches[0];
-            let closestSpot = null;
-            let closestDistance = Infinity;
-
-            spots.forEach(spot => {
-                const rect = spot.getBoundingClientRect();
-                const centerX = rect.left + rect.width / 2;
-                const centerY = rect.top + rect.height / 2;
-                const distance = Math.hypot(touch.clientX - centerX, touch.clientY - centerY);
-
-                if (distance < closestDistance && distance < 120) {
-                    closestDistance = distance;
-                    closestSpot = spot;
+            container.querySelector('#theme-modal').addEventListener('click', (e) => {
+                if (e.target.id === 'theme-modal') {
+                    showThemeSelect = false;
+                    render();
                 }
             });
 
-            if (closestSpot) {
-                handleSpotTap(closestSpot);
-                createParticles(touch.clientX, touch.clientY);
-            }
-        }, { passive: true });
+            container.querySelectorAll('.theme-option').forEach(opt => {
+                opt.addEventListener('click', () => {
+                    currentTheme = parseInt(opt.dataset.theme);
+                    showThemeSelect = false;
+                    render();
+                });
+            });
+
+            const spots = container.querySelectorAll('.peekaboo-spot');
+            spots.forEach(spot => {
+                spot.addEventListener('click', () => handleSpotTap(spot));
+                spot.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    handleSpotTap(spot);
+                }, { passive: false });
+            });
+
+            // 画面全体のタッチで最も近い隠れ場所を判定
+            container.querySelector('.peekaboo-game-area').addEventListener('touchstart', (e) => {
+                if (e.target.closest('.peekaboo-spot')) return;
+
+                const touch = e.touches[0];
+                let closestSpot = null;
+                let closestDistance = Infinity;
+
+                spots.forEach(spot => {
+                    const rect = spot.getBoundingClientRect();
+                    const centerX = rect.left + rect.width / 2;
+                    const centerY = rect.top + rect.height / 2;
+                    const distance = Math.hypot(touch.clientX - centerX, touch.clientY - centerY);
+
+                    if (distance < closestDistance && distance < 100) {
+                        closestDistance = distance;
+                        closestSpot = spot;
+                    }
+                });
+
+                if (closestSpot) {
+                    handleSpotTap(closestSpot);
+                    createParticles(touch.clientX, touch.clientY, themes[currentTheme]);
+                }
+            }, { passive: true });
+        };
+
+        render();
 
         return () => {
-            // クリーンアップ
             Object.values(spotStates).forEach(state => {
                 if (state.timeout) clearTimeout(state.timeout);
             });
