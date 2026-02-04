@@ -88,5 +88,14 @@
         "file": "maze_v1.js",
         "color": "green-400",
         "category": "play"
+    },
+    {
+        "id": "peekaboo_01",
+        "title": "いないいないばぁ",
+        "desc": "どうぶつが ばぁ！",
+        "icon": "🎀",
+        "file": "peekaboo_v1.js",
+        "color": "pink-400",
+        "category": "play"
     }
 ]
