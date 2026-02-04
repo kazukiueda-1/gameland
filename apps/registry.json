@@ -97,5 +97,14 @@
         "file": "peekaboo_v1.js",
         "color": "pink-400",
         "category": "play"
+    },
+    {
+        "id": "flag_quiz_01",
+        "title": "こっきクイズ",
+        "desc": "どこの くにかな？",
+        "icon": "🌍",
+        "file": "flag_quiz_v1.js",
+        "color": "purple-400",
+        "category": "study"
     }
 ]
