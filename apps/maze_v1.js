@@ -1,7 +1,7 @@
 /**
  * めいろあそび
  * 5〜6歳向けのかわいい迷路ゲーム
- * 指でなぞって進むタブレット向けUI
+ * 矢印ボタンで操作
  */
 
 export default {
@@ -13,8 +13,6 @@ export default {
         let moveCount = 0;
         let showCelebration = false;
         let completedLevels = [];
-        let isDragging = false;
-        let visitedCells = new Set();
 
         // キャラクターと目標のテーマ
         const themes = [
@@ -164,23 +162,29 @@ export default {
                 ],
                 theme: 8
             },
-            // レベル10: 14x14 超難しい
+            // レベル10: 20x20 超難しい（大人でも難しい）
             {
                 maze: [
-                    [1, 1, 1, 1, 1, 1, 2, 0, 1, 1, 1, 1, 1, 1],
-                    [1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1],
-                    [1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1],
-                    [1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1],
-                    [1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1],
-                    [1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1],
-                    [1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1],
-                    [1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1],
-                    [1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1],
-                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1],
-                    [1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1],
-                    [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1],
-                    [1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 1],
-                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 3],
+                    [2, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                    [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1],
+                    [1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1],
+                    [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1],
+                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1],
+                    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1],
+                    [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1],
+                    [1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1],
+                    [1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1],
+                    [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1],
+                    [1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1],
+                    [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1],
+                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1],
+                    [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1],
+                    [1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1],
+                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3],
                 ],
                 theme: 9
             },
@@ -193,7 +197,6 @@ export default {
             const level = levels[levelIndex];
             maze = level.maze.map(row => [...row]);
             moveCount = 0;
-            visitedCells.clear();
 
             for (let y = 0; y < maze.length; y++) {
                 for (let x = 0; x < maze[y].length; x++) {
@@ -201,60 +204,35 @@ export default {
                     else if (maze[y][x] === 3) goalPos = { x, y };
                 }
             }
-            visitedCells.add(`${playerPos.x},${playerPos.y}`);
             render();
         };
 
-        // プレイヤーを移動（隣接セルのみ）
-        const movePlayerTo = (newX, newY) => {
-            if (showCelebration) return false;
+        // プレイヤーを移動（方向指定）
+        const movePlayer = (dx, dy) => {
+            if (showCelebration) return;
+
+            const newX = playerPos.x + dx;
+            const newY = playerPos.y + dy;
 
             // 範囲チェック
-            if (newY < 0 || newY >= maze.length || newX < 0 || newX >= maze[0].length) return false;
+            if (newY < 0 || newY >= maze.length || newX < 0 || newX >= maze[0].length) return;
 
-            // 隣接チェック（上下左右のみ）
-            const dx = Math.abs(newX - playerPos.x);
-            const dy = Math.abs(newY - playerPos.y);
-            if ((dx === 1 && dy === 0) || (dx === 0 && dy === 1)) {
-                // 壁チェック
-                if (maze[newY][newX] === 1) return false;
+            // 壁チェック
+            if (maze[newY][newX] === 1) return;
 
-                // 移動
-                playerPos = { x: newX, y: newY };
-                moveCount++;
-                visitedCells.add(`${newX},${newY}`);
+            // 移動
+            playerPos = { x: newX, y: newY };
+            moveCount++;
 
-                // ゴールチェック
-                if (newX === goalPos.x && newY === goalPos.y) {
-                    showCelebration = true;
-                    if (!completedLevels.includes(currentLevel)) {
-                        completedLevels.push(currentLevel);
-                    }
-                    system.playSound('correct');
-                    render();
-                    return true;
+            // ゴールチェック
+            if (newX === goalPos.x && newY === goalPos.y) {
+                showCelebration = true;
+                if (!completedLevels.includes(currentLevel)) {
+                    completedLevels.push(currentLevel);
                 }
-                return true;
+                system.playSound('correct');
             }
-            return false;
-        };
-
-        // タッチ座標からセル位置を取得
-        const getCellFromTouch = (touch, mazeElement) => {
-            const rect = mazeElement.getBoundingClientRect();
-            const cellElements = mazeElement.querySelectorAll('.maze-cell');
-            if (cellElements.length === 0) return null;
-
-            const cellRect = cellElements[0].getBoundingClientRect();
-            const cellSize = cellRect.width;
-
-            const x = Math.floor((touch.clientX - rect.left) / cellSize);
-            const y = Math.floor((touch.clientY - rect.top) / cellSize);
-
-            if (x >= 0 && x < maze[0].length && y >= 0 && y < maze.length) {
-                return { x, y };
-            }
-            return null;
+            render();
         };
 
         // 描画
@@ -279,13 +257,22 @@ export default {
                     }
                     .wall { background: linear-gradient(135deg, #5D4037, #795548); border: 1px solid #4E342E; }
                     .path { background: linear-gradient(135deg, #C8E6C9, #A5D6A7); border: 1px solid #81C784; }
-                    .path.visited { background: linear-gradient(135deg, #FFF9C4, #FFF59D); }
-                    .path.current { background: linear-gradient(135deg, #FFCC80, #FFB74D); }
                     @keyframes bounce { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
                     @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.1); opacity: 0.8; } }
                     .player-anim { animation: bounce 0.4s ease-in-out infinite; }
                     .goal-anim { animation: pulse 1.2s ease-in-out infinite; }
-                    .maze-container { touch-action: none; user-select: none; }
+                    .arrow-btn {
+                        width: 56px; height: 56px;
+                        border-radius: 50%;
+                        font-size: 24px;
+                        display: flex; align-items: center; justify-content: center;
+                        background: linear-gradient(145deg, #4CAF50, #388E3C);
+                        color: white;
+                        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+                        border: none;
+                        cursor: pointer;
+                    }
+                    .arrow-btn:active { transform: scale(0.9); }
                 </style>
 
                 <div class="h-full flex flex-col bg-gradient-to-b from-green-100 to-blue-100">
@@ -309,16 +296,14 @@ export default {
                         </div>
                     </div>
 
-                    <div class="flex-1 flex flex-col items-center justify-center p-2">
-                        <p class="text-green-600 font-bold text-sm mb-2">👆 ゆびで みちを なぞってね</p>
-                        <div id="maze-area" class="maze-container bg-white rounded-2xl p-1 shadow-lg">
+                    <div class="flex-1 flex flex-col items-center justify-center p-2 overflow-auto">
+                        <div id="maze-area" class="bg-white rounded-2xl p-1 shadow-lg">
                             ${maze.map((row, y) => `
                                 <div class="flex">
                                     ${row.map((cell, x) => {
                                         const isPlayer = playerPos.x === x && playerPos.y === y;
                                         const isGoal = goalPos.x === x && goalPos.y === y;
                                         const isWall = cell === 1;
-                                        const isVisited = visitedCells.has(`${x},${y}`);
                                         let content = '';
                                         let extraClass = '';
                                         let cellClass = isWall ? 'wall' : 'path';
@@ -326,20 +311,28 @@ export default {
                                         if (isPlayer) {
                                             content = theme.player;
                                             extraClass = 'player-anim';
-                                            cellClass += ' current';
                                         } else if (isGoal) {
                                             content = theme.goal;
                                             extraClass = 'goal-anim';
-                                        } else if (isVisited && !isWall) {
-                                            cellClass += ' visited';
                                         }
 
-                                        return `<div class="maze-cell ${cellClass}" data-x="${x}" data-y="${y}"><span class="${extraClass}">${content}</span></div>`;
+                                        return `<div class="maze-cell ${cellClass}"><span class="${extraClass}">${content}</span></div>`;
                                     }).join('')}
                                 </div>
                             `).join('')}
                         </div>
-                        <div class="flex justify-center gap-4 mt-3">
+
+                        <!-- 矢印ボタン -->
+                        <div class="mt-3 flex flex-col items-center">
+                            <button id="btn-up" class="arrow-btn mb-1">▲</button>
+                            <div class="flex gap-8">
+                                <button id="btn-left" class="arrow-btn">◀</button>
+                                <button id="btn-right" class="arrow-btn">▶</button>
+                            </div>
+                            <button id="btn-down" class="arrow-btn mt-1">▼</button>
+                        </div>
+
+                        <div class="flex justify-center gap-4 mt-2">
                             <span class="text-sm text-gray-500 font-bold">${moveCount}かい うごいた</span>
                             <button id="btn-retry" class="text-sm text-blue-500 font-bold">🔄 やりなおす</button>
                         </div>
@@ -423,96 +416,11 @@ export default {
             container.querySelector('#btn-retry-celebration')?.addEventListener('click', () => { showCelebration = false; initLevel(currentLevel); });
             container.querySelector('#btn-select-level')?.addEventListener('click', () => { showCelebration = false; renderLevelSelect(); });
 
-            // タッチ操作
-            const mazeArea = container.querySelector('#maze-area');
-            if (mazeArea) {
-                let lastCell = null;
-
-                const handleTouchStart = (e) => {
-                    e.preventDefault();
-                    isDragging = true;
-                    const touch = e.touches[0];
-                    const cell = getCellFromTouch(touch, mazeArea);
-                    if (cell) {
-                        lastCell = cell;
-                        // スタート地点からのみ開始
-                        if (cell.x === playerPos.x && cell.y === playerPos.y) {
-                            // 現在位置にいるので OK
-                        }
-                    }
-                };
-
-                const handleTouchMove = (e) => {
-                    e.preventDefault();
-                    if (!isDragging) return;
-                    const touch = e.touches[0];
-                    const cell = getCellFromTouch(touch, mazeArea);
-                    if (cell && lastCell && (cell.x !== lastCell.x || cell.y !== lastCell.y)) {
-                        const moved = movePlayerTo(cell.x, cell.y);
-                        if (moved) {
-                            lastCell = cell;
-                            render();
-                        }
-                    }
-                };
-
-                const handleTouchEnd = (e) => {
-                    e.preventDefault();
-                    isDragging = false;
-                    lastCell = null;
-                };
-
-                mazeArea.addEventListener('touchstart', handleTouchStart, { passive: false });
-                mazeArea.addEventListener('touchmove', handleTouchMove, { passive: false });
-                mazeArea.addEventListener('touchend', handleTouchEnd, { passive: false });
-
-                // マウス操作（PC用）
-                mazeArea.addEventListener('mousedown', (e) => {
-                    isDragging = true;
-                    const cell = getCellFromMouse(e, mazeArea);
-                    if (cell) lastCell = cell;
-                });
-
-                mazeArea.addEventListener('mousemove', (e) => {
-                    if (!isDragging) return;
-                    const cell = getCellFromMouse(e, mazeArea);
-                    if (cell && lastCell && (cell.x !== lastCell.x || cell.y !== lastCell.y)) {
-                        const moved = movePlayerTo(cell.x, cell.y);
-                        if (moved) {
-                            lastCell = cell;
-                            render();
-                        }
-                    }
-                });
-
-                mazeArea.addEventListener('mouseup', () => {
-                    isDragging = false;
-                    lastCell = null;
-                });
-
-                mazeArea.addEventListener('mouseleave', () => {
-                    isDragging = false;
-                    lastCell = null;
-                });
-            }
-        };
-
-        // マウス座標からセル位置を取得
-        const getCellFromMouse = (e, mazeElement) => {
-            const rect = mazeElement.getBoundingClientRect();
-            const cellElements = mazeElement.querySelectorAll('.maze-cell');
-            if (cellElements.length === 0) return null;
-
-            const cellRect = cellElements[0].getBoundingClientRect();
-            const cellSize = cellRect.width;
-
-            const x = Math.floor((e.clientX - rect.left) / cellSize);
-            const y = Math.floor((e.clientY - rect.top) / cellSize);
-
-            if (x >= 0 && x < maze[0].length && y >= 0 && y < maze.length) {
-                return { x, y };
-            }
-            return null;
+            // 矢印ボタン操作
+            container.querySelector('#btn-up')?.addEventListener('click', () => movePlayer(0, -1));
+            container.querySelector('#btn-down')?.addEventListener('click', () => movePlayer(0, 1));
+            container.querySelector('#btn-left')?.addEventListener('click', () => movePlayer(-1, 0));
+            container.querySelector('#btn-right')?.addEventListener('click', () => movePlayer(1, 0));
         };
 
         // 初期化
