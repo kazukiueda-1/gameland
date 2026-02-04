@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>いないいない ばぁ！</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        body {
+            font-family: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', sans-serif;
+            background: linear-gradient(180deg, #87CEEB 0%, #98FB98 50%, #90EE90 100%);
+            position: relative;
+        }
+
+        /* 空の装飾 */
+        .sky-decoration {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 40%;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .cloud {
+            position: absolute;
+            background: white;
+            border-radius: 50px;
+            opacity: 0.9;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        .cloud::before, .cloud::after {
+            content: '';
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+        }
+
+        .cloud-1 {
+            width: 80px;
+            height: 30px;
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .cloud-1::before {
+            width: 40px;
+            height: 40px;
+            top: -20px;
+            left: 10px;
+        }
+
+        .cloud-1::after {
+            width: 30px;
+            height: 30px;
+            top: -15px;
+            left: 40px;
+        }
+
+        .cloud-2 {
+            width: 100px;
+            height: 35px;
+            top: 5%;
+            right: 15%;
+            animation-delay: -5s;
+        }
+
+        .cloud-2::before {
+            width: 50px;
+            height: 50px;
+            top: -25px;
+            left: 15px;
+        }
+
+        .cloud-2::after {
+            width: 35px;
+            height: 35px;
+            top: -18px;
+            left: 55px;
+        }
+
+        .sun {
+            position: absolute;
+            top: 5%;
+            right: 8%;
+            width: 60px;
+            height: 60px;
+            background: #FFD700;
+            border-radius: 50%;
+            box-shadow: 0 0 30px #FFD700, 0 0 60px #FFA500;
+            animation: pulse-sun 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(20px); }
+        }
+
+        @keyframes pulse-sun {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 30px #FFD700, 0 0 60px #FFA500; }
+            50% { transform: scale(1.1); box-shadow: 0 0 40px #FFD700, 0 0 80px #FFA500; }
+        }
+
+        /* タイトル */
+        .title {
+            position: absolute;
+            top: 2%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: clamp(24px, 6vw, 40px);
+            font-weight: 900;
+            color: #FF69B4;
+            text-shadow: 3px 3px 0 white, -1px -1px 0 #FF1493;
+            z-index: 100;
+            letter-spacing: 0.1em;
+        }
+
+        /* ゲームエリア */
+        .game-area {
+            position: absolute;
+            top: 12%;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            align-content: space-around;
+            padding: 10px;
+        }
+
+        /* 隠れ場所 */
+        .hiding-spot {
+            position: relative;
+            width: 28%;
+            height: 28%;
+            min-width: 100px;
+            min-height: 100px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 草むら */
+        .grass {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 70%;
+            background: linear-gradient(180deg, #32CD32 0%, #228B22 50%, #006400 100%);
+            border-radius: 50% 50% 0 0;
+            z-index: 2;
+            box-shadow: inset 0 10px 20px rgba(255,255,255,0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .grass::before {
+            content: '';
+            position: absolute;
+            top: -15px;
+            left: 20%;
+            width: 15%;
+            height: 40px;
+            background: linear-gradient(180deg, #32CD32, #228B22);
+            border-radius: 50% 50% 0 0;
+            transform: rotate(-15deg);
+        }
+
+        .grass::after {
+            content: '';
+            position: absolute;
+            top: -20px;
+            right: 25%;
+            width: 12%;
+            height: 50px;
+            background: linear-gradient(180deg, #32CD32, #228B22);
+            border-radius: 50% 50% 0 0;
+            transform: rotate(10deg);
+        }
+
+        .hiding-spot:active .grass {
+            transform: scale(1.05);
+        }
+
+        /* ドア */
+        .door-container {
+            position: absolute;
+            bottom: 0;
+            width: 80%;
+            height: 90%;
+            perspective: 500px;
+        }
+
+        .door {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, #DEB887 0%, #D2691E 100%);
+            border-radius: 10px 10px 0 0;
+            border: 4px solid #8B4513;
+            z-index: 2;
+            transform-origin: left center;
+            transition: transform 0.4s ease;
+            box-shadow: inset -20px 0 30px rgba(0,0,0,0.2);
+        }
+
+        .door::before {
+            content: '';
+            position: absolute;
+            right: 15%;
+            top: 45%;
+            width: 12px;
+            height: 12px;
+            background: #FFD700;
+            border-radius: 50%;
+            box-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .door.open {
+            transform: rotateY(-70deg);
+        }
+
+        .door-frame {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, #FFB6C1 0%, #FF69B4 100%);
+            border-radius: 10px 10px 0 0;
+            z-index: 1;
+        }
+
+        /* 箱 */
+        .box-container {
+            position: absolute;
+            bottom: 0;
+            width: 90%;
+            height: 75%;
+        }
+
+        .box {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 80%;
+            background: linear-gradient(180deg, #FF69B4 0%, #FF1493 100%);
+            border-radius: 8px;
+            border: 3px solid #C71585;
+            z-index: 1;
+        }
+
+        .box::before {
+            content: '♡';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 30px;
+            color: white;
+            opacity: 0.5;
+        }
+
+        .box-lid {
+            position: absolute;
+            top: 0;
+            width: 110%;
+            left: -5%;
+            height: 25%;
+            background: linear-gradient(180deg, #FF69B4 0%, #C71585 100%);
+            border-radius: 5px;
+            border: 3px solid #C71585;
+            z-index: 2;
+            transform-origin: bottom center;
+            transition: transform 0.3s ease;
+        }
+
+        .box-lid.open {
+            transform: rotateX(-120deg) translateY(-10px);
+        }
+
+        /* 動物 */
+        .animal {
+            position: absolute;
+            font-size: clamp(50px, 15vw, 80px);
+            z-index: 1;
+            opacity: 0;
+            transform: translateY(50px) scale(0.5);
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            filter: drop-shadow(3px 3px 5px rgba(0,0,0,0.3));
+        }
+
+        .animal.visible {
+            opacity: 1;
+            transform: translateY(-20px) scale(1);
+        }
+
+        .animal.bounce {
+            animation: bounce-animal 0.6s ease;
+        }
+
+        @keyframes bounce-animal {
+            0% { transform: translateY(50px) scale(0.5); }
+            50% { transform: translateY(-40px) scale(1.2); }
+            70% { transform: translateY(-10px) scale(0.95); }
+            100% { transform: translateY(-20px) scale(1); }
+        }
+
+        /* ばぁ！テキスト */
+        .baa-text {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%) scale(0);
+            font-size: clamp(20px, 5vw, 32px);
+            font-weight: 900;
+            color: #FF1493;
+            text-shadow: 2px 2px 0 white, -1px -1px 0 #FF69B4;
+            white-space: nowrap;
+            z-index: 10;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .baa-text.visible {
+            opacity: 1;
+            transform: translateX(-50%) scale(1);
+            animation: pop-text 0.5s ease;
+        }
+
+        @keyframes pop-text {
+            0% { transform: translateX(-50%) scale(0) rotate(-10deg); }
+            50% { transform: translateX(-50%) scale(1.3) rotate(5deg); }
+            100% { transform: translateX(-50%) scale(1) rotate(0deg); }
+        }
+
+        /* パーティクル */
+        .particle {
+            position: fixed;
+            pointer-events: none;
+            z-index: 1000;
+            font-size: 24px;
+            animation: particle-fly 1s ease-out forwards;
+        }
+
+        @keyframes particle-fly {
+            0% {
+                opacity: 1;
+                transform: translate(0, 0) scale(1) rotate(0deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(var(--tx), var(--ty)) scale(0) rotate(360deg);
+            }
+        }
+
+        /* 花の装飾 */
+        .flower {
+            position: absolute;
+            font-size: 30px;
+            animation: sway 3s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        .flower-1 { bottom: 5%; left: 5%; animation-delay: 0s; }
+        .flower-2 { bottom: 8%; right: 8%; animation-delay: -1s; }
+        .flower-3 { bottom: 3%; left: 50%; animation-delay: -2s; }
+
+        @keyframes sway {
+            0%, 100% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg); }
+        }
+
+        /* タップヒント */
+        .tap-hint {
+            position: absolute;
+            bottom: 2%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: clamp(14px, 3vw, 18px);
+            color: #666;
+            background: rgba(255,255,255,0.8);
+            padding: 8px 16px;
+            border-radius: 20px;
+            animation: pulse-hint 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-hint {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <!-- 空の装飾 -->
+    <div class="sky-decoration">
+        <div class="sun"></div>
+        <div class="cloud cloud-1"></div>
+        <div class="cloud cloud-2"></div>
+    </div>
+
+    <!-- タイトル -->
+    <h1 class="title">いないいない ばぁ！</h1>
+
+    <!-- ゲームエリア -->
+    <div class="game-area" id="gameArea">
+        <!-- 隠れ場所1: 草むら -->
+        <div class="hiding-spot" data-type="grass" data-index="0">
+            <div class="animal" id="animal0"></div>
+            <div class="baa-text">ばぁ！</div>
+            <div class="grass"></div>
+        </div>
+
+        <!-- 隠れ場所2: ドア -->
+        <div class="hiding-spot" data-type="door" data-index="1">
+            <div class="animal" id="animal1"></div>
+            <div class="baa-text">ばぁ！</div>
+            <div class="door-container">
+                <div class="door-frame"></div>
+                <div class="door" id="door1"></div>
+            </div>
+        </div>
+
+        <!-- 隠れ場所3: 箱 -->
+        <div class="hiding-spot" data-type="box" data-index="2">
+            <div class="animal" id="animal2"></div>
+            <div class="baa-text">ばぁ！</div>
+            <div class="box-container">
+                <div class="box"></div>
+                <div class="box-lid" id="lid2"></div>
+            </div>
+        </div>
+
+        <!-- 隠れ場所4: 草むら -->
+        <div class="hiding-spot" data-type="grass" data-index="3">
+            <div class="animal" id="animal3"></div>
+            <div class="baa-text">ばぁ！</div>
+            <div class="grass"></div>
+        </div>
+
+        <!-- 隠れ場所5: ドア -->
+        <div class="hiding-spot" data-type="door" data-index="4">
+            <div class="animal" id="animal4"></div>
+            <div class="baa-text">ばぁ！</div>
+            <div class="door-container">
+                <div class="door-frame"></div>
+                <div class="door" id="door4"></div>
+            </div>
+        </div>
+
+        <!-- 隠れ場所6: 箱 -->
+        <div class="hiding-spot" data-type="box" data-index="5">
+            <div class="animal" id="animal5"></div>
+            <div class="baa-text">ばぁ！</div>
+            <div class="box-container">
+                <div class="box"></div>
+                <div class="box-lid" id="lid5"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 花の装飾 -->
+    <div class="flower flower-1">🌸</div>
+    <div class="flower flower-2">🌷</div>
+    <div class="flower flower-3">🌼</div>
+
+    <!-- タップヒント -->
+    <div class="tap-hint">👆 タップしてね</div>
+
+    <script>
+        // 動物の絵文字リスト
+        const animals = ['🐼', '🦁', '🐰', '🐘', '🐶', '🐱', '🐻', '🐨', '🦊', '🐷', '🐮', '🐸'];
+
+        // パーティクルの絵文字
+        const particles = ['⭐', '✨', '💫', '🌟', '💖', '💕', '🎀'];
+
+        // 各隠れ場所の状態
+        const spotStates = {};
+
+        // 隠れ場所に動物を割り当て
+        function assignAnimals() {
+            const spots = document.querySelectorAll('.hiding-spot');
+            const shuffled = [...animals].sort(() => Math.random() - 0.5);
+
+            spots.forEach((spot, index) => {
+                const animalEl = spot.querySelector('.animal');
+                animalEl.textContent = shuffled[index % shuffled.length];
+                spotStates[index] = { isOpen: false, timeout: null };
+            });
+        }
+
+        // パーティクルエフェクト
+        function createParticles(x, y) {
+            const count = 8;
+            for (let i = 0; i < count; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.textContent = particles[Math.floor(Math.random() * particles.length)];
+
+                const angle = (i / count) * Math.PI * 2;
+                const distance = 80 + Math.random() * 60;
+                const tx = Math.cos(angle) * distance;
+                const ty = Math.sin(angle) * distance - 50;
+
+                particle.style.left = x + 'px';
+                particle.style.top = y + 'px';
+                particle.style.setProperty('--tx', tx + 'px');
+                particle.style.setProperty('--ty', ty + 'px');
+
+                document.body.appendChild(particle);
+
+                setTimeout(() => particle.remove(), 1000);
+            }
+        }
+
+        // 隠れ場所をタップした時の処理
+        function handleSpotTap(spot, event) {
+            const index = parseInt(spot.dataset.index);
+            const type = spot.dataset.type;
+            const state = spotStates[index];
+
+            // タップ位置でパーティクル
+            const rect = spot.getBoundingClientRect();
+            const x = rect.left + rect.width / 2;
+            const y = rect.top + rect.height / 2;
+
+            if (state.isOpen) {
+                // 既に開いている場合は閉じる
+                closeSpot(spot, index, type);
+            } else {
+                // 開く
+                openSpot(spot, index, type);
+                createParticles(x, y);
+            }
+        }
+
+        // 隠れ場所を開く
+        function openSpot(spot, index, type) {
+            const state = spotStates[index];
+            const animal = spot.querySelector('.animal');
+            const baaText = spot.querySelector('.baa-text');
+
+            state.isOpen = true;
+
+            // タイプ別のアニメーション
+            if (type === 'door') {
+                const door = document.getElementById('door' + index);
+                door.classList.add('open');
+            } else if (type === 'box') {
+                const lid = document.getElementById('lid' + index);
+                lid.classList.add('open');
+            }
+
+            // 動物を表示
+            setTimeout(() => {
+                animal.classList.add('visible', 'bounce');
+                baaText.classList.add('visible');
+            }, type === 'grass' ? 0 : 200);
+
+            // 既存のタイマーをクリア
+            if (state.timeout) {
+                clearTimeout(state.timeout);
+            }
+
+            // 3秒後に自動で閉じる
+            state.timeout = setTimeout(() => {
+                closeSpot(spot, index, type);
+            }, 3000);
+        }
+
+        // 隠れ場所を閉じる
+        function closeSpot(spot, index, type) {
+            const state = spotStates[index];
+            const animal = spot.querySelector('.animal');
+            const baaText = spot.querySelector('.baa-text');
+
+            state.isOpen = false;
+
+            // 動物を隠す
+            animal.classList.remove('visible', 'bounce');
+            baaText.classList.remove('visible');
+
+            // タイプ別のアニメーション
+            if (type === 'door') {
+                const door = document.getElementById('door' + index);
+                door.classList.remove('open');
+            } else if (type === 'box') {
+                const lid = document.getElementById('lid' + index);
+                lid.classList.remove('open');
+            }
+
+            // 新しい動物を割り当て
+            setTimeout(() => {
+                animal.textContent = animals[Math.floor(Math.random() * animals.length)];
+            }, 400);
+
+            // タイマーをクリア
+            if (state.timeout) {
+                clearTimeout(state.timeout);
+                state.timeout = null;
+            }
+        }
+
+        // タッチ/クリックの判定エリアを広げる
+        function isNearSpot(touch, spot) {
+            const rect = spot.getBoundingClientRect();
+            const padding = 30; // 判定エリアを広げる
+
+            return (
+                touch.clientX >= rect.left - padding &&
+                touch.clientX <= rect.right + padding &&
+                touch.clientY >= rect.top - padding &&
+                touch.clientY <= rect.bottom + padding
+            );
+        }
+
+        // イベントリスナーの設定
+        function setupEventListeners() {
+            const spots = document.querySelectorAll('.hiding-spot');
+
+            // 各隠れ場所に直接イベントを設定
+            spots.forEach(spot => {
+                // タッチイベント
+                spot.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    handleSpotTap(spot, e);
+                }, { passive: false });
+
+                // クリックイベント（PC用）
+                spot.addEventListener('click', (e) => {
+                    handleSpotTap(spot, e);
+                });
+            });
+
+            // 画面全体のタッチで最も近い隠れ場所を判定
+            document.body.addEventListener('touchstart', (e) => {
+                const touch = e.touches[0];
+                let closestSpot = null;
+                let closestDistance = Infinity;
+
+                spots.forEach(spot => {
+                    const rect = spot.getBoundingClientRect();
+                    const centerX = rect.left + rect.width / 2;
+                    const centerY = rect.top + rect.height / 2;
+                    const distance = Math.hypot(touch.clientX - centerX, touch.clientY - centerY);
+
+                    // 一定範囲内で最も近いものを選択
+                    if (distance < closestDistance && distance < 150) {
+                        closestDistance = distance;
+                        closestSpot = spot;
+                    }
+                });
+
+                if (closestSpot && !e.target.closest('.hiding-spot')) {
+                    handleSpotTap(closestSpot, e);
+                    createParticles(touch.clientX, touch.clientY);
+                }
+            }, { passive: true });
+
+            // スクロールとズームを防止
+            document.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+            }, { passive: false });
+
+            // ダブルタップズームを防止
+            let lastTouchEnd = 0;
+            document.addEventListener('touchend', (e) => {
+                const now = Date.now();
+                if (now - lastTouchEnd <= 300) {
+                    e.preventDefault();
+                }
+                lastTouchEnd = now;
+            }, { passive: false });
+        }
+
+        // フルスクリーン対応
+        function requestFullscreen() {
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen();
+            } else if (elem.webkitRequestFullscreen) {
+                elem.webkitRequestFullscreen();
+            }
+        }
+
+        // 初期化
+        function init() {
+            assignAnimals();
+            setupEventListeners();
+
+            // 最初のタップでフルスクリーンを試みる
+            document.body.addEventListener('touchstart', () => {
+                requestFullscreen();
+            }, { once: true });
+        }
+
+        // ページ読み込み完了時に初期化
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
