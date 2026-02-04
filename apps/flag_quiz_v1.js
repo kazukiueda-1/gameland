@@ -238,6 +238,7 @@ export default {
         let answered = false;
         let selectedAnswer = null;
         let showCelebration = false;
+        let showWrongAnswer = false;
         let showResult = false;
         let showLevelSelect = true;
 
@@ -288,6 +289,7 @@ export default {
             answered = false;
             selectedAnswer = null;
             showCelebration = false;
+            showWrongAnswer = false;
             questionCount++;
             render();
         };
@@ -336,6 +338,7 @@ export default {
                 system.playSound('correct');
                 createParticles();
             } else {
+                showWrongAnswer = true;
                 system.playSound('incorrect');
             }
 
@@ -344,7 +347,7 @@ export default {
             // 次の問題へ
             setTimeout(() => {
                 nextQuestion();
-            }, showCelebration ? 2500 : 2000);
+            }, showCelebration ? 2500 : 2500);
         };
 
         // レベル選択
@@ -385,6 +388,19 @@ export default {
                         0% { transform: scale(0) rotate(-180deg); opacity: 0; }
                         50% { transform: scale(1.2) rotate(10deg); opacity: 1; }
                         100% { transform: scale(1) rotate(0deg); opacity: 1; }
+                    }
+                    @keyframes flag-wrong-pop {
+                        0% { transform: scale(0); opacity: 0; }
+                        40% { transform: scale(1.15); }
+                        70% { transform: scale(0.95); }
+                        100% { transform: scale(1); opacity: 1; }
+                    }
+                    @keyframes flag-wrong-shake {
+                        0%, 100% { transform: rotate(0deg); }
+                        20% { transform: rotate(-8deg); }
+                        40% { transform: rotate(8deg); }
+                        60% { transform: rotate(-5deg); }
+                        80% { transform: rotate(5deg); }
                     }
                     @keyframes flag-wave {
                         0%, 100% { transform: perspective(400px) rotateY(-5deg); }
@@ -669,6 +685,62 @@ export default {
                         margin-top: 5px;
                     }
 
+                    /* 残念演出 */
+                    .flag-wrong {
+                        position: fixed;
+                        inset: 0;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        pointer-events: none;
+                        z-index: 100;
+                    }
+
+                    .flag-wrong-content {
+                        background: linear-gradient(135deg, #fff5f5, #fff);
+                        border-radius: 30px;
+                        padding: 25px 35px;
+                        text-align: center;
+                        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                        border: 4px solid #fca5a5;
+                        animation: flag-wrong-pop 0.5s ease-out;
+                    }
+
+                    .flag-wrong-emoji {
+                        font-size: 60px;
+                        margin-bottom: 8px;
+                        animation: flag-wrong-shake 0.6s ease-out;
+                    }
+
+                    .flag-wrong-text {
+                        font-size: 22px;
+                        font-weight: 900;
+                        color: #f87171;
+                        margin-bottom: 8px;
+                    }
+
+                    .flag-wrong-answer {
+                        font-size: 18px;
+                        font-weight: bold;
+                        color: #374151;
+                        background: linear-gradient(135deg, #fef3c7, #fde68a);
+                        padding: 10px 20px;
+                        border-radius: 20px;
+                        display: inline-block;
+                    }
+
+                    .flag-wrong-answer-name {
+                        font-size: 24px;
+                        color: #7c3aed;
+                        font-weight: 900;
+                    }
+
+                    .flag-wrong-cheer {
+                        font-size: 14px;
+                        color: #9ca3af;
+                        margin-top: 10px;
+                    }
+
                     /* 結果画面 */
                     .flag-result {
                         flex: 1;
@@ -840,6 +912,19 @@ export default {
                                 <div class="flag-celebration-emoji">🎉</div>
                                 <div class="flag-celebration-text">せいかい！</div>
                                 <div class="flag-celebration-sub">すごいね！</div>
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    ${showWrongAnswer ? `
+                        <div class="flag-wrong">
+                            <div class="flag-wrong-content">
+                                <div class="flag-wrong-emoji">🙈</div>
+                                <div class="flag-wrong-text">ざんねん！</div>
+                                <div class="flag-wrong-answer">
+                                    これは <span class="flag-wrong-answer-name">${currentQuestion?.correct.name}</span> だよ！
+                                </div>
+                                <div class="flag-wrong-cheer">つぎは がんばろう！💪</div>
                             </div>
                         </div>
                     ` : ''}
