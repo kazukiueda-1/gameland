@@ -2,6 +2,7 @@
  * めいろあそび
  * 5〜6歳向けのかわいい迷路ゲーム
  * 矢印ボタンで操作
+ * 全レベルで正解ルートは1つだけ（行き止まりあり）
  */
 
 export default {
@@ -28,176 +29,161 @@ export default {
             { player: '🦁', goal: '👑', name: 'ライオンさん', goalName: 'おうかん' },
         ];
 
-        // 迷路データ（0=通路, 1=壁, 2=スタート, 3=ゴール）
-        const levels = [
-            // レベル1: 5x5 とても簡単
-            {
-                maze: [
-                    [2, 0, 0, 0, 1],
-                    [1, 1, 1, 0, 1],
-                    [1, 0, 0, 0, 1],
-                    [1, 0, 1, 1, 1],
-                    [1, 0, 0, 0, 3],
-                ],
-                theme: 0
-            },
-            // レベル2: 6x6 簡単
-            {
-                maze: [
-                    [2, 0, 1, 1, 1, 1],
-                    [1, 0, 0, 0, 0, 1],
-                    [1, 1, 1, 1, 0, 1],
-                    [1, 0, 0, 0, 0, 1],
-                    [1, 0, 1, 1, 1, 1],
-                    [1, 0, 0, 0, 0, 3],
-                ],
-                theme: 1
-            },
-            // レベル3: 7x7 簡単
-            {
-                maze: [
-                    [2, 0, 0, 1, 1, 1, 1],
-                    [1, 1, 0, 0, 0, 0, 1],
-                    [1, 0, 0, 1, 1, 0, 1],
-                    [1, 0, 1, 1, 0, 0, 1],
-                    [1, 0, 0, 0, 0, 1, 1],
-                    [1, 1, 1, 1, 0, 0, 1],
-                    [1, 1, 1, 1, 1, 0, 3],
-                ],
-                theme: 2
-            },
-            // レベル4: 8x8 普通
-            {
-                maze: [
-                    [1, 1, 2, 0, 0, 1, 1, 1],
-                    [1, 1, 1, 1, 0, 0, 0, 1],
-                    [1, 0, 0, 0, 0, 1, 0, 1],
-                    [1, 0, 1, 1, 1, 1, 0, 1],
-                    [1, 0, 0, 0, 0, 0, 0, 1],
-                    [1, 1, 1, 1, 1, 1, 0, 1],
-                    [1, 0, 0, 0, 0, 0, 0, 1],
-                    [1, 0, 1, 1, 1, 1, 0, 3],
-                ],
-                theme: 3
-            },
-            // レベル5: 9x9 普通
-            {
-                maze: [
-                    [2, 0, 1, 1, 1, 1, 1, 1, 1],
-                    [1, 0, 0, 0, 0, 0, 1, 0, 1],
-                    [1, 1, 1, 1, 1, 0, 1, 0, 1],
-                    [1, 0, 0, 0, 0, 0, 0, 0, 1],
-                    [1, 0, 1, 1, 1, 1, 1, 0, 1],
-                    [1, 0, 1, 0, 0, 0, 1, 0, 1],
-                    [1, 0, 1, 0, 1, 0, 0, 0, 1],
-                    [1, 0, 0, 0, 1, 1, 1, 0, 1],
-                    [1, 1, 1, 1, 1, 1, 1, 0, 3],
-                ],
-                theme: 4
-            },
-            // レベル6: 10x10 やや難しい
-            {
-                maze: [
-                    [1, 1, 1, 1, 2, 0, 1, 1, 1, 1],
-                    [1, 0, 0, 0, 1, 0, 0, 0, 0, 1],
-                    [1, 0, 1, 0, 1, 1, 1, 1, 0, 1],
-                    [1, 0, 1, 0, 0, 0, 0, 1, 0, 1],
-                    [1, 0, 1, 1, 1, 1, 0, 1, 0, 1],
-                    [1, 0, 0, 0, 0, 1, 0, 0, 0, 1],
-                    [1, 1, 1, 1, 0, 1, 1, 1, 0, 1],
-                    [1, 0, 0, 0, 0, 0, 0, 1, 0, 1],
-                    [1, 0, 1, 1, 1, 1, 0, 0, 0, 1],
-                    [1, 0, 0, 0, 0, 1, 1, 1, 0, 3],
-                ],
-                theme: 5
-            },
-            // レベル7: 10x10 難しい
-            {
-                maze: [
-                    [2, 0, 1, 1, 1, 1, 1, 1, 1, 1],
-                    [1, 0, 0, 0, 1, 0, 0, 0, 0, 1],
-                    [1, 1, 1, 0, 1, 0, 1, 1, 0, 1],
-                    [1, 0, 0, 0, 0, 0, 1, 0, 0, 1],
-                    [1, 0, 1, 1, 1, 1, 1, 0, 1, 1],
-                    [1, 0, 1, 0, 0, 0, 0, 0, 0, 1],
-                    [1, 0, 1, 0, 1, 1, 1, 1, 0, 1],
-                    [1, 0, 0, 0, 1, 0, 0, 0, 0, 1],
-                    [1, 1, 1, 0, 1, 0, 1, 1, 1, 1],
-                    [1, 1, 1, 0, 0, 0, 0, 0, 0, 3],
-                ],
-                theme: 6
-            },
-            // レベル8: 11x11 難しい
-            {
-                maze: [
-                    [1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1],
-                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-                    [1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1],
-                    [1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1],
-                    [1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1],
-                    [1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1],
-                    [1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1],
-                    [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1],
-                    [1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1],
-                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-                    [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 3],
-                ],
-                theme: 7
-            },
-            // レベル9: 12x12 とても難しい
-            {
-                maze: [
-                    [2, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                    [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
-                    [1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1],
-                    [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1],
-                    [1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1],
-                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-                    [1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1],
-                    [1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1],
-                    [1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1],
-                    [1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1],
-                    [1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1],
-                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3],
-                ],
-                theme: 8
-            },
-            // レベル10: 20x20 超難しい（大人でも難しい）
-            {
-                maze: [
-                    [2, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                    [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1],
-                    [1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1],
-                    [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1],
-                    [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1],
-                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1],
-                    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1],
-                    [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1],
-                    [1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1],
-                    [1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1],
-                    [1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1],
-                    [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1],
-                    [1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1],
-                    [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1],
-                    [1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1],
-                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1],
-                    [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1],
-                    [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1],
-                    [1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1],
-                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3],
-                ],
-                theme: 9
-            },
+        // レベル設定（サイズとテーマ）
+        const levelConfigs = [
+            { width: 5, height: 5, theme: 0 },    // レベル1
+            { width: 7, height: 7, theme: 1 },    // レベル2
+            { width: 9, height: 9, theme: 2 },    // レベル3
+            { width: 11, height: 11, theme: 3 },  // レベル4
+            { width: 13, height: 13, theme: 4 },  // レベル5
+            { width: 15, height: 15, theme: 5 },  // レベル6
+            { width: 17, height: 17, theme: 6 },  // レベル7
+            { width: 21, height: 21, theme: 7 },  // レベル8
+            { width: 25, height: 25, theme: 8 },  // レベル9
+            { width: 41, height: 41, theme: 9 },  // レベル10: 40x40相当
         ];
+
+        // 迷路生成（再帰的バックトラッキング法）
+        // 正解ルートは1つだけで、それ以外は行き止まり
+        const generateMaze = (width, height) => {
+            // 奇数サイズに調整（壁と通路の交互配置のため）
+            const w = width % 2 === 0 ? width + 1 : width;
+            const h = height % 2 === 0 ? height + 1 : height;
+
+            // 全て壁で初期化
+            const grid = [];
+            for (let y = 0; y < h; y++) {
+                grid[y] = [];
+                for (let x = 0; x < w; x++) {
+                    grid[y][x] = 1; // 壁
+                }
+            }
+
+            // 迷路生成用の訪問済みセル
+            const visited = new Set();
+
+            // 方向（上、右、下、左）
+            const directions = [
+                { dx: 0, dy: -2 },
+                { dx: 2, dy: 0 },
+                { dx: 0, dy: 2 },
+                { dx: -2, dy: 0 }
+            ];
+
+            // シャッフル関数
+            const shuffle = (array) => {
+                const arr = [...array];
+                for (let i = arr.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [arr[i], arr[j]] = [arr[j], arr[i]];
+                }
+                return arr;
+            };
+
+            // 再帰的に迷路を掘る
+            const carve = (x, y) => {
+                visited.add(`${x},${y}`);
+                grid[y][x] = 0; // 通路
+
+                const dirs = shuffle(directions);
+                for (const { dx, dy } of dirs) {
+                    const nx = x + dx;
+                    const ny = y + dy;
+
+                    if (nx > 0 && nx < w - 1 && ny > 0 && ny < h - 1 && !visited.has(`${nx},${ny}`)) {
+                        // 壁を壊して通路を作る
+                        grid[y + dy / 2][x + dx / 2] = 0;
+                        carve(nx, ny);
+                    }
+                }
+            };
+
+            // 開始点から迷路を生成
+            carve(1, 1);
+
+            // スタートとゴールを設定
+            grid[1][1] = 2; // スタート（左上）
+            grid[h - 2][w - 2] = 3; // ゴール（右下）
+
+            return grid;
+        };
+
+        // 各レベルの迷路を生成（シードを固定して毎回同じ迷路にする）
+        const generateSeededMaze = (width, height, seed) => {
+            // 簡易的なシード付き乱数生成器
+            let s = seed;
+            const random = () => {
+                s = (s * 1103515245 + 12345) & 0x7fffffff;
+                return s / 0x7fffffff;
+            };
+
+            const w = width % 2 === 0 ? width + 1 : width;
+            const h = height % 2 === 0 ? height + 1 : height;
+
+            const grid = [];
+            for (let y = 0; y < h; y++) {
+                grid[y] = [];
+                for (let x = 0; x < w; x++) {
+                    grid[y][x] = 1;
+                }
+            }
+
+            const visited = new Set();
+
+            const directions = [
+                { dx: 0, dy: -2 },
+                { dx: 2, dy: 0 },
+                { dx: 0, dy: 2 },
+                { dx: -2, dy: 0 }
+            ];
+
+            const shuffle = (array) => {
+                const arr = [...array];
+                for (let i = arr.length - 1; i > 0; i--) {
+                    const j = Math.floor(random() * (i + 1));
+                    [arr[i], arr[j]] = [arr[j], arr[i]];
+                }
+                return arr;
+            };
+
+            const carve = (x, y) => {
+                visited.add(`${x},${y}`);
+                grid[y][x] = 0;
+
+                const dirs = shuffle(directions);
+                for (const { dx, dy } of dirs) {
+                    const nx = x + dx;
+                    const ny = y + dy;
+
+                    if (nx > 0 && nx < w - 1 && ny > 0 && ny < h - 1 && !visited.has(`${nx},${ny}`)) {
+                        grid[y + dy / 2][x + dx / 2] = 0;
+                        carve(nx, ny);
+                    }
+                }
+            };
+
+            carve(1, 1);
+
+            grid[1][1] = 2;
+            grid[h - 2][w - 2] = 3;
+
+            return grid;
+        };
+
+        // レベルごとのシード値（毎回同じ迷路になる）
+        const levelSeeds = [12345, 23456, 34567, 45678, 56789, 67890, 78901, 89012, 90123, 13579];
 
         // 迷路を初期化
         const initLevel = (levelIndex) => {
-            if (levelIndex >= levels.length) levelIndex = 0;
+            if (levelIndex >= levelConfigs.length) levelIndex = 0;
             currentLevel = levelIndex;
-            const level = levels[levelIndex];
-            maze = level.maze.map(row => [...row]);
+            const config = levelConfigs[levelIndex];
+
+            // シード付きで迷路を生成
+            maze = generateSeededMaze(config.width, config.height, levelSeeds[levelIndex]);
             moveCount = 0;
 
+            // スタートとゴールの位置を取得
             for (let y = 0; y < maze.length; y++) {
                 for (let x = 0; x < maze[y].length; x++) {
                     if (maze[y][x] === 2) playerPos = { x, y };
@@ -214,17 +200,12 @@ export default {
             const newX = playerPos.x + dx;
             const newY = playerPos.y + dy;
 
-            // 範囲チェック
             if (newY < 0 || newY >= maze.length || newX < 0 || newX >= maze[0].length) return;
-
-            // 壁チェック
             if (maze[newY][newX] === 1) return;
 
-            // 移動
             playerPos = { x: newX, y: newY };
             moveCount++;
 
-            // ゴールチェック
             if (newX === goalPos.x && newY === goalPos.y) {
                 showCelebration = true;
                 if (!completedLevels.includes(currentLevel)) {
@@ -237,12 +218,15 @@ export default {
 
         // 描画
         const render = () => {
-            const level = levels[currentLevel];
-            const theme = themes[level.theme];
-            const mazeSize = maze.length;
+            const config = levelConfigs[currentLevel];
+            const theme = themes[config.theme];
+            const mazeHeight = maze.length;
+            const mazeWidth = maze[0].length;
+
             // 画面サイズに応じてセルサイズを調整
             const maxMazeWidth = Math.min(window.innerWidth - 32, 500);
-            const cellSize = Math.floor(maxMazeWidth / mazeSize);
+            const maxMazeHeight = Math.min(window.innerHeight - 280, 400);
+            const cellSize = Math.max(Math.floor(Math.min(maxMazeWidth / mazeWidth, maxMazeHeight / mazeHeight)), 6);
 
             container.innerHTML = `
                 <style>
@@ -252,11 +236,11 @@ export default {
                         display: flex;
                         align-items: center;
                         justify-content: center;
-                        font-size: ${Math.max(cellSize * 0.6, 14)}px;
-                        transition: background 0.1s;
+                        font-size: ${Math.max(cellSize * 0.7, 8)}px;
+                        box-sizing: border-box;
                     }
-                    .wall { background: linear-gradient(135deg, #5D4037, #795548); border: 1px solid #4E342E; }
-                    .path { background: linear-gradient(135deg, #C8E6C9, #A5D6A7); border: 1px solid #81C784; }
+                    .wall { background: #5D4037; }
+                    .path { background: #C8E6C9; }
                     @keyframes bounce { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
                     @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.1); opacity: 0.8; } }
                     .player-anim { animation: bounce 0.4s ease-in-out infinite; }
@@ -297,9 +281,9 @@ export default {
                     </div>
 
                     <div class="flex-1 flex flex-col items-center justify-center p-2 overflow-auto">
-                        <div id="maze-area" class="bg-white rounded-2xl p-1 shadow-lg">
+                        <div id="maze-area" class="bg-white rounded-lg shadow-lg" style="line-height: 0;">
                             ${maze.map((row, y) => `
-                                <div class="flex">
+                                <div style="display: flex;">
                                     ${row.map((cell, x) => {
                                         const isPlayer = playerPos.x === x && playerPos.y === y;
                                         const isGoal = goalPos.x === x && goalPos.y === y;
@@ -347,7 +331,7 @@ export default {
                             <p class="text-lg font-bold text-gray-700 mb-1">${theme.name}が ${theme.goalName}を みつけたよ！</p>
                             <p class="text-gray-500 font-bold mb-4">${moveCount}かい うごいたね</p>
                             <div class="flex flex-col gap-2">
-                                ${currentLevel < levels.length - 1 ? `
+                                ${currentLevel < levelConfigs.length - 1 ? `
                                     <button id="btn-next-level" class="bg-gradient-to-r from-green-400 to-emerald-400 text-white font-bold text-lg py-3 px-6 rounded-full shadow-lg active:scale-95">
                                         つぎの めいろへ →
                                     </button>
@@ -378,8 +362,8 @@ export default {
                     </div>
                     <div class="flex-1 overflow-y-auto p-3">
                         <div class="grid grid-cols-2 gap-3">
-                            ${levels.map((level, index) => {
-                                const theme = themes[level.theme];
+                            ${levelConfigs.map((config, index) => {
+                                const theme = themes[config.theme];
                                 const isCompleted = completedLevels.includes(index);
                                 const difficulty = index < 3 ? 'かんたん' : index < 6 ? 'ふつう' : index < 9 ? 'むずかしい' : 'ちょうむずかしい';
                                 const diffColor = index < 3 ? 'green' : index < 6 ? 'yellow' : index < 9 ? 'orange' : 'red';
@@ -388,7 +372,7 @@ export default {
                                         <div class="text-2xl mb-1">${theme.player}→${theme.goal}</div>
                                         <p class="font-bold text-gray-700">レベル ${index + 1}</p>
                                         <p class="text-xs text-${diffColor}-500 font-bold">${difficulty}</p>
-                                        <p class="text-xs text-gray-400">${level.maze.length}×${level.maze[0].length}</p>
+                                        <p class="text-xs text-gray-400">${config.width}×${config.height}</p>
                                         ${isCompleted ? '<span class="text-green-500 font-bold text-xs">✓ クリア</span>' : ''}
                                     </button>
                                 `;
