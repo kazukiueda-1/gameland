@@ -650,7 +650,9 @@ export default {
                     /* お祝い演出 */
                     .flag-celebration {
                         position: fixed;
-                        inset: 0;
+                        left: 0;
+                        right: 0;
+                        bottom: 180px;
                         display: flex;
                         align-items: center;
                         justify-content: center;
@@ -660,35 +662,37 @@ export default {
 
                     .flag-celebration-content {
                         background: white;
-                        border-radius: 30px;
-                        padding: 25px 45px;
+                        border-radius: 25px;
+                        padding: 15px 35px;
                         text-align: center;
-                        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                        box-shadow: 0 10px 40px rgba(0,0,0,0.25);
                         animation: flag-celebrate 0.6s ease-out;
                     }
 
                     .flag-celebration-emoji {
-                        font-size: 70px;
-                        margin-bottom: 5px;
+                        font-size: 50px;
+                        margin-bottom: 3px;
                     }
 
                     .flag-celebration-text {
-                        font-size: 30px;
+                        font-size: 26px;
                         font-weight: 900;
                         color: #10b981;
                         text-shadow: 2px 2px 0 #d1fae5;
                     }
 
                     .flag-celebration-sub {
-                        font-size: 18px;
+                        font-size: 14px;
                         color: #6b7280;
-                        margin-top: 5px;
+                        margin-top: 3px;
                     }
 
                     /* 残念演出 */
                     .flag-wrong {
                         position: fixed;
-                        inset: 0;
+                        left: 0;
+                        right: 0;
+                        bottom: 180px;
                         display: flex;
                         align-items: center;
                         justify-content: center;
@@ -698,47 +702,47 @@ export default {
 
                     .flag-wrong-content {
                         background: linear-gradient(135deg, #fff5f5, #fff);
-                        border-radius: 30px;
-                        padding: 25px 35px;
+                        border-radius: 25px;
+                        padding: 15px 25px;
                         text-align: center;
-                        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-                        border: 4px solid #fca5a5;
+                        box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+                        border: 3px solid #fca5a5;
                         animation: flag-wrong-pop 0.5s ease-out;
                     }
 
                     .flag-wrong-emoji {
-                        font-size: 60px;
-                        margin-bottom: 8px;
+                        font-size: 45px;
+                        margin-bottom: 5px;
                         animation: flag-wrong-shake 0.6s ease-out;
                     }
 
                     .flag-wrong-text {
-                        font-size: 22px;
+                        font-size: 20px;
                         font-weight: 900;
                         color: #f87171;
-                        margin-bottom: 8px;
+                        margin-bottom: 5px;
                     }
 
                     .flag-wrong-answer {
-                        font-size: 18px;
+                        font-size: 16px;
                         font-weight: bold;
                         color: #374151;
                         background: linear-gradient(135deg, #fef3c7, #fde68a);
-                        padding: 10px 20px;
-                        border-radius: 20px;
+                        padding: 8px 16px;
+                        border-radius: 15px;
                         display: inline-block;
                     }
 
                     .flag-wrong-answer-name {
-                        font-size: 24px;
+                        font-size: 20px;
                         color: #7c3aed;
                         font-weight: 900;
                     }
 
                     .flag-wrong-cheer {
-                        font-size: 14px;
+                        font-size: 12px;
                         color: #9ca3af;
-                        margin-top: 10px;
+                        margin-top: 6px;
                     }
 
                     /* 結果画面 */
