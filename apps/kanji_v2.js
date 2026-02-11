@@ -92,99 +92,112 @@ export default {
             </div>
         `;
 
-        // よみかたクイズの選択肢生成 (送り仮名パターンを揃える)
+        // よみかたクイズの選択肢生成 (送り仮名を正解と同じに揃えて表示)
         const generateReadingChoices = (q) => {
             const hasOku = !!q.o;
-            const correctFull = fullR(q);
-            const usedFullReadings = new Set([correctFull]);
+            const usedReadings = new Set([q.r]);
             const distractors = [];
 
             if (hasOku) {
-                // 同じ送り仮名を優先
-                let cands = shuffle(kanjiData.filter(k => k.o === q.o && fullR(k) !== correctFull));
+                // 送り仮名あり: 全選択肢の送り仮名を正解と同じに揃える
+                // 優先1: 同じ送り仮名を持つ漢字
+                let cands = shuffle(kanjiData.filter(k => k.o === q.o && k.r !== q.r));
                 for (const c of cands) {
-                    if (!usedFullReadings.has(fullR(c))) {
-                        distractors.push(c);
-                        usedFullReadings.add(fullR(c));
+                    if (!usedReadings.has(c.r)) {
+                        distractors.push({...c});
+                        usedReadings.add(c.r);
                         if (distractors.length >= 3) break;
                     }
                 }
-                // 送り仮名ありのものを追加
+                // 優先2: 他の漢字 (送り仮名を正解に合わせて上書き)
                 if (distractors.length < 3) {
-                    cands = shuffle(kanjiData.filter(k => k.o && k.o !== q.o && !usedFullReadings.has(fullR(k))));
+                    cands = shuffle(kanjiData.filter(k => k.k !== q.k && !usedReadings.has(k.r)));
                     for (const c of cands) {
-                        if (!usedFullReadings.has(fullR(c))) {
-                            distractors.push(c);
-                            usedFullReadings.add(fullR(c));
+                        if (!usedReadings.has(c.r)) {
+                            distractors.push({...c, o: q.o});
+                            usedReadings.add(c.r);
                             if (distractors.length >= 3) break;
                         }
                     }
                 }
             } else {
-                // 送り仮名なしを優先
-                const cands = shuffle(kanjiData.filter(k => !k.o && fullR(k) !== correctFull));
+                // 送り仮名なし: 送り仮名なしの漢字を優先
+                let cands = shuffle(kanjiData.filter(k => !k.o && k.r !== q.r));
                 for (const c of cands) {
-                    if (!usedFullReadings.has(fullR(c))) {
-                        distractors.push(c);
-                        usedFullReadings.add(fullR(c));
+                    if (!usedReadings.has(c.r)) {
+                        distractors.push({...c});
+                        usedReadings.add(c.r);
                         if (distractors.length >= 3) break;
+                    }
+                }
+                // 足りなければ送り仮名ありから (送り仮名を除去して表示)
+                if (distractors.length < 3) {
+                    cands = shuffle(kanjiData.filter(k => k.o && !usedReadings.has(k.r)));
+                    for (const c of cands) {
+                        if (!usedReadings.has(c.r)) {
+                            distractors.push({...c, o: undefined});
+                            usedReadings.add(c.r);
+                            if (distractors.length >= 3) break;
+                        }
                     }
                 }
             }
 
-            // 足りなければ残り全体から補充
-            if (distractors.length < 3) {
-                const cands = shuffle(kanjiData.filter(k => !usedFullReadings.has(fullR(k))));
-                for (const c of cands) {
-                    if (!usedFullReadings.has(fullR(c))) {
-                        distractors.push(c);
-                        usedFullReadings.add(fullR(c));
-                        if (distractors.length >= 3) break;
-                    }
-                }
-            }
-
-            return shuffle([q, ...distractors.slice(0, 3)]);
+            return shuffle([{...q}, ...distractors.slice(0, 3)]);
         };
 
-        // かんじクイズの選択肢生成 (送り仮名の有無を揃える)
+        // かんじクイズの選択肢生成 (送り仮名を正解と同じに揃えて表示)
         const generateKanjiChoices = (q) => {
             const hasOku = !!q.o;
             const usedKanji = new Set([q.k]);
             const distractors = [];
 
             if (hasOku) {
-                const cands = shuffle(kanjiData.filter(k => k.o && k.k !== q.k));
+                // 送り仮名あり: 全選択肢の送り仮名を正解と同じに揃える
+                // 優先1: 同じ送り仮名を持つ漢字
+                let cands = shuffle(kanjiData.filter(k => k.o === q.o && k.k !== q.k));
                 for (const c of cands) {
                     if (!usedKanji.has(c.k)) {
-                        distractors.push(c);
+                        distractors.push({...c});
                         usedKanji.add(c.k);
                         if (distractors.length >= 3) break;
+                    }
+                }
+                // 優先2: 他の漢字 (送り仮名を正解に合わせて上書き)
+                if (distractors.length < 3) {
+                    cands = shuffle(kanjiData.filter(k => !usedKanji.has(k.k)));
+                    for (const c of cands) {
+                        if (!usedKanji.has(c.k)) {
+                            distractors.push({...c, o: q.o});
+                            usedKanji.add(c.k);
+                            if (distractors.length >= 3) break;
+                        }
                     }
                 }
             } else {
-                const cands = shuffle(kanjiData.filter(k => !k.o && k.k !== q.k));
+                // 送り仮名なし: 送り仮名なしの漢字を優先
+                let cands = shuffle(kanjiData.filter(k => !k.o && k.k !== q.k));
                 for (const c of cands) {
                     if (!usedKanji.has(c.k)) {
-                        distractors.push(c);
+                        distractors.push({...c});
                         usedKanji.add(c.k);
                         if (distractors.length >= 3) break;
                     }
                 }
-            }
-
-            if (distractors.length < 3) {
-                const cands = shuffle(kanjiData.filter(k => !usedKanji.has(k.k)));
-                for (const c of cands) {
-                    if (!usedKanji.has(c.k)) {
-                        distractors.push(c);
-                        usedKanji.add(c.k);
-                        if (distractors.length >= 3) break;
+                // 足りなければ送り仮名ありから (送り仮名を除去して表示)
+                if (distractors.length < 3) {
+                    cands = shuffle(kanjiData.filter(k => k.o && !usedKanji.has(k.k)));
+                    for (const c of cands) {
+                        if (!usedKanji.has(c.k)) {
+                            distractors.push({...c, o: undefined});
+                            usedKanji.add(c.k);
+                            if (distractors.length >= 3) break;
+                        }
                     }
                 }
             }
 
-            return shuffle([q, ...distractors.slice(0, 3)]);
+            return shuffle([{...q}, ...distractors.slice(0, 3)]);
         };
 
         // ---------------------------------------------------------
@@ -472,8 +485,10 @@ export default {
                 hasMistaken = true;
                 fbMark.textContent = '×';
                 fbMark.className = 'text-9xl font-black mb-4 text-blue-500';
-                const okuPart = selectedOku
-                    ? `<span class="text-2xl font-bold text-orange-500 bg-orange-100 rounded px-1">${selectedOku}</span>`
+                const selItem = kanjiData.find(k => k.k === selectedKanji);
+                const realOku = selItem?.o || '';
+                const okuPart = realOku
+                    ? `<span class="text-2xl font-bold text-orange-500 bg-orange-100 rounded px-1">${realOku}</span>`
                     : '';
                 fbText.innerHTML = `それは <span class="text-4xl text-blue-500 mx-1">${selectedKanji}</span>${okuPart} の<br>よみかた だよ`;
                 system.playSound('wrong');
