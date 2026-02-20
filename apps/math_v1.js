@@ -1,6 +1,6 @@
 /**
  * さんすうマスター
- * 小学1年生レベルの足し算・引き算・かけ算
+ * 小学1年生レベルの足し算・引き算・かけ算・わり算
  * 数字ボタンで回答入力
  */
 
@@ -9,7 +9,7 @@ export default {
         // ========================================
         // 状態管理
         // ========================================
-        let mode = null; // 'add', 'sub', 'mul'
+        let mode = null; // 'add', 'sub', 'mul', 'div'
         let currentQuestion = null;
         let userAnswer = '';
         let questionIndex = 0;
@@ -44,6 +44,13 @@ export default {
                     answer = a * b;
                     symbol = '×';
                     break;
+
+                case 'div': // わり算: 割り切れる問題のみ
+                    b = Math.floor(Math.random() * 8) + 2; // 割る数: 2〜9
+                    answer = Math.floor(Math.random() * 9) + 1; // 答え: 1〜9
+                    a = b * answer; // 割られる数 = 割る数 × 答え
+                    symbol = '÷';
+                    break;
             }
 
             return { a, b, answer, symbol };
@@ -77,6 +84,9 @@ export default {
                         <button id="btn-mul" class="bg-gradient-to-r from-purple-400 to-pink-400 hover:from-purple-500 hover:to-pink-500 text-white font-black text-xl md:text-2xl py-4 px-6 rounded-2xl shadow-lg active:scale-95 transition flex items-center justify-center gap-3">
                             <span class="text-2xl">✖️</span> かけざん
                         </button>
+                        <button id="btn-div" class="bg-gradient-to-r from-cyan-400 to-blue-400 hover:from-cyan-500 hover:to-blue-500 text-white font-black text-xl md:text-2xl py-4 px-6 rounded-2xl shadow-lg active:scale-95 transition flex items-center justify-center gap-3">
+                            <span class="text-2xl">➗</span> わりざん
+                        </button>
                     </div>
                 </div>
             `;
@@ -85,6 +95,7 @@ export default {
             container.querySelector('#btn-add').onclick = () => startQuiz('add');
             container.querySelector('#btn-sub').onclick = () => startQuiz('sub');
             container.querySelector('#btn-mul').onclick = () => startQuiz('mul');
+            container.querySelector('#btn-div').onclick = () => startQuiz('div');
         };
 
         // ========================================
@@ -115,10 +126,11 @@ export default {
             const modeColors = {
                 add: { bg: 'from-green-50 to-emerald-50', accent: 'green', border: 'green-300' },
                 sub: { bg: 'from-orange-50 to-red-50', accent: 'orange', border: 'orange-300' },
-                mul: { bg: 'from-purple-50 to-pink-50', accent: 'purple', border: 'purple-300' }
+                mul: { bg: 'from-purple-50 to-pink-50', accent: 'purple', border: 'purple-300' },
+                div: { bg: 'from-cyan-50 to-blue-50', accent: 'cyan', border: 'cyan-300' }
             };
             const colors = modeColors[mode];
-            const modeNames = { add: 'たしざん', sub: 'ひきざん', mul: 'かけざん' };
+            const modeNames = { add: 'たしざん', sub: 'ひきざん', mul: 'かけざん', div: 'わりざん' };
 
             container.innerHTML = `
                 <div class="h-full flex flex-col p-2 bg-gradient-to-b ${colors.bg}">
@@ -245,7 +257,7 @@ export default {
 
             // ログ記録
             if (system.logQuizResult) {
-                const modeNames = { add: 'たしざん', sub: 'ひきざん', mul: 'かけざん' };
+                const modeNames = { add: 'たしざん', sub: 'ひきざん', mul: 'かけざん', div: 'わりざん' };
                 system.logQuizResult('さんすうマスター',
                     `${currentQuestion.a}${currentQuestion.symbol}${currentQuestion.b}`,
                     isCorrect, {
@@ -290,7 +302,7 @@ export default {
         const renderResult = () => {
             const maxScore = totalQuestions * 10;
             const percentage = Math.round((score / maxScore) * 100);
-            const modeNames = { add: 'たしざん', sub: 'ひきざん', mul: 'かけざん' };
+            const modeNames = { add: 'たしざん', sub: 'ひきざん', mul: 'かけざん', div: 'わりざん' };
 
             let emoji, message;
             if (percentage === 100) {

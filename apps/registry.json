@@ -47,7 +47,7 @@
     {
         "id": "math_master_01",
         "title": "さんすうマスター",
-        "desc": "たしざん ひきざん かけざん",
+        "desc": "たしざん ひきざん かけざん わりざん",
         "icon": "🔢",
         "file": "math_v1.js",
         "color": "blue-400",
