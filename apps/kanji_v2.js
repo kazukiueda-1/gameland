@@ -38,13 +38,54 @@ export default {
         ];
 
         // ---------------------------------------------------------
+        // 1b. 二字熟語データ (1年生の漢字のみで構成 / 全80語)
+        //     j: 熟語, r: 読み
+        // ---------------------------------------------------------
+        const jukugoData = [
+            // レベル1: しぜん
+            {j:"天気", r:"てんき"}, {j:"空気", r:"くうき"}, {j:"青空", r:"あおぞら"}, {j:"大雨", r:"おおあめ"},
+            {j:"小雨", r:"こさめ"}, {j:"夕日", r:"ゆうひ"}, {j:"夕立", r:"ゆうだち"}, {j:"火山", r:"かざん"},
+            {j:"草花", r:"くさばな"}, {j:"小川", r:"おがわ"},
+            // レベル2: しぜん・ぎょうじ
+            {j:"小石", r:"こいし"}, {j:"大木", r:"たいぼく"}, {j:"森林", r:"しんりん"}, {j:"竹林", r:"ちくりん"},
+            {j:"水田", r:"すいでん"}, {j:"青虫", r:"あおむし"}, {j:"火花", r:"ひばな"}, {j:"花火", r:"はなび"},
+            {j:"花見", r:"はなみ"}, {j:"月見", r:"つきみ"},
+            // レベル3: ぎょうじ・がっこう
+            {j:"七夕", r:"たなばた"}, {j:"正月", r:"しょうがつ"}, {j:"学校", r:"がっこう"}, {j:"大学", r:"だいがく"},
+            {j:"中学", r:"ちゅうがく"}, {j:"入学", r:"にゅうがく"}, {j:"学年", r:"がくねん"}, {j:"学生", r:"がくせい"},
+            {j:"先生", r:"せんせい"}, {j:"休校", r:"きゅうこう"},
+            // レベル4: がっこう・ひと
+            {j:"下校", r:"げこう"}, {j:"見学", r:"けんがく"}, {j:"大人", r:"おとな"}, {j:"一人", r:"ひとり"},
+            {j:"二人", r:"ふたり"}, {j:"人気", r:"にんき"}, {j:"名人", r:"めいじん"}, {j:"男子", r:"だんし"},
+            {j:"女子", r:"じょし"}, {j:"男女", r:"だんじょ"},
+            // レベル5: ひと・からだ
+            {j:"女王", r:"じょおう"}, {j:"王子", r:"おうじ"}, {j:"子犬", r:"こいぬ"}, {j:"大男", r:"おおおとこ"},
+            {j:"村人", r:"むらびと"}, {j:"手足", r:"てあし"}, {j:"右手", r:"みぎて"}, {j:"左手", r:"ひだりて"},
+            {j:"右足", r:"みぎあし"}, {j:"左足", r:"ひだりあし"},
+            // レベル6: からだ・ほうこう・ばしょ
+            {j:"目玉", r:"めだま"}, {j:"足音", r:"あしおと"}, {j:"上下", r:"じょうげ"}, {j:"左右", r:"さゆう"},
+            {j:"上手", r:"じょうず"}, {j:"下手", r:"へた"}, {j:"年上", r:"としうえ"}, {j:"年下", r:"としした"},
+            {j:"入口", r:"いりぐち"}, {j:"出口", r:"でぐち"},
+            // レベル7: ばしょ・じかん・たべもの
+            {j:"水中", r:"すいちゅう"}, {j:"空中", r:"くうちゅう"}, {j:"休日", r:"きゅうじつ"}, {j:"土日", r:"どにち"},
+            {j:"先月", r:"せんげつ"}, {j:"玉子", r:"たまご"}, {j:"白玉", r:"しらたま"}, {j:"本気", r:"ほんき"},
+            {j:"文字", r:"もじ"}, {j:"名字", r:"みょうじ"},
+            // レベル8: そのほか
+            {j:"早口", r:"はやくち"}, {j:"空手", r:"からて"}, {j:"十字", r:"じゅうじ"}, {j:"水玉", r:"みずたま"},
+            {j:"手本", r:"てほん"}, {j:"大小", r:"だいしょう"}, {j:"水車", r:"すいしゃ"}, {j:"雨天", r:"うてん"},
+            {j:"百円", r:"ひゃくえん"}, {j:"一口", r:"ひとくち"}
+        ];
+
+        // ---------------------------------------------------------
         // 2. 状態管理
         // ---------------------------------------------------------
         const QUESTIONS_PER_LEVEL = 10;
         const NUM_LEVELS = Math.ceil(kanjiData.length / QUESTIONS_PER_LEVEL);
+        const NUM_JUKUGO_LEVELS = Math.ceil(jukugoData.length / QUESTIONS_PER_LEVEL);
 
         let currentLevel = 0;
-        let quizMode = 'reading'; // 'reading' or 'kanji'
+        let category = 'kanji'; // 'kanji' or 'jukugo'
+        let quizMode = 'reading'; // 'reading', 'kanji', or 'jukugo'
         let quizQuestions = [];
         let quizIndex = 0;
         let score = 0;
@@ -200,16 +241,35 @@ export default {
             return shuffle([{...q}, ...distractors.slice(0, 3)]);
         };
 
+        // じゅくごクイズの選択肢生成
+        const generateJukugoChoices = (q) => {
+            const usedReadings = new Set([q.r]);
+            const distractors = [];
+            const cands = shuffle(jukugoData.filter(j => j.r !== q.r));
+            for (const c of cands) {
+                if (!usedReadings.has(c.r)) {
+                    distractors.push(c);
+                    usedReadings.add(c.r);
+                    if (distractors.length >= 3) break;
+                }
+            }
+            return shuffle([q, ...distractors.slice(0, 3)]);
+        };
+
         // ---------------------------------------------------------
         // 4. 画面レンダリング関数群
         // ---------------------------------------------------------
 
         // ★ レベル選択画面
         const renderLevelSelect = () => {
+            const isJukugo = category === 'jukugo';
+            const numLevels = isJukugo ? NUM_JUKUGO_LEVELS : NUM_LEVELS;
+            const btnColor = isJukugo ? 'bg-pink-400 hover:bg-pink-500' : 'bg-orange-400 hover:bg-orange-500';
+
             let buttonsHtml = '';
-            for (let i = 0; i < NUM_LEVELS; i++) {
+            for (let i = 0; i < numLevels; i++) {
                 buttonsHtml += `
-                    <button class="level-btn bg-orange-400 hover:bg-orange-500 text-white font-bold py-2 md:py-3 rounded-xl shadow-md active:scale-95 transition text-base md:text-lg" data-level="${i}">
+                    <button class="level-btn ${btnColor} text-white font-bold py-2 md:py-3 rounded-xl shadow-md active:scale-95 transition text-base md:text-lg" data-level="${i}">
                         レベル ${i + 1}
                     </button>
                 `;
@@ -220,6 +280,16 @@ export default {
                     <button id="btn-quit-app" class="absolute top-2 left-2 bg-gray-100 text-gray-500 font-bold py-1 px-2 rounded-full text-xs">✕ やめる</button>
 
                     <h2 class="text-xl md:text-2xl font-black text-blue-500 mb-1 text-center">かんじマスター</h2>
+
+                    <div class="flex gap-2 mb-2">
+                        <button class="cat-tab px-4 py-1.5 rounded-full font-bold text-sm transition ${category === 'kanji' ? 'bg-orange-400 text-white shadow' : 'bg-gray-200 text-gray-400'}" data-cat="kanji">
+                            かんじ
+                        </button>
+                        <button class="cat-tab px-4 py-1.5 rounded-full font-bold text-sm transition ${category === 'jukugo' ? 'bg-pink-400 text-white shadow' : 'bg-gray-200 text-gray-400'}" data-cat="jukugo">
+                            じゅくご
+                        </button>
+                    </div>
+
                     <p class="text-gray-500 font-bold mb-3 text-xs">どの レベル に チャレンジ する？</p>
 
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-2 w-full max-w-2xl">
@@ -229,6 +299,12 @@ export default {
             `;
 
             container.querySelector('#btn-quit-app').onclick = () => system.goHome();
+            container.querySelectorAll('.cat-tab').forEach(btn => {
+                btn.onclick = () => {
+                    category = btn.dataset.cat;
+                    renderLevelSelect();
+                };
+            });
             container.querySelectorAll('.level-btn').forEach(btn => {
                 btn.onclick = () => {
                     currentLevel = parseInt(btn.dataset.level);
@@ -239,21 +315,35 @@ export default {
 
         // ★ モード選択画面
         const renderModeSelect = () => {
+            const isJukugo = category === 'jukugo';
+            const titleColor = isJukugo ? 'text-pink-400' : 'text-orange-400';
+
+            const buttonsHtml = isJukugo ? `
+                <button id="btn-study" class="bg-green-400 hover:bg-green-500 text-white text-lg md:text-xl font-bold py-3 md:py-4 px-5 rounded-xl shadow-lg active:scale-95 transition">
+                    📖 べんきょう
+                </button>
+                <button id="btn-jukugo-quiz" class="bg-pink-400 hover:bg-pink-500 text-white text-lg md:text-xl font-bold py-3 md:py-4 px-5 rounded-xl shadow-lg active:scale-95 transition">
+                    📚 じゅくごクイズ
+                </button>
+            ` : `
+                <button id="btn-study" class="bg-green-400 hover:bg-green-500 text-white text-lg md:text-xl font-bold py-3 md:py-4 px-5 rounded-xl shadow-lg active:scale-95 transition">
+                    📖 べんきょう
+                </button>
+                <button id="btn-reading-quiz" class="bg-blue-400 hover:bg-blue-500 text-white text-lg md:text-xl font-bold py-3 md:py-4 px-5 rounded-xl shadow-lg active:scale-95 transition">
+                    🔥 よみかたクイズ
+                </button>
+                <button id="btn-kanji-quiz" class="bg-purple-400 hover:bg-purple-500 text-white text-lg md:text-xl font-bold py-3 md:py-4 px-5 rounded-xl shadow-lg active:scale-95 transition">
+                    ✏️ かんじクイズ
+                </button>
+            `;
+
             container.innerHTML = `
                 <div class="h-full flex flex-col items-center justify-center p-3 animate-pop">
-                    <h2 class="text-xl md:text-2xl font-black text-orange-400 mb-1">レベル ${currentLevel + 1}</h2>
+                    <h2 class="text-xl md:text-2xl font-black ${titleColor} mb-1">レベル ${currentLevel + 1}</h2>
                     <p class="text-gray-500 font-bold mb-3 text-xs">なに を する？</p>
 
                     <div class="flex flex-col gap-3 w-full max-w-lg justify-center">
-                        <button id="btn-study" class="bg-green-400 hover:bg-green-500 text-white text-lg md:text-xl font-bold py-3 md:py-4 px-5 rounded-xl shadow-lg active:scale-95 transition">
-                            📖 べんきょう
-                        </button>
-                        <button id="btn-reading-quiz" class="bg-blue-400 hover:bg-blue-500 text-white text-lg md:text-xl font-bold py-3 md:py-4 px-5 rounded-xl shadow-lg active:scale-95 transition">
-                            🔥 よみかたクイズ
-                        </button>
-                        <button id="btn-kanji-quiz" class="bg-purple-400 hover:bg-purple-500 text-white text-lg md:text-xl font-bold py-3 md:py-4 px-5 rounded-xl shadow-lg active:scale-95 transition">
-                            ✏️ かんじクイズ
-                        </button>
+                        ${buttonsHtml}
                     </div>
 
                     <button id="btn-back" class="mt-4 bg-gray-200 text-gray-600 font-bold py-1.5 px-4 rounded-full text-xs">
@@ -262,9 +352,14 @@ export default {
                 </div>
             `;
 
-            container.querySelector('#btn-study').onclick = renderStudyMode;
-            container.querySelector('#btn-reading-quiz').onclick = () => { quizMode = 'reading'; startQuiz(); };
-            container.querySelector('#btn-kanji-quiz').onclick = () => { quizMode = 'kanji'; startQuiz(); };
+            if (isJukugo) {
+                container.querySelector('#btn-study').onclick = renderJukugoStudy;
+                container.querySelector('#btn-jukugo-quiz').onclick = () => { quizMode = 'jukugo'; startJukugoQuiz(); };
+            } else {
+                container.querySelector('#btn-study').onclick = renderStudyMode;
+                container.querySelector('#btn-reading-quiz').onclick = () => { quizMode = 'reading'; startQuiz(); };
+                container.querySelector('#btn-kanji-quiz').onclick = () => { quizMode = 'kanji'; startQuiz(); };
+            }
             container.querySelector('#btn-back').onclick = renderLevelSelect;
         };
 
@@ -313,6 +408,40 @@ export default {
             container.querySelector('#btn-back-mode').onclick = renderModeSelect;
         };
 
+        // ★ じゅくご べんきょうモード
+        const renderJukugoStudy = () => {
+            const start = currentLevel * QUESTIONS_PER_LEVEL;
+            const end = Math.min(start + QUESTIONS_PER_LEVEL, jukugoData.length);
+            const targetJukugo = jukugoData.slice(start, end);
+
+            const cardsHtml = targetJukugo.map(item => `
+                <div class="bg-white border-4 border-pink-200 rounded-3xl p-3 flex flex-col items-center justify-center aspect-square shadow-sm">
+                    <div class="text-5xl md:text-6xl font-black text-gray-800 mb-2 tracking-wider">${item.j}</div>
+                    <div class="inline-block bg-pink-100 text-pink-700 border border-pink-200 px-3 py-1 rounded-lg font-bold text-lg md:text-xl">
+                        ${item.r}
+                    </div>
+                </div>
+            `).join('');
+
+            container.innerHTML = `
+                <div class="h-full flex flex-col p-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <button id="btn-back-mode" class="bg-gray-200 text-gray-600 font-bold py-2 px-4 rounded-full text-sm">◀ もどる</button>
+                        <h2 class="text-xl font-bold text-green-500">レベル ${currentLevel + 1} の じゅくご</h2>
+                        <div class="w-16"></div>
+                    </div>
+
+                    <div class="flex-1 overflow-y-auto">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 pb-4">
+                            ${cardsHtml}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            container.querySelector('#btn-back-mode').onclick = renderModeSelect;
+        };
+
         // ★ クイズ開始処理
         const startQuiz = () => {
             const start = currentLevel * QUESTIONS_PER_LEVEL;
@@ -325,10 +454,23 @@ export default {
             renderQuizQuestion();
         };
 
+        // ★ じゅくごクイズ開始処理
+        const startJukugoQuiz = () => {
+            const start = currentLevel * QUESTIONS_PER_LEVEL;
+            const end = Math.min(start + QUESTIONS_PER_LEVEL, jukugoData.length);
+            const targetJukugo = jukugoData.slice(start, end);
+
+            quizQuestions = shuffle([...targetJukugo]);
+            quizIndex = 0;
+            score = 0;
+            renderQuizQuestion();
+        };
+
         // ★ クイズ出題ディスパッチ
         const renderQuizQuestion = () => {
             if (quizMode === 'reading') renderReadingQuiz();
-            else renderKanjiQuiz();
+            else if (quizMode === 'kanji') renderKanjiQuiz();
+            else renderJukugoQuiz();
         };
 
         // ★ よみかたクイズ (漢字を見て読みを答える)
@@ -452,6 +594,57 @@ export default {
             });
         };
 
+        // ★ じゅくごクイズ (熟語を見て読みを答える)
+        const renderJukugoQuiz = () => {
+            if (quizIndex >= quizQuestions.length) { renderResult(); return; }
+
+            hasMistaken = false;
+            const q = quizQuestions[quizIndex];
+            const choices = generateJukugoChoices(q);
+
+            container.innerHTML = `
+                <div class="h-full flex flex-col p-3 relative">
+                    <!-- ヘッダー -->
+                    <div class="flex justify-between items-center mb-2 md:mb-3">
+                        <button id="btn-quit-quiz" class="bg-gray-100 text-gray-400 font-bold py-1.5 px-3 rounded-full text-sm">やめる</button>
+                        <div class="bg-pink-100 text-pink-500 px-3 py-1 rounded-full font-bold text-sm">
+                            あと ${quizQuestions.length - quizIndex} もん
+                        </div>
+                        <div class="font-bold text-orange-400 text-sm">てんすう: ${score}</div>
+                    </div>
+
+                    <!-- 問題エリア -->
+                    <div class="flex-1 flex flex-col items-center justify-center mb-2 md:mb-3 relative">
+                        <div class="bg-pink-50 border-4 border-pink-200 rounded-2xl p-4 md:p-6 w-full max-w-sm text-center shadow-sm relative z-10">
+                            <p class="font-bold text-xs md:text-sm mb-1 text-gray-500">この じゅくご の よみかた は？</p>
+                            <div class="text-7xl md:text-8xl font-black text-gray-800 tracking-wider">${q.j}</div>
+                        </div>
+
+                        <!-- オーバーレイ -->
+                        <div id="feedback-overlay" class="absolute inset-0 bg-white/95 rounded-2xl z-50 hidden flex-col items-center justify-center animate-pop">
+                            <div id="fb-mark" class="text-8xl font-black mb-2"></div>
+                            <div id="fb-text" class="text-xl font-bold text-gray-700 text-center px-4"></div>
+                        </div>
+                    </div>
+
+                    <!-- 選択肢エリア -->
+                    <div class="grid grid-cols-2 gap-2 md:gap-3 h-[35%]">
+                        ${choices.map(c => `
+                            <button class="choice-btn bg-white border-b-4 border-pink-200 hover:bg-pink-50 rounded-xl md:rounded-2xl shadow-sm active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center"
+                                data-reading="${c.r}">
+                                <span class="text-xl md:text-2xl font-bold text-gray-600">${c.r}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+
+            container.querySelector('#btn-quit-quiz').onclick = renderModeSelect;
+            container.querySelectorAll('.choice-btn').forEach(btn => {
+                btn.onclick = () => checkJukugoAnswer(btn.dataset.reading, q.r);
+            });
+        };
+
         // ---------------------------------------------------------
         // 5. 答え合わせロジック
         // ---------------------------------------------------------
@@ -543,12 +736,50 @@ export default {
             }
         };
 
+        // じゅくごクイズの答え合わせ
+        const checkJukugoAnswer = (selected, correct) => {
+            const overlay = document.getElementById('feedback-overlay');
+            const fbMark = document.getElementById('fb-mark');
+            const fbText = document.getElementById('fb-text');
+
+            if (!overlay || overlay.style.display === 'flex') return;
+            overlay.style.display = 'flex';
+
+            const q = quizQuestions[quizIndex];
+            const isCorrect = selected === correct;
+
+            if (system.logQuizResult) {
+                system.logQuizResult('かんじマスター', q.j, isCorrect, {
+                    reading: q.r, selected: selected, level: currentLevel + 1, mode: 'jukugo'
+                });
+            }
+
+            if (isCorrect) {
+                fbMark.textContent = '◎';
+                fbMark.className = 'text-9xl font-black mb-4 text-red-500';
+                fbText.innerHTML = '';
+                system.playSound('correct');
+                if (!hasMistaken) score += 10;
+                setTimeout(() => { quizIndex++; renderQuizQuestion(); }, 1200);
+            } else {
+                hasMistaken = true;
+                fbMark.textContent = '×';
+                fbMark.className = 'text-9xl font-black mb-4 text-blue-500';
+                fbText.innerHTML = `<span class="text-4xl font-black text-pink-500">${q.j}</span> は<br><span class="inline-block bg-pink-100 text-pink-700 px-3 py-1 rounded-lg font-bold text-2xl mt-1">${q.r}</span> だよ`;
+                system.playSound('wrong');
+                setTimeout(() => { overlay.style.display = 'none'; }, 2500);
+            }
+        };
+
         // ★ 結果画面
         const renderResult = () => {
+            const isJukugo = quizMode === 'jukugo';
             let comment = "";
             let emoji = "";
             if (score === 100) {
-                comment = "パーフェクト！<br>かんじは バッチリだね！";
+                comment = isJukugo
+                    ? "パーフェクト！<br>じゅくごは バッチリだね！"
+                    : "パーフェクト！<br>かんじは バッチリだね！";
                 emoji = "🏆";
             } else if (score >= 80) {
                 comment = "すごい！<br>そのちょうし！";
@@ -579,7 +810,7 @@ export default {
 
             if(score >= 80) system.playSound('correct');
 
-            container.querySelector('#btn-retry').onclick = startQuiz;
+            container.querySelector('#btn-retry').onclick = isJukugo ? startJukugoQuiz : startQuiz;
             container.querySelector('#btn-home').onclick = () => {
                 system.addScore(score);
                 renderLevelSelect();
