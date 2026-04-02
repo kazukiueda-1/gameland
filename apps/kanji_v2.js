@@ -133,13 +133,86 @@ export default {
         ];
 
         // ---------------------------------------------------------
+        // 1c. 小学2年生の漢字 160字
+        // ---------------------------------------------------------
+        const kanjiData2 = [
+            // レベル1: 方角・よく使う言葉
+            {k:"東", r:"ひがし"}, {k:"西", r:"にし"}, {k:"南", r:"みなみ"}, {k:"北", r:"きた"},
+            {k:"今", r:"いま"}, {k:"来", r:"く", o:"る"}, {k:"明", r:"あか", o:"るい"}, {k:"毎", r:"まい"},
+            {k:"何", r:"なに"}, {k:"曜", r:"よう"},
+            // レベル2: 時間・季節
+            {k:"朝", r:"あさ"}, {k:"昼", r:"ひる"}, {k:"夜", r:"よる"}, {k:"春", r:"はる"},
+            {k:"夏", r:"なつ"}, {k:"秋", r:"あき"}, {k:"冬", r:"ふゆ"}, {k:"週", r:"しゅう"},
+            {k:"午", r:"ご"}, {k:"後", r:"あと"},
+            // レベル3: かぞく・ひと
+            {k:"父", r:"ちち"}, {k:"母", r:"はは"}, {k:"兄", r:"あに"}, {k:"姉", r:"あね"},
+            {k:"弟", r:"おとうと"}, {k:"妹", r:"いもうと"}, {k:"友", r:"とも"}, {k:"親", r:"おや"},
+            {k:"家", r:"いえ"}, {k:"話", r:"はな", o:"す"},
+            // レベル4: がっこう・べんきょう
+            {k:"教", r:"おし", o:"える"}, {k:"室", r:"しつ"}, {k:"書", r:"か", o:"く"}, {k:"読", r:"よ", o:"む"},
+            {k:"語", r:"ご"}, {k:"言", r:"い", o:"う"}, {k:"答", r:"こた", o:"える"}, {k:"算", r:"さん"},
+            {k:"数", r:"かず"}, {k:"図", r:"ず"},
+            // レベル5: しぜん
+            {k:"海", r:"うみ"}, {k:"池", r:"いけ"}, {k:"雲", r:"くも"}, {k:"雪", r:"ゆき"},
+            {k:"星", r:"ほし"}, {k:"風", r:"かぜ"}, {k:"岩", r:"いわ"}, {k:"原", r:"はら"},
+            {k:"野", r:"の"}, {k:"里", r:"さと"},
+            // レベル6: どうぶつ・いきもの
+            {k:"馬", r:"うま"}, {k:"牛", r:"うし"}, {k:"鳥", r:"とり"}, {k:"魚", r:"さかな"},
+            {k:"羽", r:"はね"}, {k:"毛", r:"け"}, {k:"鳴", r:"な", o:"く"}, {k:"声", r:"こえ"},
+            {k:"走", r:"はし", o:"る"}, {k:"歩", r:"ある", o:"く"},
+            // レベル7: 食・買い物
+            {k:"肉", r:"にく"}, {k:"米", r:"こめ"}, {k:"麦", r:"むぎ"}, {k:"茶", r:"ちゃ"},
+            {k:"食", r:"た", o:"べる"}, {k:"買", r:"か", o:"う"}, {k:"売", r:"う", o:"る"}, {k:"店", r:"みせ"},
+            {k:"会", r:"かい"}, {k:"合", r:"あ", o:"う"},
+            // レベル8: 様子・形容詞
+            {k:"高", r:"たか", o:"い"}, {k:"広", r:"ひろ", o:"い"}, {k:"強", r:"つよ", o:"い"}, {k:"弱", r:"よわ", o:"い"},
+            {k:"長", r:"なが", o:"い"}, {k:"細", r:"ほそ", o:"い"}, {k:"太", r:"ふと", o:"い"}, {k:"丸", r:"まる", o:"い"},
+            {k:"多", r:"おお", o:"い"}, {k:"少", r:"すく", o:"ない"},
+            // レベル9: 場所・方向
+            {k:"国", r:"くに"}, {k:"地", r:"ち"}, {k:"場", r:"ば"}, {k:"道", r:"みち"},
+            {k:"近", r:"ちか", o:"い"}, {k:"遠", r:"とお", o:"い"}, {k:"社", r:"しゃ"}, {k:"寺", r:"てら"},
+            {k:"園", r:"えん"}, {k:"谷", r:"たに"},
+            // レベル10: 色・形・様子
+            {k:"色", r:"いろ"}, {k:"形", r:"かたち"}, {k:"黄", r:"き"}, {k:"黒", r:"くろ"},
+            {k:"絵", r:"え"}, {k:"画", r:"が"}, {k:"新", r:"あたら", o:"しい"}, {k:"古", r:"ふる", o:"い"},
+            {k:"元", r:"もと"}, {k:"直", r:"なお", o:"す"},
+            // レベル11: 行動1
+            {k:"帰", r:"かえ", o:"る"}, {k:"通", r:"とお", o:"る"}, {k:"止", r:"と", o:"まる"}, {k:"切", r:"き", o:"る"},
+            {k:"引", r:"ひ", o:"く"}, {k:"活", r:"かつ"}, {k:"用", r:"よう"}, {k:"回", r:"まわ", o:"る"},
+            {k:"考", r:"かんが", o:"える"}, {k:"思", r:"おも", o:"う"},
+            // レベル12: 行動2
+            {k:"知", r:"し", o:"る"}, {k:"聞", r:"き", o:"く"}, {k:"記", r:"き"}, {k:"行", r:"い", o:"く"},
+            {k:"公", r:"こう"}, {k:"光", r:"ひかり"}, {k:"交", r:"まじ", o:"わる"}, {k:"計", r:"はか", o:"る"},
+            {k:"作", r:"つく", o:"る"}, {k:"組", r:"く", o:"む"},
+            // レベル13: 乗り物・道具
+            {k:"船", r:"ふね"}, {k:"線", r:"せん"}, {k:"電", r:"でん"}, {k:"汽", r:"きしゃ"},
+            {k:"刀", r:"かたな"}, {k:"弓", r:"ゆみ"}, {k:"矢", r:"や"}, {k:"工", r:"こうさく"},
+            {k:"台", r:"だい"}, {k:"門", r:"もん"},
+            // レベル14: 体・気持ち
+            {k:"体", r:"からだ"}, {k:"頭", r:"あたま"}, {k:"顔", r:"かお"}, {k:"首", r:"くび"},
+            {k:"心", r:"こころ"}, {k:"楽", r:"たの", o:"しい"}, {k:"晴", r:"は", o:"れる"}, {k:"同", r:"おな", o:"じ"},
+            {k:"当", r:"あ", o:"たる"}, {k:"理", r:"り"},
+            // レベル15: 数・量・位置
+            {k:"万", r:"まん"}, {k:"半", r:"はん"}, {k:"番", r:"ばん"}, {k:"分", r:"ふん"},
+            {k:"才", r:"さい"}, {k:"方", r:"かた"}, {k:"点", r:"てん"}, {k:"前", r:"まえ"},
+            {k:"内", r:"うち"}, {k:"外", r:"そと"},
+            // レベル16: そのほか
+            {k:"科", r:"か"}, {k:"歌", r:"うた"}, {k:"角", r:"かど"}, {k:"間", r:"あいだ"},
+            {k:"京", r:"きょう"}, {k:"戸", r:"と"}, {k:"市", r:"し"}, {k:"紙", r:"かみ"},
+            {k:"自", r:"じ"}, {k:"時", r:"とき"},
+        ];
+
+        // ---------------------------------------------------------
         // 2. 状態管理
         // ---------------------------------------------------------
         const QUESTIONS_PER_LEVEL = 10;
-        const NUM_LEVELS = Math.ceil(kanjiData.length / QUESTIONS_PER_LEVEL);
         const NUM_JUKUGO_LEVELS = Math.ceil(jukugoData.length / QUESTIONS_PER_LEVEL);
 
+        const getKanjiData = () => grade === '1' ? kanjiData : kanjiData2;
+        const getNumLevels = () => Math.ceil(getKanjiData().length / QUESTIONS_PER_LEVEL);
+
         let currentLevel = 0;
+        let grade = '1'; // '1' or '2'
         let category = 'kanji'; // 'kanji' or 'jukugo'
         let quizMode = 'reading'; // 'reading', 'kanji', or 'jukugo'
         let quizQuestions = [];
@@ -191,14 +264,13 @@ export default {
 
         // よみかたクイズの選択肢生成 (送り仮名を正解と同じに揃えて表示)
         const generateReadingChoices = (q) => {
+            const pool = getKanjiData();
             const hasOku = !!q.o;
             const usedReadings = new Set([q.r]);
             const distractors = [];
 
             if (hasOku) {
-                // 送り仮名あり: 全選択肢の送り仮名を正解と同じに揃える
-                // 優先1: 同じ送り仮名を持つ漢字
-                let cands = shuffle(kanjiData.filter(k => k.o === q.o && k.r !== q.r));
+                let cands = shuffle(pool.filter(k => k.o === q.o && k.r !== q.r));
                 for (const c of cands) {
                     if (!usedReadings.has(c.r)) {
                         distractors.push({...c});
@@ -206,9 +278,8 @@ export default {
                         if (distractors.length >= 3) break;
                     }
                 }
-                // 優先2: 他の漢字 (送り仮名を正解に合わせて上書き)
                 if (distractors.length < 3) {
-                    cands = shuffle(kanjiData.filter(k => k.k !== q.k && !usedReadings.has(k.r)));
+                    cands = shuffle(pool.filter(k => k.k !== q.k && !usedReadings.has(k.r)));
                     for (const c of cands) {
                         if (!usedReadings.has(c.r)) {
                             distractors.push({...c, o: q.o});
@@ -218,8 +289,7 @@ export default {
                     }
                 }
             } else {
-                // 送り仮名なし: 送り仮名なしの漢字を優先
-                let cands = shuffle(kanjiData.filter(k => !k.o && k.r !== q.r));
+                let cands = shuffle(pool.filter(k => !k.o && k.r !== q.r));
                 for (const c of cands) {
                     if (!usedReadings.has(c.r)) {
                         distractors.push({...c});
@@ -227,9 +297,8 @@ export default {
                         if (distractors.length >= 3) break;
                     }
                 }
-                // 足りなければ送り仮名ありから (送り仮名を除去して表示)
                 if (distractors.length < 3) {
-                    cands = shuffle(kanjiData.filter(k => k.o && !usedReadings.has(k.r)));
+                    cands = shuffle(pool.filter(k => k.o && !usedReadings.has(k.r)));
                     for (const c of cands) {
                         if (!usedReadings.has(c.r)) {
                             distractors.push({...c, o: undefined});
@@ -245,14 +314,13 @@ export default {
 
         // かんじクイズの選択肢生成 (送り仮名を正解と同じに揃えて表示)
         const generateKanjiChoices = (q) => {
+            const pool = getKanjiData();
             const hasOku = !!q.o;
             const usedKanji = new Set([q.k]);
             const distractors = [];
 
             if (hasOku) {
-                // 送り仮名あり: 全選択肢の送り仮名を正解と同じに揃える
-                // 優先1: 同じ送り仮名を持つ漢字
-                let cands = shuffle(kanjiData.filter(k => k.o === q.o && k.k !== q.k));
+                let cands = shuffle(pool.filter(k => k.o === q.o && k.k !== q.k));
                 for (const c of cands) {
                     if (!usedKanji.has(c.k)) {
                         distractors.push({...c});
@@ -260,9 +328,8 @@ export default {
                         if (distractors.length >= 3) break;
                     }
                 }
-                // 優先2: 他の漢字 (送り仮名を正解に合わせて上書き)
                 if (distractors.length < 3) {
-                    cands = shuffle(kanjiData.filter(k => !usedKanji.has(k.k)));
+                    cands = shuffle(pool.filter(k => !usedKanji.has(k.k)));
                     for (const c of cands) {
                         if (!usedKanji.has(c.k)) {
                             distractors.push({...c, o: q.o});
@@ -272,8 +339,7 @@ export default {
                     }
                 }
             } else {
-                // 送り仮名なし: 送り仮名なしの漢字を優先
-                let cands = shuffle(kanjiData.filter(k => !k.o && k.k !== q.k));
+                let cands = shuffle(pool.filter(k => !k.o && k.k !== q.k));
                 for (const c of cands) {
                     if (!usedKanji.has(c.k)) {
                         distractors.push({...c});
@@ -281,9 +347,8 @@ export default {
                         if (distractors.length >= 3) break;
                     }
                 }
-                // 足りなければ送り仮名ありから (送り仮名を除去して表示)
                 if (distractors.length < 3) {
-                    cands = shuffle(kanjiData.filter(k => k.o && !usedKanji.has(k.k)));
+                    cands = shuffle(pool.filter(k => k.o && !usedKanji.has(k.k)));
                     for (const c of cands) {
                         if (!usedKanji.has(c.k)) {
                             distractors.push({...c, o: undefined});
@@ -319,8 +384,8 @@ export default {
         // ★ レベル選択画面
         const renderLevelSelect = () => {
             const isJukugo = category === 'jukugo';
-            const numLevels = isJukugo ? NUM_JUKUGO_LEVELS : NUM_LEVELS;
-            const btnColor = isJukugo ? 'bg-pink-400 hover:bg-pink-500' : 'bg-orange-400 hover:bg-orange-500';
+            const numLevels = isJukugo ? NUM_JUKUGO_LEVELS : getNumLevels();
+            const btnColor = isJukugo ? 'bg-pink-400 hover:bg-pink-500' : (grade === '2' ? 'bg-blue-400 hover:bg-blue-500' : 'bg-orange-400 hover:bg-orange-500');
 
             let buttonsHtml = '';
             for (let i = 0; i < numLevels; i++) {
@@ -330,6 +395,17 @@ export default {
                     </button>
                 `;
             }
+
+            const gradeTabsHtml = !isJukugo ? `
+                <div class="flex gap-2 mb-2">
+                    <button class="grade-tab px-3 py-1 rounded-full font-bold text-sm transition ${grade === '1' ? 'bg-orange-400 text-white shadow' : 'bg-gray-200 text-gray-400'}" data-grade="1">
+                        1ねんせい
+                    </button>
+                    <button class="grade-tab px-3 py-1 rounded-full font-bold text-sm transition ${grade === '2' ? 'bg-blue-400 text-white shadow' : 'bg-gray-200 text-gray-400'}" data-grade="2">
+                        2ねんせい
+                    </button>
+                </div>
+            ` : '';
 
             container.innerHTML = `
                 <div class="h-full flex flex-col items-center justify-center p-3">
@@ -346,6 +422,8 @@ export default {
                         </button>
                     </div>
 
+                    ${gradeTabsHtml}
+
                     <p class="text-gray-500 font-bold mb-3 text-xs">どの レベル に チャレンジ する？</p>
 
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-2 w-full max-w-2xl">
@@ -358,6 +436,12 @@ export default {
             container.querySelectorAll('.cat-tab').forEach(btn => {
                 btn.onclick = () => {
                     category = btn.dataset.cat;
+                    renderLevelSelect();
+                };
+            });
+            container.querySelectorAll('.grade-tab').forEach(btn => {
+                btn.onclick = () => {
+                    grade = btn.dataset.grade;
                     renderLevelSelect();
                 };
             });
@@ -395,7 +479,7 @@ export default {
 
             container.innerHTML = `
                 <div class="h-full flex flex-col items-center justify-center p-3 animate-pop">
-                    <h2 class="text-xl md:text-2xl font-black ${titleColor} mb-1">レベル ${currentLevel + 1}</h2>
+                    <h2 class="text-xl md:text-2xl font-black ${titleColor} mb-1">${!isJukugo ? `${grade}ねんせい ` : ''}レベル ${currentLevel + 1}</h2>
                     <p class="text-gray-500 font-bold mb-3 text-xs">なに を する？</p>
 
                     <div class="flex flex-col gap-3 w-full max-w-lg justify-center">
@@ -423,7 +507,7 @@ export default {
         const renderStudyMode = () => {
             const start = currentLevel * QUESTIONS_PER_LEVEL;
             const end = start + QUESTIONS_PER_LEVEL;
-            const targetKanji = kanjiData.slice(start, end);
+            const targetKanji = getKanjiData().slice(start, end);
 
             const cardsHtml = targetKanji.map(item => `
                 <div class="bg-white border-4 border-sky-200 rounded-3xl p-3 flex flex-col items-center justify-center aspect-square shadow-sm">
@@ -503,7 +587,7 @@ export default {
         const startQuiz = () => {
             const start = currentLevel * QUESTIONS_PER_LEVEL;
             const end = start + QUESTIONS_PER_LEVEL;
-            const targetKanji = kanjiData.slice(start, end);
+            const targetKanji = getKanjiData().slice(start, end);
 
             quizQuestions = shuffle([...targetKanji]);
             quizIndex = 0;
