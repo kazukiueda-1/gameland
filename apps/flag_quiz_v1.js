@@ -241,6 +241,8 @@ export default {
         let showWrongAnswer = false;
         let showResult = false;
         let showLevelSelect = true;
+        let studyMode = false;
+        let studyIndex = 0;
 
         // シャッフル関数
         const shuffle = (array) => {
@@ -364,7 +366,31 @@ export default {
         const backToLevelSelect = () => {
             showLevelSelect = true;
             showResult = false;
+            studyMode = false;
             render();
+        };
+
+        // 勉強モード
+        const startStudyMode = (level) => {
+            currentLevel = level;
+            studyMode = true;
+            studyIndex = 0;
+            showLevelSelect = false;
+            render();
+        };
+
+        const prevStudyCard = () => {
+            if (studyIndex > 0) {
+                studyIndex--;
+                render();
+            }
+        };
+
+        const nextStudyCard = () => {
+            if (studyIndex < levels[currentLevel].length - 1) {
+                studyIndex++;
+                render();
+            }
         };
 
         // 描画
@@ -594,28 +620,162 @@ export default {
                         max-width: 320px;
                     }
 
-                    .level-btn {
+                    .level-card {
                         background: white;
-                        border: none;
                         border-radius: 20px;
-                        padding: 18px 25px;
-                        cursor: pointer;
+                        box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+                        animation: level-pop 0.4s ease backwards;
+                        overflow: hidden;
+                    }
+
+                    .level-card:nth-child(1) { animation-delay: 0.05s; }
+                    .level-card:nth-child(2) { animation-delay: 0.1s; }
+                    .level-card:nth-child(3) { animation-delay: 0.15s; }
+                    .level-card:nth-child(4) { animation-delay: 0.2s; }
+                    .level-card:nth-child(5) { animation-delay: 0.25s; }
+
+                    .level-card-header {
                         display: flex;
                         align-items: center;
                         gap: 15px;
-                        box-shadow: 0 5px 20px rgba(0,0,0,0.15);
-                        transition: all 0.2s ease;
-                        animation: level-pop 0.4s ease backwards;
+                        padding: 15px 20px;
                     }
 
-                    .level-btn:nth-child(1) { animation-delay: 0.05s; }
-                    .level-btn:nth-child(2) { animation-delay: 0.1s; }
-                    .level-btn:nth-child(3) { animation-delay: 0.15s; }
-                    .level-btn:nth-child(4) { animation-delay: 0.2s; }
-                    .level-btn:nth-child(5) { animation-delay: 0.25s; }
+                    .level-card-actions {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        border-top: 1px solid #f3f4f6;
+                    }
 
-                    .level-btn:active {
-                        transform: scale(0.97);
+                    .level-study-btn {
+                        background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+                        border: none;
+                        padding: 11px 8px;
+                        font-size: 14px;
+                        font-weight: bold;
+                        color: #059669;
+                        cursor: pointer;
+                        border-right: 1px solid #f3f4f6;
+                        transition: opacity 0.15s;
+                    }
+
+                    .level-quiz-btn {
+                        background: linear-gradient(135deg, #faf5ff, #ede9fe);
+                        border: none;
+                        padding: 11px 8px;
+                        font-size: 14px;
+                        font-weight: bold;
+                        color: #7c3aed;
+                        cursor: pointer;
+                        transition: opacity 0.15s;
+                    }
+
+                    .level-study-btn:active, .level-quiz-btn:active {
+                        opacity: 0.7;
+                    }
+
+                    @keyframes study-fade {
+                        from { opacity: 0; transform: scale(0.96); }
+                        to { opacity: 1; transform: scale(1); }
+                    }
+
+                    .study-content {
+                        flex: 1;
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        justify-content: center;
+                        padding: 20px;
+                        gap: 18px;
+                    }
+
+                    .study-progress {
+                        background: rgba(255,255,255,0.93);
+                        padding: 7px 22px;
+                        border-radius: 20px;
+                        font-size: 15px;
+                        font-weight: bold;
+                        color: #7c3aed;
+                    }
+
+                    .study-card {
+                        background: white;
+                        border-radius: 24px;
+                        padding: 25px 20px;
+                        box-shadow: 0 15px 50px rgba(0,0,0,0.2);
+                        width: 100%;
+                        max-width: 320px;
+                        text-align: center;
+                        animation: study-fade 0.25s ease;
+                    }
+
+                    .study-flag {
+                        width: min(65vw, 230px);
+                        height: auto;
+                        border-radius: 8px;
+                        box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+                        border: 3px solid #e5e7eb;
+                        margin-bottom: 18px;
+                        animation: flag-wave 3s ease-in-out infinite;
+                    }
+
+                    .study-country-name {
+                        font-size: 30px;
+                        font-weight: 900;
+                        color: #1f2937;
+                        margin-bottom: 6px;
+                    }
+
+                    .study-country-ruby {
+                        font-size: 18px;
+                        color: #7c3aed;
+                        font-weight: bold;
+                    }
+
+                    .study-nav {
+                        display: flex;
+                        align-items: center;
+                        gap: 20px;
+                    }
+
+                    .study-nav-btn {
+                        background: white;
+                        border: none;
+                        width: 56px;
+                        height: 56px;
+                        border-radius: 50%;
+                        font-size: 24px;
+                        cursor: pointer;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        transition: all 0.2s;
+                    }
+
+                    .study-nav-btn:disabled {
+                        opacity: 0.3;
+                        cursor: default;
+                    }
+
+                    .study-nav-btn:active:not(:disabled) {
+                        transform: scale(0.9);
+                    }
+
+                    .study-end-btn {
+                        background: linear-gradient(135deg, #7c3aed, #a855f7);
+                        color: white;
+                        border: none;
+                        padding: 13px 35px;
+                        border-radius: 30px;
+                        font-size: 16px;
+                        font-weight: bold;
+                        cursor: pointer;
+                        box-shadow: 0 5px 20px rgba(124, 58, 237, 0.35);
+                    }
+
+                    .study-end-btn:active {
+                        transform: scale(0.95);
                     }
 
                     .level-emoji {
@@ -828,10 +988,10 @@ export default {
                     <div class="flag-header">
                         <button class="flag-back-btn" id="flag-back">← もどる</button>
                         <span class="flag-title">🌍 こっきクイズ</span>
-                        ${showLevelSelect ? '<span></span>' : `<span class="flag-score">⭐ ${score}てん</span>`}
+                        ${showLevelSelect || studyMode ? '<span></span>' : `<span class="flag-score">⭐ ${score}てん</span>`}
                     </div>
 
-                    ${!showLevelSelect ? `
+                    ${!showLevelSelect && !studyMode ? `
                         <div class="flag-progress">
                             <div class="flag-progress-bar" style="width: ${(questionCount / totalQuestions) * 100}%;"></div>
                         </div>
@@ -842,16 +1002,44 @@ export default {
                             <div class="level-select-title">レベルを えらんでね！</div>
                             <div class="level-buttons">
                                 ${levels.map((_, i) => `
-                                    <button class="level-btn" data-level="${i}">
-                                        <span class="level-emoji">${levelEmojis[i]}</span>
-                                        <div class="level-info">
-                                            <div class="level-name">レベル ${i + 1} : ${levelNames[i]}</div>
-                                            <div class="level-desc">${getCountriesForLevel(i).length}か国</div>
+                                    <div class="level-card">
+                                        <div class="level-card-header">
+                                            <span class="level-emoji">${levelEmojis[i]}</span>
+                                            <div class="level-info">
+                                                <div class="level-name">レベル ${i + 1} : ${levelNames[i]}</div>
+                                                <div class="level-desc">${levels[i].length}か国</div>
+                                            </div>
+                                            <span class="level-num" style="background: ${levelColors[i]};">Lv.${i + 1}</span>
                                         </div>
-                                        <span class="level-num" style="background: ${levelColors[i]};">Lv.${i + 1}</span>
-                                    </button>
+                                        <div class="level-card-actions">
+                                            <button class="level-study-btn" data-level="${i}">📖 べんきょう</button>
+                                            <button class="level-quiz-btn" data-level="${i}">🎮 クイズ</button>
+                                        </div>
+                                    </div>
                                 `).join('')}
                             </div>
+                        </div>
+                    ` : studyMode ? `
+                        <div class="study-content">
+                            <div class="study-progress">
+                                📖 ${studyIndex + 1} / ${levels[currentLevel].length}
+                                <span style="margin-left:8px;font-size:12px;color:#a855f7;">${levelEmojis[currentLevel]} ${levelNames[currentLevel]}</span>
+                            </div>
+                            <div class="study-card">
+                                <img
+                                    src="${getFlagUrl(levels[currentLevel][studyIndex].code)}"
+                                    alt="国旗"
+                                    class="study-flag"
+                                    onerror="this.style.display='none'"
+                                />
+                                <div class="study-country-name">${levels[currentLevel][studyIndex].name}</div>
+                                <div class="study-country-ruby">${levels[currentLevel][studyIndex].ruby}</div>
+                            </div>
+                            <div class="study-nav">
+                                <button class="study-nav-btn" id="study-prev" ${studyIndex === 0 ? 'disabled' : ''}>◀</button>
+                                <button class="study-nav-btn" id="study-next" ${studyIndex === levels[currentLevel].length - 1 ? 'disabled' : ''}>▶</button>
+                            </div>
+                            <button class="study-end-btn" id="study-end">おわる</button>
                         </div>
                     ` : showResult ? `
                         <div class="flag-result">
@@ -946,12 +1134,23 @@ export default {
             container.querySelector('#restart-btn')?.addEventListener('click', () => selectLevel(currentLevel));
             container.querySelector('#level-select-btn')?.addEventListener('click', backToLevelSelect);
 
-            container.querySelectorAll('.level-btn').forEach(btn => {
+            container.querySelectorAll('.level-study-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const level = parseInt(btn.dataset.level);
+                    startStudyMode(level);
+                });
+            });
+
+            container.querySelectorAll('.level-quiz-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const level = parseInt(btn.dataset.level);
                     selectLevel(level);
                 });
             });
+
+            container.querySelector('#study-prev')?.addEventListener('click', prevStudyCard);
+            container.querySelector('#study-next')?.addEventListener('click', nextStudyCard);
+            container.querySelector('#study-end')?.addEventListener('click', backToLevelSelect);
 
             container.querySelectorAll('.flag-choice').forEach(btn => {
                 btn.addEventListener('click', () => {
