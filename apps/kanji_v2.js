@@ -405,7 +405,13 @@ export default {
                         2ねんせい
                     </button>
                 </div>
-            ` : '';
+            ` : `
+                <div class="flex gap-2 mb-2">
+                    <span class="px-3 py-1 rounded-full font-bold text-sm bg-pink-400 text-white shadow">
+                        1ねんせい
+                    </span>
+                </div>
+            `;
 
             container.innerHTML = `
                 <div class="h-full flex flex-col items-center justify-center p-3">
