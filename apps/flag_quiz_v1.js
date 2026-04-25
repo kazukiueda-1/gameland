@@ -906,8 +906,8 @@ export default {
             globeMarkerMeshes.forEach(m => {
                 const isCorrectMarker = m.userData.countryCode === mapQuestion.correct.code;
                 if (isCorrectMarker) {
-                    m.material.color.set(0xffee00);    // 鮮やかな黄色（海・陸どちらでも目立つ）
-                    m.material.emissive.set(0xffaa00);
+                    m.material.color.set(0xff2244);    // 赤（正解位置を示す）
+                    m.material.emissive.set(0xcc0022);
                     m.material.emissiveIntensity = 0.8;
                 } else {
                     m.material.color.set(0xcccccc);
@@ -1169,8 +1169,8 @@ export default {
                 const isFocus = idx === focusIndex;
                 const geo = new THREE.SphereGeometry(isFocus ? 0.055 : 0.032, 16, 16);
                 const mat = new THREE.MeshLambertMaterial({
-                    color: isFocus ? 0xffd700 : 0x44aaff,
-                    emissive: isFocus ? 0xaa8800 : 0x002255,
+                    color: isFocus ? 0xff2244 : 0x44aaff,
+                    emissive: isFocus ? 0xcc0022 : 0x002255,
                     emissiveIntensity: isFocus ? 0.5 : 0.2,
                 });
                 const mesh = new THREE.Mesh(geo, mat);
@@ -1482,7 +1482,7 @@ export default {
                         <button class="study-nav-btn" id="study-next-btn" ${mapStudyIndex === n - 1 ? 'disabled' : ''}>つぎ ▶</button>
                     </div>
                     <div class="map-study-legend">
-                        <span style="color:#ffd700">● いまみてる くに</span>
+                        <span style="color:#ff2244">● いまみてる くに</span>
                         <span style="color:#44aaff">● ほかの くに（タップで いどう）</span>
                     </div>
                 </div>
