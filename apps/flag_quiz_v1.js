@@ -896,9 +896,9 @@ export default {
             globeMarkerMeshes.forEach(m => {
                 const isCorrectMarker = m.userData.countryCode === mapQuestion.correct.code;
                 if (isCorrectMarker) {
-                    m.material.color.set(0x22cc66);
-                    m.material.emissive.set(0x22cc66);
-                    m.material.emissiveIntensity = 0.5;
+                    m.material.color.set(0xffee00);    // 鮮やかな黄色（海・陸どちらでも目立つ）
+                    m.material.emissive.set(0xffaa00);
+                    m.material.emissiveIntensity = 0.8;
                 } else {
                     m.material.color.set(0xcccccc);
                     m.material.emissive.set(0x000000);
