@@ -225,6 +225,66 @@ export default {
             { code: 'va', name: 'バチカン', ruby: 'ばちかん' },
         ];
 
+        // 国の緯度経度データ（ちずクイズ用）
+        const countryCoords = {
+            'jp':[36.2,138.2],'us':[37.1,-95.7],'cn':[35.9,104.2],'kr':[35.9,127.8],
+            'gb':[55.4,-3.4],'fr':[46.2,2.2],'de':[51.2,10.4],'it':[41.9,12.6],
+            'au':[-25.3,133.8],'br':[-14.2,-51.9],'in':[20.6,78.9],'ru':[61.5,105.3],
+            'ca':[56.1,-106.3],'mx':[23.6,-102.6],'es':[40.5,-3.7],'th':[15.9,100.9],
+            'vn':[14.1,108.3],'sg':[1.4,103.8],'eg':[26.8,30.8],'ar':[-38.4,-63.6],
+            'nl':[52.1,5.3],'ch':[46.8,8.2],'nz':[-40.9,174.9],'tr':[38.9,35.2],
+            'za':[-30.6,22.9],'sa':[23.9,45.1],'ae':[23.4,53.8],'id':[-0.8,113.9],
+            'tw':[23.7,121.0],'pt':[39.4,-8.2],'gr':[39.1,22.0],'se':[60.1,18.6],
+            'ph':[12.9,121.8],'my':[4.2,108.0],'kp':[40.3,127.5],'at':[47.5,14.6],
+            'be':[50.5,4.5],'pl':[51.9,19.1],'no':[60.5,8.5],'dk':[56.3,9.5],
+            'fi':[64.0,26.0],'ie':[53.4,-8.2],'cz':[49.8,15.5],'hu':[47.2,19.5],
+            'ua':[48.4,31.2],'ir':[32.4,53.7],'iq':[33.2,43.7],'il':[31.0,35.0],
+            'pk':[30.4,69.3],'ng':[9.1,8.7],'ke':[-0.0,37.9],'ma':[31.8,-7.1],
+            'pe':[-9.2,-75.0],'cl':[-35.7,-71.5],'co':[4.6,-74.3],'cu':[21.5,-79.5],
+            'jm':[18.1,-77.3],'np':[28.4,84.1],'qa':[25.4,51.2],'mn':[46.9,103.8],
+            'hr':[45.1,16.4],'ro':[45.9,24.9],'lk':[7.9,80.8],'bd':[23.7,90.4],
+            'mm':[21.9,95.9],'kh':[12.6,104.9],'la':[19.9,102.5],'af':[33.9,67.7],
+            'sk':[48.7,19.7],'bg':[42.7,25.5],'rs':[44.0,21.0],'si':[46.2,14.8],
+            'is':[64.9,-18.0],'ee':[58.6,25.0],'lv':[56.9,24.6],'lt':[55.2,23.9],
+            'by':[53.7,27.9],'ve':[6.4,-66.6],'ec':[-1.8,-78.2],'bo':[-16.3,-63.6],
+            'py':[-23.4,-58.4],'uy':[-32.5,-55.8],'cr':[9.7,-83.8],'pa':[8.5,-80.0],
+            'et':[9.1,40.5],'tz':[-6.4,34.9],'gh':[7.9,-1.0],'sn':[14.5,-14.5],
+            'cm':[5.7,12.4],'dz':[28.0,2.6],'tn':[33.9,9.6],'jo':[30.6,36.2],
+            'lb':[33.9,35.5],'kw':[29.3,47.5],'om':[21.5,55.9],'kz':[48.0,68.0],
+            'uz':[41.4,64.6],'ge':[42.3,43.4],'cy':[35.1,33.4],'pg':[-6.3,143.9],
+            'fj':[-17.7,178.1],'mv':[3.2,73.2],'bt':[27.5,90.4],'bn':[4.5,114.7],
+            'tl':[-8.9,125.7],'bh':[26.0,50.6],'ye':[15.6,48.5],'sy':[34.8,38.8],
+            'ps':[31.9,35.3],'am':[40.1,45.0],'az':[40.1,47.6],'tm':[38.9,59.6],
+            'kg':[41.2,74.8],'tj':[38.9,71.3],'lu':[49.8,6.1],'mt':[35.9,14.5],
+            'mc':[43.7,7.4],'ad':[42.5,1.6],'sm':[43.9,12.5],'li':[47.2,9.6],
+            'md':[47.4,28.4],'ba':[44.2,17.7],'me':[42.7,19.4],'mk':[41.6,21.7],
+            'al':[41.2,20.2],'xk':[42.6,20.9],'gt':[15.8,-90.2],'bz':[17.2,-88.5],
+            'hn':[15.2,-86.2],'sv':[13.8,-88.9],'ni':[12.9,-85.2],'ht':[19.0,-72.5],
+            'do':[18.7,-70.2],'bs':[25.0,-77.4],'bb':[13.2,-59.6],'tt':[10.7,-61.2],
+            'gd':[12.1,-61.7],'vc':[13.2,-61.2],'lc':[13.9,-60.9],'dm':[15.4,-61.4],
+            'ag':[17.1,-61.8],'kn':[17.4,-62.8],'gy':[4.9,-58.9],'sr':[3.9,-56.0],
+            'ly':[26.3,17.2],'sd':[12.9,30.2],'ss':[6.9,31.3],'er':[15.2,39.8],
+            'dj':[11.8,42.6],'so':[5.2,46.2],'ug':[1.4,32.3],'rw':[-1.9,29.9],
+            'bi':[-3.4,29.9],'cd':[-4.0,21.8],'cg':[-0.2,15.8],'cf':[6.6,20.9],
+            'ne':[17.6,8.1],'td':[15.5,18.7],'ml':[17.6,-4.0],'bf':[12.4,-1.6],
+            'gm':[13.4,-15.3],'gw':[11.8,-15.2],'gn':[9.9,-11.3],'sl':[8.5,-11.8],
+            'lr':[6.4,-9.4],'ci':[7.5,-5.5],'tg':[8.6,0.8],'bj':[9.3,2.3],
+            'mr':[21.0,-10.9],'cv':[16.0,-24.0],'gq':[1.7,10.3],'ga':[-0.8,11.6],
+            'st':[0.2,6.6],'ao':[-11.2,17.9],'zm':[-13.1,27.8],'zw':[-19.0,29.2],
+            'mw':[-13.3,34.3],'mz':[-18.7,35.5],'mg':[-18.8,46.9],'mu':[-20.3,57.6],
+            'km':[-11.9,43.9],'sc':[-4.7,55.5],'na':[-22.0,17.0],'bw':[-22.3,24.7],
+            'ls':[-29.6,28.2],'sz':[-26.5,31.5],'sb':[-9.6,160.2],'vu':[-15.4,166.9],
+            'ws':[-13.8,-172.1],'to':[-21.2,-175.2],'ki':[1.3,173.0],'tv':[-8.5,178.7],
+            'nr':[-0.5,166.9],'pw':[7.5,134.6],'fm':[6.9,158.2],'mh':[7.1,171.2],
+            'va':[41.9,12.5],
+        };
+
+        const enrichCountry = (c) => ({
+            ...c,
+            lat: (countryCoords[c.code] || [0,0])[0],
+            lng: (countryCoords[c.code] || [0,0])[1],
+        });
+
         const levels = [level1, level2, level3, level4, level5];
         const levelNames = ['かんたん', 'ふつう', 'ちょいむず', 'むずかしい', 'マニア'];
         const levelColors = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#7c3aed'];
@@ -244,6 +304,19 @@ export default {
         let studyMode = false;
         let studyIndex = 0;
 
+        // ちずクイズ用状態
+        let mapMode = false;
+        let mapScore = 0;
+        let mapQuestionCount = 0;
+        let mapQuestion = null;
+        let mapAnswered = false;
+        let globeScene = null;
+        let globeTargetRotY = 0, globeTargetRotX = 0;
+        let globeCurrentRotY = 0, globeCurrentRotX = 0;
+        let globeMarkerMeshes = [];
+        let globeIsDragging = false;
+        let globeTouchStartX = 0, globeTouchStartY = 0;
+
         // シャッフル関数
         const shuffle = (array) => {
             const arr = [...array];
@@ -257,13 +330,13 @@ export default {
         // 国旗画像URL
         const getFlagUrl = (code) => `https://flagcdn.com/w320/${code}.png`;
 
-        // そのレベルまでの国を取得
+        // そのレベルまでの国を取得（lat/lng付き）
         const getCountriesForLevel = (level) => {
             let countries = [];
             for (let i = 0; i <= level; i++) {
                 countries = [...countries, ...levels[i]];
             }
-            return countries;
+            return countries.map(enrichCountry);
         };
 
         // 新しい問題を生成
@@ -364,6 +437,8 @@ export default {
 
         // レベル選択に戻る
         const backToLevelSelect = () => {
+            cleanupGlobe();
+            mapMode = false;
             showLevelSelect = true;
             showResult = false;
             studyMode = false;
@@ -393,8 +468,584 @@ export default {
             }
         };
 
+        // ======= ちずクイズ（3D地球儀）関連 =======
+
+        // Three.js 動的ロード
+        const loadThreeJS = () => new Promise((resolve, reject) => {
+            if (window.THREE) { resolve(window.THREE); return; }
+            const s = document.createElement('script');
+            s.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+            s.onload = () => resolve(window.THREE);
+            s.onerror = reject;
+            document.head.appendChild(s);
+        });
+
+        // TopoJSON クライアント動的ロード
+        const loadTopojson = () => new Promise((resolve, reject) => {
+            if (window.topojson) { resolve(); return; }
+            const s = document.createElement('script');
+            s.src = 'https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js';
+            s.onload = resolve;
+            s.onerror = reject;
+            document.head.appendChild(s);
+        });
+
+        // 世界地図データのフェッチ（キャッシュ）
+        let cachedWorldData = null;
+        const fetchWorldData = async () => {
+            if (cachedWorldData) return cachedWorldData;
+            const r = await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
+            cachedWorldData = await r.json();
+            return cachedWorldData;
+        };
+
+        // GeoJSON フィーチャを canvas に描画
+        const drawGeoFeature = (ctx, feature, w, h) => {
+            const drawRing = (ring) => {
+                ring.forEach(([lng, lat], i) => {
+                    const x = (lng + 180) / 360 * w;
+                    const y = (90 - lat) / 180 * h;
+                    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                });
+                ctx.closePath();
+            };
+            ctx.beginPath();
+            const { type, coordinates } = feature.geometry;
+            if (type === 'Polygon') coordinates.forEach(drawRing);
+            else if (type === 'MultiPolygon') coordinates.forEach(poly => poly.forEach(drawRing));
+        };
+
+        // 地図スタイルのテクスチャを canvas で生成
+        const generateMapTexture = (topo) => {
+            const w = 2048, h = 1024;
+            const cvs = document.createElement('canvas');
+            cvs.width = w; cvs.height = h;
+            const ctx = cvs.getContext('2d');
+
+            // 海（鮮やかな青）
+            ctx.fillStyle = '#1a7ab5';
+            ctx.fillRect(0, 0, w, h);
+
+            // 陸地（鮮やかな緑）
+            const countries = topojson.feature(topo, topo.objects.countries);
+            ctx.fillStyle = '#5aaa2a';
+            countries.features.forEach(f => { drawGeoFeature(ctx, f, w, h); ctx.fill('evenodd'); });
+
+            // 海岸線（濃い緑アウトライン）
+            const coasts = topojson.mesh(topo, topo.objects.countries, (a, b) => a === b);
+            ctx.strokeStyle = 'rgba(20,70,10,0.85)';
+            ctx.lineWidth = 2;
+            coasts.coordinates.forEach(line => {
+                ctx.beginPath();
+                line.forEach(([lng, lat], i) => {
+                    const x = (lng + 180) / 360 * w;
+                    const y = (90 - lat) / 180 * h;
+                    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                });
+                ctx.stroke();
+            });
+
+            // 国境線（白・太め）
+            const borders = topojson.mesh(topo, topo.objects.countries, (a, b) => a !== b);
+            ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+            ctx.lineWidth = 2.5;
+            borders.coordinates.forEach(line => {
+                ctx.beginPath();
+                line.forEach(([lng, lat], i) => {
+                    const x = (lng + 180) / 360 * w;
+                    const y = (90 - lat) / 180 * h;
+                    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                });
+                ctx.stroke();
+            });
+
+            return cvs;
+        };
+
+        // lat/lng → 3D座標
+        const latLngToVec3 = (THREE, lat, lng, r = 1.05) => {
+            const phi   = (90 - lat)  * (Math.PI / 180);
+            const theta = (lng + 180) * (Math.PI / 180);
+            return new THREE.Vector3(
+                -r * Math.sin(phi) * Math.cos(theta),
+                 r * Math.cos(phi),
+                 r * Math.sin(phi) * Math.sin(theta)
+            );
+        };
+
+        // 地球儀の向き目標を設定
+        const setGlobeTarget = (lat, lng) => {
+            globeTargetRotY = -(lng * Math.PI / 180);
+            globeTargetRotX =  (lat * Math.PI / 180) * 0.5;
+        };
+
+        // WebGLリソース解放
+        const cleanupGlobe = () => {
+            if (!globeScene) return;
+            cancelAnimationFrame(globeScene.animFrameId);
+            globeScene.scene.traverse(obj => {
+                if (obj.geometry) obj.geometry.dispose();
+                if (obj.material) {
+                    if (obj.material.map) obj.material.map.dispose();
+                    obj.material.dispose();
+                }
+            });
+            globeScene.renderer.dispose();
+            globeScene = null;
+            globeMarkerMeshes = [];
+        };
+
+        // ちずクイズ問題生成
+        const generateMapQuestion = () => {
+            const countries = getCountriesForLevel(currentLevel);
+            const shuffled = shuffle(countries);
+            const correct = shuffled[0];
+            // デコイ: 正解と同じ大陸の国を避けずランダム3択
+            const decoys = shuffle(shuffled.slice(1)).slice(0, 3);
+            return { correct, choices: shuffle([correct, ...decoys]) };
+        };
+
+        // マーカーを配置（earthMeshの子要素にして地球儀の回転に追従させる）
+        const placeMarkers = (THREE, earthMesh, question) => {
+            // 既存マーカーをearthMeshから削除
+            globeMarkerMeshes.forEach(m => earthMesh.remove(m));
+            globeMarkerMeshes = [];
+            // 日本マーカーも削除
+            [...earthMesh.children].filter(c => c.userData?.isJapan).forEach(c => earthMesh.remove(c));
+
+            // 日本マーカー（赤・非選択）
+            const jpCoords = countryCoords['jp'];
+            const jpGeo = new THREE.SphereGeometry(0.06, 16, 16);
+            const jpMat = new THREE.MeshStandardMaterial({ color: 0xff2244, emissive: 0xff2244, emissiveIntensity: 0.5 });
+            const jpMesh = new THREE.Mesh(jpGeo, jpMat);
+            jpMesh.position.copy(latLngToVec3(THREE, jpCoords[0], jpCoords[1], 1.05));
+            jpMesh.userData = { isJapan: true };
+            earthMesh.add(jpMesh);  // earthMeshの子要素として追加
+
+            // 4択マーカー（小さめ・鮮やかな色）
+            question.choices.forEach(country => {
+                const geo = new THREE.SphereGeometry(0.055, 16, 16);
+                const mat = new THREE.MeshStandardMaterial({ color: 0xff3300, emissive: 0xff2200, emissiveIntensity: 0.7 });
+                const mesh = new THREE.Mesh(geo, mat);
+                mesh.position.copy(latLngToVec3(THREE, country.lat, country.lng, 1.05));
+                mesh.userData = { countryCode: country.code, country };
+                earthMesh.add(mesh);
+                globeMarkerMeshes.push(mesh);
+            });
+
+            // 日本ラベルのみ（選択肢は非表示）
+            const labelContainer = container.querySelector('#globe-label-container');
+            if (labelContainer) {
+                labelContainer.innerHTML = '';
+                const jpDiv = document.createElement('div');
+                jpDiv.id = 'japan-map-label';
+                jpDiv.style.cssText = [
+                    'position:absolute',
+                    'transform:translateX(-50%)',
+                    'background:rgba(200,0,40,0.88)',
+                    'color:#fff',
+                    'font-size:11px',
+                    'font-weight:bold',
+                    'padding:2px 8px',
+                    'border-radius:10px',
+                    'white-space:nowrap',
+                    'pointer-events:none',
+                    'border:1.5px solid #ff2244',
+                    'text-shadow:0 1px 2px rgba(0,0,0,0.9)',
+                    'opacity:0',
+                ].join(';');
+                jpDiv.textContent = '日本';
+                labelContainer.appendChild(jpDiv);
+            }
+        };
+
+        // マーカーラベルを 3D→2D 投影して位置更新
+        const updateMarkerLabels = (camera) => {
+            const labelContainer = container.querySelector('#globe-label-container');
+            if (!labelContainer || !globeScene) return;
+            const canvas = container.querySelector('#globe-canvas');
+            if (!canvas) return;
+            const canvasRect = canvas.getBoundingClientRect();
+            const wrapRect = labelContainer.parentElement.getBoundingClientRect();
+            // 日本ラベルを地図上のマーカー近くに表示
+            const jpLabelEl = labelContainer.querySelector('#japan-map-label');
+            if (jpLabelEl) {
+                const jpMesh = globeScene.earthMesh.children.find(c => c.userData?.isJapan);
+                if (jpMesh) {
+                    const worldPos = new globeScene.THREE.Vector3();
+                    jpMesh.getWorldPosition(worldPos);
+                    if (worldPos.clone().normalize().z < 0) {
+                        jpLabelEl.style.opacity = '0';
+                    } else {
+                        worldPos.project(camera);
+                        const x = (worldPos.x * 0.5 + 0.5) * canvasRect.width + (canvasRect.left - wrapRect.left);
+                        const y = (-worldPos.y * 0.5 + 0.5) * canvasRect.height + (canvasRect.top - wrapRect.top);
+                        jpLabelEl.style.opacity = '1';
+                        jpLabelEl.style.left = `${x}px`;
+                        jpLabelEl.style.top = `${y + 12}px`;
+                    }
+                }
+            }
+        };
+
+        const mountGlobe = async (question) => {
+            const canvasEl = container.querySelector('#globe-canvas');
+            if (!canvasEl) return;
+
+            const THREE = await loadThreeJS();
+            await loadTopojson();
+            const worldData = await fetchWorldData();
+
+            // すでに地球儀が存在する場合はマーカーのみ更新（キャンバス・レンダラーは再利用）
+            if (globeScene && document.getElementById('globe-canvas')) {
+                placeMarkers(THREE, globeScene.earthMesh, question);
+                // 日本へ即スナップ後に対象国へアニメーション
+                globeCurrentRotY = -(138.2 * Math.PI / 180);
+                globeCurrentRotX = (36.2 * Math.PI / 180) * 0.5;
+                globeTargetRotY = globeCurrentRotY;
+                globeTargetRotX = globeCurrentRotX;
+                setTimeout(() => setGlobeTarget(question.correct.lat, question.correct.lng), 600);
+                return;
+            }
+            // globeSceneがあってもキャンバスが消えている場合はクリーンアップして再作成
+            if (globeScene) cleanupGlobe();
+
+            // 親コンテナの寸法を使う（Three.jsのCSS上書きを避けるため）
+            const wrap = canvasEl.parentElement;
+            const W = wrap.clientWidth || 392;
+            // min-height:160pxをCSSで保証しているのでclientHeightは最低160px
+            const H = wrap.clientHeight || 300;
+
+            const renderer = new THREE.WebGLRenderer({ canvas: canvasEl, antialias: true, alpha: true });
+            renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+            // updateStyle=false でThree.jsによるCSS style上書きを防止
+            renderer.setSize(W, H, false);
+            canvasEl.style.width = '100%';
+            canvasEl.style.height = '100%';
+
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(45, W / H, 0.1, 1000);
+            camera.position.set(0, 0, 3);
+
+            // 明るい均一照明（地図スタイルは影不要）
+            scene.add(new THREE.AmbientLight(0xffffff, 2.5));
+
+            // 地図スタイルのテクスチャを canvas で生成
+            const earthGeo = new THREE.SphereGeometry(1, 64, 64);
+            const mapCanvas = generateMapTexture(worldData);
+            const mapTexture = new THREE.CanvasTexture(mapCanvas);
+            const earthMat = new THREE.MeshLambertMaterial({ map: mapTexture });
+            const earthMesh = new THREE.Mesh(earthGeo, earthMat);
+            scene.add(earthMesh);
+
+            globeScene = { THREE, renderer, scene, camera, earthMesh, animFrameId: null };
+
+            // 日本へ即スナップ
+            globeCurrentRotY = -(138.2 * Math.PI / 180);
+            globeCurrentRotX = (36.2 * Math.PI / 180) * 0.5;
+            globeTargetRotY = globeCurrentRotY;
+            globeTargetRotX = globeCurrentRotX;
+
+            placeMarkers(THREE, earthMesh, question);
+            setTimeout(() => setGlobeTarget(question.correct.lat, question.correct.lng), 600);
+
+            // タッチ操作（1本指：回転、2本指：ピンチズーム）
+            let lastPinchDist = 0;
+            canvasEl.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 2) {
+                    lastPinchDist = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    globeIsDragging = true;
+                } else {
+                    globeTouchStartX = e.touches[0].clientX;
+                    globeTouchStartY = e.touches[0].clientY;
+                    globeIsDragging = false;
+                }
+            }, { passive: true });
+            canvasEl.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 2) {
+                    // ピンチズーム
+                    const dist = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    const delta = lastPinchDist - dist;
+                    globeScene.camera.position.z = Math.max(1.4, Math.min(5.5, globeScene.camera.position.z + delta * 0.012));
+                    lastPinchDist = dist;
+                    globeIsDragging = true;
+                } else if (e.touches.length === 1) {
+                    const dx = e.touches[0].clientX - globeTouchStartX;
+                    const dy = e.touches[0].clientY - globeTouchStartY;
+                    if (Math.hypot(dx, dy) > 5) globeIsDragging = true;
+                    globeTargetRotY += dx * 0.006;
+                    globeTargetRotX = Math.max(-0.8, Math.min(0.8, globeTargetRotX + dy * 0.006));
+                    globeTouchStartX = e.touches[0].clientX;
+                    globeTouchStartY = e.touches[0].clientY;
+                }
+            }, { passive: true });
+
+            // マウスドラッグ
+            let mouseDown = false, lastMouseX = 0, lastMouseY = 0;
+            canvasEl.addEventListener('mousedown', (e) => {
+                mouseDown = true; lastMouseX = e.clientX; lastMouseY = e.clientY;
+                globeIsDragging = false;
+            });
+            canvasEl.addEventListener('mousemove', (e) => {
+                if (!mouseDown) return;
+                const dx = e.clientX - lastMouseX, dy = e.clientY - lastMouseY;
+                if (Math.hypot(dx, dy) > 3) globeIsDragging = true;
+                globeTargetRotY += dx * 0.006;
+                globeTargetRotX = Math.max(-0.8, Math.min(0.8, globeTargetRotX + dy * 0.006));
+                lastMouseX = e.clientX; lastMouseY = e.clientY;
+            });
+            canvasEl.addEventListener('mouseup', () => { mouseDown = false; });
+
+            // ホイールズーム（PC）
+            canvasEl.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                globeScene.camera.position.z = Math.max(1.4, Math.min(5.5, globeScene.camera.position.z + e.deltaY * 0.004));
+            }, { passive: false });
+
+            // クリック/タップ → 答え判定
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2();
+            const onInteract = (e) => {
+                if (mapAnswered || globeIsDragging) { globeIsDragging = false; return; }
+                const pt = e.changedTouches ? e.changedTouches[0] : e;
+                const rect = canvasEl.getBoundingClientRect();
+                mouse.x =  ((pt.clientX - rect.left) / rect.width)  * 2 - 1;
+                mouse.y = -((pt.clientY - rect.top)  / rect.height) * 2 + 1;
+                raycaster.setFromCamera(mouse, camera);
+                const hits = raycaster.intersectObjects(globeMarkerMeshes);
+                if (hits.length) handleGlobeAnswer(hits[0].object.userData.countryCode);
+            };
+            canvasEl.addEventListener('click', onInteract);
+            canvasEl.addEventListener('touchend', onInteract, { passive: true });
+
+            // アニメーションループ
+            const tick = () => {
+                globeScene.animFrameId = requestAnimationFrame(tick);
+                globeCurrentRotY += (globeTargetRotY - globeCurrentRotY) * 0.05;
+                globeCurrentRotX += (globeTargetRotX - globeCurrentRotX) * 0.05;
+                earthMesh.rotation.y = globeCurrentRotY;
+                earthMesh.rotation.x = globeCurrentRotX;
+                // ズームに関わらずマーカーの画面サイズを一定に保つ
+                const zoomScale = camera.position.z / 3;
+                const t = Date.now() * 0.005;
+                globeMarkerMeshes.forEach(m => {
+                    if (mapAnswered && m.userData.countryCode === question.correct.code) {
+                        m.scale.setScalar(zoomScale * (1 + 0.3 * Math.sin(t)));
+                    } else {
+                        m.scale.setScalar(zoomScale);
+                    }
+                });
+                earthMesh.children.filter(c => c.userData?.isJapan).forEach(m => m.scale.setScalar(zoomScale));
+                updateMarkerLabels(camera);
+                renderer.render(scene, camera);
+            };
+            tick();
+        };
+
+        // ちずクイズ 回答処理
+        const handleGlobeAnswer = (code) => {
+            if (mapAnswered || !globeScene) return;
+            mapAnswered = true;
+            const isCorrect = code === mapQuestion.correct.code;
+
+            // マーカー色変更 + ラベルスタイル更新
+            const THREE = globeScene.THREE;
+            const labelContainer = container.querySelector('#globe-label-container');
+            globeMarkerMeshes.forEach(m => {
+                const isCorrectMarker = m.userData.countryCode === mapQuestion.correct.code;
+                if (isCorrectMarker) {
+                    m.material.color.set(0x22cc66);
+                    m.material.emissive.set(0x22cc66);
+                    m.material.emissiveIntensity = 0.5;
+                    setGlobeTarget(mapQuestion.correct.lat, mapQuestion.correct.lng);
+                } else {
+                    m.material.color.set(0xcccccc);
+                    m.material.emissive.set(0x000000);
+                }
+            });
+
+            if (isCorrect) {
+                mapScore++;
+                system.playSound('correct');
+                createParticles();
+            } else {
+                system.playSound('wrong');
+            }
+
+            // 結果バナーを更新
+            const banner = container.querySelector('#map-answer-banner');
+            if (banner) {
+                banner.textContent = isCorrect ? '⭕ せいかい！' : `❌ ざんねん！ ${mapQuestion.correct.name} だよ`;
+                banner.style.background = isCorrect ? 'rgba(34,204,102,0.92)' : 'rgba(239,68,68,0.92)';
+                banner.style.display = 'block';
+            }
+            const scoreEl = container.querySelector('#map-score-display');
+            if (scoreEl) scoreEl.textContent = `⭐ ${mapScore}てん`;
+
+            setTimeout(() => {
+                mapQuestionCount++;
+                mapAnswered = false;
+                if (mapQuestionCount >= totalQuestions) {
+                    // 結果画面
+                    cleanupGlobe();
+                    mapMode = false;
+                    showResult = true;
+                    score = mapScore;
+                    questionCount = totalQuestions;
+                    render();
+                } else {
+                    mapQuestion = generateMapQuestion();
+                    // canvas を破棄しないよう DOM の必要部分だけ更新
+                    const flagImg = container.querySelector('.map-flag-img');
+                    if (flagImg) { flagImg.src = getFlagUrl(mapQuestion.correct.code); flagImg.style.display = ''; }
+                    const nameEl = container.querySelector('.map-country-name');
+                    if (nameEl) nameEl.textContent = mapQuestion.correct.name;
+                    const progEl = container.querySelector('.map-progress-text');
+                    if (progEl) progEl.textContent = `だい${mapQuestionCount + 1}もん / ${totalQuestions}もん`;
+                    const banner = container.querySelector('#map-answer-banner');
+                    if (banner) banner.style.display = 'none';
+                    mountGlobe(mapQuestion);
+                }
+            }, 2500);
+        };
+
+        // ちずクイズ モード起動
+        const startMapMode = (level) => {
+            currentLevel = level;
+            mapMode = true;
+            mapScore = 0;
+            mapQuestionCount = 0;
+            mapAnswered = false;
+            mapQuestion = generateMapQuestion();
+            renderMapMode();
+            mountGlobe(mapQuestion);
+        };
+
+        // ちずクイズ 画面描画
+        const renderMapMode = () => {
+            if (!mapQuestion) return;
+            container.innerHTML = `
+                <style>
+                    .map-container {
+                        height: 100%;
+                        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+                        display: flex;
+                        flex-direction: column;
+                        position: relative;
+                        overflow: hidden;
+                    }
+                    .map-header {
+                        background: rgba(255,255,255,0.95);
+                        padding: 10px 15px;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        box-shadow: 0 2px 15px rgba(0,0,0,0.3);
+                        flex-shrink: 0;
+                    }
+                    .map-back-btn {
+                        background: none; border: none; font-size: 14px;
+                        color: #666; font-weight: bold; cursor: pointer; padding: 4px 8px;
+                    }
+                    .map-title { font-size: 18px; font-weight: 900; color: #1a1a2e; }
+                    .map-score {
+                        background: linear-gradient(135deg, #fbbf24, #f59e0b);
+                        color: white; padding: 5px 12px; border-radius: 15px;
+                        font-weight: bold; font-size: 14px;
+                    }
+                    .map-question-panel {
+                        background: rgba(255,255,255,0.12);
+                        backdrop-filter: blur(10px);
+                        padding: 8px 14px;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                        flex-shrink: 0;
+                        border-bottom: 1px solid rgba(255,255,255,0.1);
+                    }
+                    .map-flag-img {
+                        width: 56px; height: auto;
+                        border-radius: 5px; border: 2px solid white;
+                        box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+                        flex-shrink: 0;
+                    }
+                    .map-question-text {
+                        color: white; font-size: 13px; font-weight: bold; line-height: 1.3;
+                    }
+                    .map-country-name {
+                        font-size: 20px; font-weight: 900; color: #fbbf24;
+                        display: block; margin-top: 1px;
+                    }
+                    .map-progress-text {
+                        color: rgba(255,255,255,0.7); font-size: 11px; margin-top: 2px;
+                    }
+                    .map-globe-wrap {
+                        flex: 1; display: flex; flex-direction: column;
+                        position: relative; min-height: 160px;
+                    }
+                    .map-answer-banner {
+                        display: none;
+                        position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+                        background: rgba(34,204,102,0.92); color: white;
+                        padding: 10px 24px; border-radius: 30px;
+                        font-size: 18px; font-weight: 900; z-index: 10;
+                        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+                        white-space: nowrap;
+                    }
+                    .map-legend {
+                        background: rgba(0,0,0,0.5); padding: 6px 14px;
+                        display: flex; gap: 16px; justify-content: center;
+                        font-size: 13px; color: white; font-weight: bold;
+                        flex-shrink: 0;
+                    }
+                    .map-hint {
+                        text-align: center; color: rgba(255,255,255,0.6);
+                        font-size: 12px; padding: 4px; flex-shrink: 0;
+                    }
+                </style>
+                <div class="map-container">
+                    <div class="map-header">
+                        <button class="map-back-btn" id="map-back-btn">✕ もどる</button>
+                        <span class="map-title">🌍 ちずクイズ</span>
+                        <span class="map-score" id="map-score-display">⭐ ${mapScore}てん</span>
+                    </div>
+                    <div class="map-question-panel">
+                        <img src="${getFlagUrl(mapQuestion.correct.code)}" class="map-flag-img"
+                            onerror="this.style.display='none'" />
+                        <div class="map-question-text">
+                            この くには どこ？
+                            <span class="map-country-name">${mapQuestion.correct.name}</span>
+                            <span class="map-progress-text">だい${mapQuestionCount + 1}もん / ${totalQuestions}もん</span>
+                        </div>
+                    </div>
+                    <div class="map-globe-wrap">
+                        <div class="map-answer-banner" id="map-answer-banner"></div>
+                        <canvas id="globe-canvas"
+                            style="flex:1; width:100%; display:block; touch-action:none; cursor:pointer;"></canvas>
+                        <div id="globe-label-container"
+                            style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:hidden;"></div>
+                    </div>
+                    <div class="map-legend">
+                        <span style="color:#ff2244">● にほん</span>
+                        <span style="color:#ff3300">● こたえを えらんでね</span>
+                    </div>
+                    <div class="map-hint">ぐるぐるまわして さがそう！</div>
+                </div>
+            `;
+            container.querySelector('#map-back-btn').addEventListener('click', backToLevelSelect);
+        };
+
+        // ======= ちずクイズ関連ここまで =======
+
         // 描画
         const render = () => {
+            if (mapMode) { renderMapMode(); return; }
             container.innerHTML = `
                 <style>
                     @keyframes flag-particle-rise {
@@ -643,15 +1294,15 @@ export default {
 
                     .level-card-actions {
                         display: grid;
-                        grid-template-columns: 1fr 1fr;
+                        grid-template-columns: 1fr 1fr 1fr;
                         border-top: 1px solid #f3f4f6;
                     }
 
                     .level-study-btn {
                         background: linear-gradient(135deg, #f0fdf4, #dcfce7);
                         border: none;
-                        padding: 11px 8px;
-                        font-size: 14px;
+                        padding: 11px 4px;
+                        font-size: 13px;
                         font-weight: bold;
                         color: #059669;
                         cursor: pointer;
@@ -662,15 +1313,27 @@ export default {
                     .level-quiz-btn {
                         background: linear-gradient(135deg, #faf5ff, #ede9fe);
                         border: none;
-                        padding: 11px 8px;
-                        font-size: 14px;
+                        padding: 11px 4px;
+                        font-size: 13px;
                         font-weight: bold;
                         color: #7c3aed;
+                        cursor: pointer;
+                        border-right: 1px solid #f3f4f6;
+                        transition: opacity 0.15s;
+                    }
+
+                    .level-map-btn {
+                        background: linear-gradient(135deg, #eff6ff, #dbeafe);
+                        border: none;
+                        padding: 11px 4px;
+                        font-size: 13px;
+                        font-weight: bold;
+                        color: #1d4ed8;
                         cursor: pointer;
                         transition: opacity 0.15s;
                     }
 
-                    .level-study-btn:active, .level-quiz-btn:active {
+                    .level-study-btn:active, .level-quiz-btn:active, .level-map-btn:active {
                         opacity: 0.7;
                     }
 
@@ -1014,6 +1677,7 @@ export default {
                                         <div class="level-card-actions">
                                             <button class="level-study-btn" data-level="${i}">📖 べんきょう</button>
                                             <button class="level-quiz-btn" data-level="${i}">🎮 クイズ</button>
+                                            <button class="level-map-btn" data-level="${i}">🌍 ちず</button>
                                         </div>
                                     </div>
                                 `).join('')}
@@ -1148,6 +1812,13 @@ export default {
                 });
             });
 
+            container.querySelectorAll('.level-map-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const level = parseInt(btn.dataset.level);
+                    startMapMode(level);
+                });
+            });
+
             container.querySelector('#study-prev')?.addEventListener('click', prevStudyCard);
             container.querySelector('#study-next')?.addEventListener('click', nextStudyCard);
             container.querySelector('#study-end')?.addEventListener('click', backToLevelSelect);
@@ -1164,6 +1835,6 @@ export default {
         // レベル選択画面を表示
         render();
 
-        return () => {};
+        return () => { cleanupGlobe(); };
     }
 };
