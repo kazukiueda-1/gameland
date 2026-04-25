@@ -316,6 +316,7 @@ export default {
         let globeMarkerMeshes = [];
         let globeIsDragging = false;
         let globeTouchStartX = 0, globeTouchStartY = 0;
+        let mapResizeHandler = null;
 
         // シャッフル関数
         const shuffle = (array) => {
@@ -438,6 +439,14 @@ export default {
         // レベル選択に戻る
         const backToLevelSelect = () => {
             cleanupGlobe();
+            // ちずクイズ用リサイズハンドラを解除し、コンテナスタイルをリセット
+            if (mapResizeHandler) {
+                window.removeEventListener('resize', mapResizeHandler);
+                mapResizeHandler = null;
+            }
+            container.style.minHeight = '';
+            container.style.maxHeight = '';
+            container.style.height = '';
             mapMode = false;
             showLevelSelect = true;
             showResult = false;
@@ -988,7 +997,8 @@ export default {
             container.innerHTML = `
                 <style>
                     .map-container {
-                        height: 100%;
+                        /* height は JS で window.innerHeight ベースに設定（iOS Safariの100vhバグ回避） */
+                        width: 100%;
                         background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
                         display: flex;
                         flex-direction: column;
@@ -1101,6 +1111,26 @@ export default {
                 </div>
             `;
             container.querySelector('#map-back-btn').addEventListener('click', backToLevelSelect);
+
+            // ブラウザUIを除いた正確な高さをセット（iOS Safariの100vhバグ・タブバー問題対策）
+            const applyMapHeight = () => {
+                const mc = container.querySelector('.map-container');
+                if (!mc) return;
+                // window.innerHeight = ブラウザUIを除いた実際の可視領域
+                // ページ内ナビバー分を引く
+                const nav = document.querySelector('nav') || document.querySelector('header');
+                const navH = nav ? nav.getBoundingClientRect().height : 0;
+                const h = window.innerHeight - navH;
+                mc.style.height = h + 'px';
+                // appRoot の min-height も上書きして縦溢れを防ぐ
+                container.style.minHeight = h + 'px';
+                container.style.maxHeight = h + 'px';
+            };
+            applyMapHeight();
+            // 画面回転・リサイズ時も追従
+            if (mapResizeHandler) window.removeEventListener('resize', mapResizeHandler);
+            mapResizeHandler = applyMapHeight;
+            window.addEventListener('resize', mapResizeHandler);
         };
 
         // ======= ちずクイズ関連ここまで =======
