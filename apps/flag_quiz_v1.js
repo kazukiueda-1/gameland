@@ -575,7 +575,7 @@ export default {
 
         // 地球儀の向き目標を設定
         const setGlobeTarget = (lat, lng) => {
-            globeTargetRotY = -(lng * Math.PI / 180);
+            globeTargetRotY = -((lng + 90) * Math.PI / 180);
             globeTargetRotX =  (lat * Math.PI / 180) * 0.5;
         };
 
@@ -700,7 +700,7 @@ export default {
             if (globeScene && document.getElementById('globe-canvas')) {
                 placeMarkers(THREE, globeScene.earthMesh, question);
                 // 日本へ即スナップ後に対象国へアニメーション
-                globeCurrentRotY = -(138.2 * Math.PI / 180);
+                globeCurrentRotY = -((138.2 + 90) * Math.PI / 180);
                 globeCurrentRotX = (36.2 * Math.PI / 180) * 0.5;
                 globeTargetRotY = globeCurrentRotY;
                 globeTargetRotX = globeCurrentRotX;
@@ -741,7 +741,7 @@ export default {
             globeScene = { THREE, renderer, scene, camera, earthMesh, animFrameId: null };
 
             // 日本へ即スナップ
-            globeCurrentRotY = -(138.2 * Math.PI / 180);
+            globeCurrentRotY = -((138.2 + 90) * Math.PI / 180);
             globeCurrentRotX = (36.2 * Math.PI / 180) * 0.5;
             globeTargetRotY = globeCurrentRotY;
             globeTargetRotX = globeCurrentRotX;
@@ -853,17 +853,15 @@ export default {
             if (mapAnswered || !globeScene) return;
             mapAnswered = true;
             const isCorrect = code === mapQuestion.correct.code;
+            const chosenCountry = mapQuestion.choices.find(c => c.code === code);
 
-            // マーカー色変更 + ラベルスタイル更新
-            const THREE = globeScene.THREE;
-            const labelContainer = container.querySelector('#globe-label-container');
+            // マーカー色変更（正解=緑、不正解=グレー）
             globeMarkerMeshes.forEach(m => {
                 const isCorrectMarker = m.userData.countryCode === mapQuestion.correct.code;
                 if (isCorrectMarker) {
                     m.material.color.set(0x22cc66);
                     m.material.emissive.set(0x22cc66);
                     m.material.emissiveIntensity = 0.5;
-                    setGlobeTarget(mapQuestion.correct.lat, mapQuestion.correct.lng);
                 } else {
                     m.material.color.set(0xcccccc);
                     m.material.emissive.set(0x000000);
@@ -874,25 +872,30 @@ export default {
                 mapScore++;
                 system.playSound('correct');
                 createParticles();
+                setGlobeTarget(mapQuestion.correct.lat, mapQuestion.correct.lng);
             } else {
                 system.playSound('wrong');
+                // 不正解時は地球儀をその場で止める（globeTargetを現在値に固定）
+                globeTargetRotY = globeCurrentRotY;
+                globeTargetRotX = globeCurrentRotX;
             }
 
-            // 結果バナーを更新
+            // 結果バナー（不正解時は選んだ国名を表示）
             const banner = container.querySelector('#map-answer-banner');
             if (banner) {
-                banner.textContent = isCorrect ? '⭕ せいかい！' : `❌ ざんねん！ ${mapQuestion.correct.name} だよ`;
+                banner.textContent = isCorrect
+                    ? '⭕ せいかい！'
+                    : `❌ ざんねん！ ${chosenCountry?.name ?? ''} だよ`;
                 banner.style.background = isCorrect ? 'rgba(34,204,102,0.92)' : 'rgba(239,68,68,0.92)';
                 banner.style.display = 'block';
             }
             const scoreEl = container.querySelector('#map-score-display');
             if (scoreEl) scoreEl.textContent = `⭐ ${mapScore}てん`;
 
-            setTimeout(() => {
+            const advanceQuestion = () => {
                 mapQuestionCount++;
                 mapAnswered = false;
                 if (mapQuestionCount >= totalQuestions) {
-                    // 結果画面
                     cleanupGlobe();
                     mapMode = false;
                     showResult = true;
@@ -901,18 +904,33 @@ export default {
                     render();
                 } else {
                     mapQuestion = generateMapQuestion();
-                    // canvas を破棄しないよう DOM の必要部分だけ更新
                     const flagImg = container.querySelector('.map-flag-img');
                     if (flagImg) { flagImg.src = getFlagUrl(mapQuestion.correct.code); flagImg.style.display = ''; }
                     const nameEl = container.querySelector('.map-country-name');
                     if (nameEl) nameEl.textContent = mapQuestion.correct.name;
                     const progEl = container.querySelector('.map-progress-text');
                     if (progEl) progEl.textContent = `だい${mapQuestionCount + 1}もん / ${totalQuestions}もん`;
-                    const banner = container.querySelector('#map-answer-banner');
-                    if (banner) banner.style.display = 'none';
+                    const b = container.querySelector('#map-answer-banner');
+                    if (b) b.style.display = 'none';
                     mountGlobe(mapQuestion);
                 }
-            }, 2500);
+            };
+
+            if (isCorrect) {
+                setTimeout(advanceQuestion, 2500);
+            } else {
+                // 2.5秒後: 正解の国へ地球儀を回して「〇〇はここだよ」
+                setTimeout(() => {
+                    setGlobeTarget(mapQuestion.correct.lat, mapQuestion.correct.lng);
+                    const b = container.querySelector('#map-answer-banner');
+                    if (b) {
+                        b.textContent = `📍 ${mapQuestion.correct.name} はここだよ`;
+                        b.style.background = 'rgba(59,130,246,0.92)';
+                    }
+                    // さらに2.5秒後: 次の問題へ
+                    setTimeout(advanceQuestion, 2500);
+                }, 2500);
+            }
         };
 
         // ちずクイズ モード起動
