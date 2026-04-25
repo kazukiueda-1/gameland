@@ -502,10 +502,17 @@ export default {
         // GeoJSON フィーチャを canvas に描画
         const drawGeoFeature = (ctx, feature, w, h) => {
             const drawRing = (ring) => {
+                let prevLng = null;
                 ring.forEach(([lng, lat], i) => {
                     const x = (lng + 180) / 360 * w;
                     const y = (90 - lat) / 180 * h;
-                    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                    // 反対子午線（±180°）を跨ぐ場合はlineTo→moveTo（spurious line防止）
+                    if (i === 0 || (prevLng !== null && Math.abs(lng - prevLng) > 180)) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                    prevLng = lng;
                 });
                 ctx.closePath();
             };
@@ -537,10 +544,16 @@ export default {
             ctx.lineWidth = 1.2;
             coasts.coordinates.forEach(line => {
                 ctx.beginPath();
+                let prevLng = null;
                 line.forEach(([lng, lat], i) => {
                     const x = (lng + 180) / 360 * w;
                     const y = (90 - lat) / 180 * h;
-                    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                    if (i === 0 || (prevLng !== null && Math.abs(lng - prevLng) > 180)) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                    prevLng = lng;
                 });
                 ctx.stroke();
             });
@@ -551,13 +564,29 @@ export default {
             ctx.lineWidth = 1.5;
             borders.coordinates.forEach(line => {
                 ctx.beginPath();
+                let prevLng = null;
                 line.forEach(([lng, lat], i) => {
                     const x = (lng + 180) / 360 * w;
                     const y = (90 - lat) / 180 * h;
-                    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                    if (i === 0 || (prevLng !== null && Math.abs(lng - prevLng) > 180)) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                    prevLng = lng;
                 });
                 ctx.stroke();
             });
+
+            // 赤道線（lat=0、白の破線）
+            ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([12, 8]);
+            ctx.beginPath();
+            ctx.moveTo(0, h / 2);
+            ctx.lineTo(w, h / 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
 
             return cvs;
         };
@@ -699,12 +728,11 @@ export default {
             // すでに地球儀が存在する場合はマーカーのみ更新（キャンバス・レンダラーは再利用）
             if (globeScene && document.getElementById('globe-canvas')) {
                 placeMarkers(THREE, globeScene.earthMesh, question);
-                // 日本へ即スナップ後に対象国へアニメーション
+                // 日本へ即スナップ（問題表示後は日本を正面に）
                 globeCurrentRotY = -((138.2 + 90) * Math.PI / 180);
                 globeCurrentRotX = (36.2 * Math.PI / 180) * 0.25;
                 globeTargetRotY = globeCurrentRotY;
                 globeTargetRotX = globeCurrentRotX;
-                setTimeout(() => setGlobeTarget(question.correct.lat, question.correct.lng), 600);
                 return;
             }
             // globeSceneがあってもキャンバスが消えている場合はクリーンアップして再作成
@@ -747,7 +775,7 @@ export default {
             globeTargetRotX = globeCurrentRotX;
 
             placeMarkers(THREE, earthMesh, question);
-            setTimeout(() => setGlobeTarget(question.correct.lat, question.correct.lng), 600);
+            // 問題表示後は日本を正面に維持（自動回転しない）
 
             // タッチ操作（1本指：回転、2本指：ピンチズーム）
             let lastPinchDist = 0;
