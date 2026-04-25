@@ -533,8 +533,8 @@ export default {
 
             // 海岸線（濃い緑アウトライン）
             const coasts = topojson.mesh(topo, topo.objects.countries, (a, b) => a === b);
-            ctx.strokeStyle = 'rgba(20,70,10,0.85)';
-            ctx.lineWidth = 2;
+            ctx.strokeStyle = 'rgba(20,70,10,0.8)';
+            ctx.lineWidth = 1.2;
             coasts.coordinates.forEach(line => {
                 ctx.beginPath();
                 line.forEach(([lng, lat], i) => {
@@ -545,10 +545,10 @@ export default {
                 ctx.stroke();
             });
 
-            // 国境線（白・太め）
+            // 国境線（濃いグレー・細め）
             const borders = topojson.mesh(topo, topo.objects.countries, (a, b) => a !== b);
-            ctx.strokeStyle = 'rgba(255,255,255,0.9)';
-            ctx.lineWidth = 2.5;
+            ctx.strokeStyle = 'rgba(60,60,60,0.85)';
+            ctx.lineWidth = 1.5;
             borders.coordinates.forEach(line => {
                 ctx.beginPath();
                 line.forEach(([lng, lat], i) => {
@@ -576,7 +576,7 @@ export default {
         // 地球儀の向き目標を設定
         const setGlobeTarget = (lat, lng) => {
             globeTargetRotY = -((lng + 90) * Math.PI / 180);
-            globeTargetRotX =  (lat * Math.PI / 180) * 0.5;
+            globeTargetRotX =  (lat * Math.PI / 180) * 0.25;
         };
 
         // WebGLリソース解放
@@ -615,7 +615,7 @@ export default {
 
             // 日本マーカー（赤・非選択）
             const jpCoords = countryCoords['jp'];
-            const jpGeo = new THREE.SphereGeometry(0.06, 16, 16);
+            const jpGeo = new THREE.SphereGeometry(0.042, 16, 16);
             const jpMat = new THREE.MeshStandardMaterial({ color: 0xff2244, emissive: 0xff2244, emissiveIntensity: 0.5 });
             const jpMesh = new THREE.Mesh(jpGeo, jpMat);
             jpMesh.position.copy(latLngToVec3(THREE, jpCoords[0], jpCoords[1], 1.05));
@@ -624,7 +624,7 @@ export default {
 
             // 4択マーカー（小さめ・鮮やかな色）
             question.choices.forEach(country => {
-                const geo = new THREE.SphereGeometry(0.055, 16, 16);
+                const geo = new THREE.SphereGeometry(0.038, 16, 16);
                 const mat = new THREE.MeshStandardMaterial({ color: 0xff3300, emissive: 0xff2200, emissiveIntensity: 0.7 });
                 const mesh = new THREE.Mesh(geo, mat);
                 mesh.position.copy(latLngToVec3(THREE, country.lat, country.lng, 1.05));
@@ -701,7 +701,7 @@ export default {
                 placeMarkers(THREE, globeScene.earthMesh, question);
                 // 日本へ即スナップ後に対象国へアニメーション
                 globeCurrentRotY = -((138.2 + 90) * Math.PI / 180);
-                globeCurrentRotX = (36.2 * Math.PI / 180) * 0.5;
+                globeCurrentRotX = (36.2 * Math.PI / 180) * 0.25;
                 globeTargetRotY = globeCurrentRotY;
                 globeTargetRotX = globeCurrentRotX;
                 setTimeout(() => setGlobeTarget(question.correct.lat, question.correct.lng), 600);
@@ -742,7 +742,7 @@ export default {
 
             // 日本へ即スナップ
             globeCurrentRotY = -((138.2 + 90) * Math.PI / 180);
-            globeCurrentRotX = (36.2 * Math.PI / 180) * 0.5;
+            globeCurrentRotX = (36.2 * Math.PI / 180) * 0.25;
             globeTargetRotY = globeCurrentRotY;
             globeTargetRotX = globeCurrentRotX;
 
@@ -912,6 +912,8 @@ export default {
                     if (progEl) progEl.textContent = `だい${mapQuestionCount + 1}もん / ${totalQuestions}もん`;
                     const b = container.querySelector('#map-answer-banner');
                     if (b) b.style.display = 'none';
+                    const nw = container.querySelector('#map-next-wrap');
+                    if (nw) nw.style.display = 'none';
                     mountGlobe(mapQuestion);
                 }
             };
@@ -919,7 +921,7 @@ export default {
             if (isCorrect) {
                 setTimeout(advanceQuestion, 2500);
             } else {
-                // 2.5秒後: 正解の国へ地球儀を回して「〇〇はここだよ」
+                // 2.5秒後: 正解の国へ地球儀を回して「〇〇はここだよ」を表示
                 setTimeout(() => {
                     setGlobeTarget(mapQuestion.correct.lat, mapQuestion.correct.lng);
                     const b = container.querySelector('#map-answer-banner');
@@ -927,8 +929,15 @@ export default {
                         b.textContent = `📍 ${mapQuestion.correct.name} はここだよ`;
                         b.style.background = 'rgba(59,130,246,0.92)';
                     }
-                    // さらに2.5秒後: 次の問題へ
-                    setTimeout(advanceQuestion, 2500);
+                    // 手動ボタンで次の問題へ
+                    const nextWrap = container.querySelector('#map-next-wrap');
+                    if (nextWrap) {
+                        nextWrap.style.display = 'block';
+                        container.querySelector('#map-next-btn').onclick = () => {
+                            nextWrap.style.display = 'none';
+                            advanceQuestion();
+                        };
+                    }
                 }, 2500);
             }
         };
@@ -1048,6 +1057,13 @@ export default {
                             style="flex:1; width:100%; display:block; touch-action:none; cursor:pointer;"></canvas>
                         <div id="globe-label-container"
                             style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:hidden;"></div>
+                        <div id="map-next-wrap"
+                            style="display:none;position:absolute;bottom:12px;left:50%;transform:translateX(-50%);z-index:20;">
+                            <button id="map-next-btn"
+                                style="background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;font-size:15px;font-weight:bold;padding:10px 28px;border:none;border-radius:30px;box-shadow:0 4px 14px rgba(0,0,0,0.35);cursor:pointer;white-space:nowrap;">
+                                つぎの もんだいへ →
+                            </button>
+                        </div>
                     </div>
                     <div class="map-legend">
                         <span style="color:#ff2244">● にほん</span>
