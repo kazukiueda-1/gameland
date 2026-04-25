@@ -318,6 +318,11 @@ export default {
         let globeTouchStartX = 0, globeTouchStartY = 0;
         let mapResizeHandler = null;
 
+        // ちずべんきょう用状態
+        let mapStudyMode = false;
+        let mapStudyIndex = 0;
+        let mapStudyCountries = [];
+
         // シャッフル関数
         const shuffle = (array) => {
             const arr = [...array];
@@ -331,7 +336,7 @@ export default {
         // 国旗画像URL
         const getFlagUrl = (code) => `https://flagcdn.com/w320/${code}.png`;
 
-        // そのレベルまでの国を取得（lat/lng付き）
+        // そのレベルまでの国を取得（lat/lng付き・累積）
         const getCountriesForLevel = (level) => {
             let countries = [];
             for (let i = 0; i <= level; i++) {
@@ -339,6 +344,10 @@ export default {
             }
             return countries.map(enrichCountry);
         };
+
+        // そのレベルのみの国を取得（累積なし・ちずべんきょう用）
+        const getCountriesForExactLevel = (level) =>
+            levels[level].map(enrichCountry);
 
         // 新しい問題を生成
         const generateQuestion = () => {
@@ -448,6 +457,7 @@ export default {
             container.style.maxHeight = '';
             container.style.height = '';
             mapMode = false;
+            mapStudyMode = false;
             showLevelSelect = true;
             showResult = false;
             studyMode = false;
@@ -1135,8 +1145,390 @@ export default {
 
         // ======= ちずクイズ関連ここまで =======
 
+        // ======= ちずべんきょう関連 =======
+
+        // 勉強モード用マーカーを配置
+        const placeStudyMarkers = (THREE, earthMesh, countries, focusIndex) => {
+            globeMarkerMeshes.forEach(m => earthMesh.remove(m));
+            globeMarkerMeshes = [];
+            [...earthMesh.children].filter(c => c.userData?.isJapan).forEach(c => earthMesh.remove(c));
+
+            // 日本参照マーカー（学習リストに日本が含まれない場合のみ追加）
+            const jpInStudy = countries.some(c => c.code === 'jp');
+            if (!jpInStudy) {
+                const jpGeo = new THREE.SphereGeometry(0.042, 16, 16);
+                const jpMat = new THREE.MeshLambertMaterial({ color: 0xff2244, emissive: 0xff2244, emissiveIntensity: 0.4 });
+                const jpMesh = new THREE.Mesh(jpGeo, jpMat);
+                jpMesh.position.copy(latLngToVec3(THREE, 36.2, 138.2));
+                jpMesh.userData = { isJapan: true };  // studyIndex なし → scale は別途処理
+                earthMesh.add(jpMesh);
+            }
+
+            // 各国マーカー
+            countries.forEach((c, idx) => {
+                const isFocus = idx === focusIndex;
+                const geo = new THREE.SphereGeometry(isFocus ? 0.055 : 0.032, 16, 16);
+                const mat = new THREE.MeshLambertMaterial({
+                    color: isFocus ? 0xffd700 : 0x44aaff,
+                    emissive: isFocus ? 0xaa8800 : 0x002255,
+                    emissiveIntensity: isFocus ? 0.5 : 0.2,
+                });
+                const mesh = new THREE.Mesh(geo, mat);
+                mesh.position.copy(latLngToVec3(THREE, c.lat, c.lng));
+                // 日本が学習リストにある場合は isJapan: true を付与（ラベル用）
+                mesh.userData = { studyIndex: idx, countryCode: c.code, isJapan: c.code === 'jp' };
+                earthMesh.add(mesh);
+                globeMarkerMeshes.push(mesh);
+            });
+
+            // 日本ラベル（isJapan なメッシュがあれば表示）
+            const labelContainer = container.querySelector('#globe-label-container');
+            if (labelContainer) {
+                labelContainer.innerHTML = '';
+                const jpDiv = document.createElement('div');
+                jpDiv.id = 'japan-map-label';
+                jpDiv.style.cssText = [
+                    'position:absolute',
+                    'transform:translateX(-50%)',
+                    'background:rgba(200,0,40,0.88)',
+                    'color:#fff',
+                    'font-size:11px',
+                    'font-weight:bold',
+                    'padding:2px 8px',
+                    'border-radius:10px',
+                    'white-space:nowrap',
+                    'pointer-events:none',
+                    'border:1.5px solid #ff2244',
+                    'text-shadow:0 1px 2px rgba(0,0,0,0.9)',
+                    'opacity:0',
+                ].join(';');
+                jpDiv.textContent = '日本';
+                labelContainer.appendChild(jpDiv);
+            }
+        };
+
+        // ◀ ▶ ボタンの disabled 状態を更新
+        const updateStudyNavBtns = () => {
+            const prev = container.querySelector('#study-prev-btn');
+            const next = container.querySelector('#study-next-btn');
+            if (prev) prev.disabled = mapStudyIndex === 0;
+            if (next) next.disabled = mapStudyIndex === mapStudyCountries.length - 1;
+        };
+
+        // マーカータップ or ◀▶ ボタンでフォーカス切り替え
+        const handleStudyMarkerTap = (idx) => {
+            if (!globeScene) return;
+            mapStudyIndex = idx;
+            const c = mapStudyCountries[idx];
+            const flag = container.querySelector('#study-map-flag');
+            const name = container.querySelector('#study-map-name');
+            const prog = container.querySelector('#study-map-progress');
+            if (flag) { flag.src = getFlagUrl(c.code); flag.style.display = ''; }
+            if (name) name.textContent = c.name;
+            if (prog) prog.textContent = `${idx + 1} / ${mapStudyCountries.length}`;
+            updateStudyNavBtns();
+            placeStudyMarkers(globeScene.THREE, globeScene.earthMesh, mapStudyCountries, idx);
+            setGlobeTarget(c.lat, c.lng);
+        };
+
+        // 地球儀を初期化（ちずべんきょう専用）
+        const mountMapStudyGlobe = async () => {
+            const canvasEl = container.querySelector('#globe-canvas');
+            if (!canvasEl) return;
+
+            const THREE = await loadThreeJS();
+            await loadTopojson();
+            const worldData = await fetchWorldData();
+
+            if (globeScene) cleanupGlobe();
+
+            const wrap = canvasEl.parentElement;
+            const W = wrap.clientWidth || 392;
+            const H = wrap.clientHeight || 300;
+
+            const renderer = new THREE.WebGLRenderer({ canvas: canvasEl, antialias: true, alpha: true });
+            renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+            renderer.setSize(W, H, false);
+            canvasEl.style.width = '100%';
+            canvasEl.style.height = '100%';
+
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(45, W / H, 0.1, 1000);
+            camera.position.set(0, 0, 3);
+            scene.add(new THREE.AmbientLight(0xffffff, 2.5));
+
+            const earthGeo = new THREE.SphereGeometry(1, 64, 64);
+            const mapCanvas = generateMapTexture(worldData);
+            const mapTexture = new THREE.CanvasTexture(mapCanvas);
+            const earthMat = new THREE.MeshLambertMaterial({ map: mapTexture });
+            const earthMesh = new THREE.Mesh(earthGeo, earthMat);
+            scene.add(earthMesh);
+
+            globeScene = { THREE, renderer, scene, camera, earthMesh, animFrameId: null };
+
+            // 最初のフォーカス国に即スナップ
+            const first = mapStudyCountries[mapStudyIndex];
+            globeCurrentRotY = -((first.lng + 90) * Math.PI / 180);
+            globeCurrentRotX = (first.lat * Math.PI / 180) * 0.25;
+            globeTargetRotY = globeCurrentRotY;
+            globeTargetRotX = globeCurrentRotX;
+
+            placeStudyMarkers(THREE, earthMesh, mapStudyCountries, mapStudyIndex);
+
+            // タッチ操作（1本指：回転、2本指：ピンチズーム）
+            let lastPinchDist = 0;
+            canvasEl.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 2) {
+                    lastPinchDist = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    globeIsDragging = true;
+                } else {
+                    globeTouchStartX = e.touches[0].clientX;
+                    globeTouchStartY = e.touches[0].clientY;
+                    globeIsDragging = false;
+                }
+            }, { passive: true });
+            canvasEl.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 2) {
+                    const dist = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    const delta = lastPinchDist - dist;
+                    globeScene.camera.position.z = Math.max(1.4, Math.min(5.5, globeScene.camera.position.z + delta * 0.012));
+                    lastPinchDist = dist;
+                    globeIsDragging = true;
+                } else if (e.touches.length === 1) {
+                    const dx = e.touches[0].clientX - globeTouchStartX;
+                    const dy = e.touches[0].clientY - globeTouchStartY;
+                    if (Math.hypot(dx, dy) > 5) globeIsDragging = true;
+                    globeTargetRotY += dx * 0.006;
+                    globeTargetRotX = Math.max(-0.8, Math.min(0.8, globeTargetRotX + dy * 0.006));
+                    globeTouchStartX = e.touches[0].clientX;
+                    globeTouchStartY = e.touches[0].clientY;
+                }
+            }, { passive: true });
+
+            let mouseDown = false, lastMouseX = 0, lastMouseY = 0;
+            canvasEl.addEventListener('mousedown', (e) => {
+                mouseDown = true; lastMouseX = e.clientX; lastMouseY = e.clientY;
+                globeIsDragging = false;
+            });
+            canvasEl.addEventListener('mousemove', (e) => {
+                if (!mouseDown) return;
+                const dx = e.clientX - lastMouseX, dy = e.clientY - lastMouseY;
+                if (Math.hypot(dx, dy) > 3) globeIsDragging = true;
+                globeTargetRotY += dx * 0.006;
+                globeTargetRotX = Math.max(-0.8, Math.min(0.8, globeTargetRotX + dy * 0.006));
+                lastMouseX = e.clientX; lastMouseY = e.clientY;
+            });
+            canvasEl.addEventListener('mouseup', () => { mouseDown = false; });
+            canvasEl.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                globeScene.camera.position.z = Math.max(1.4, Math.min(5.5, globeScene.camera.position.z + e.deltaY * 0.004));
+            }, { passive: false });
+
+            // タップ → フォーカス切り替え
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2();
+            const onInteract = (e) => {
+                if (globeIsDragging) { globeIsDragging = false; return; }
+                const pt = e.changedTouches ? e.changedTouches[0] : e;
+                const rect = canvasEl.getBoundingClientRect();
+                mouse.x =  ((pt.clientX - rect.left) / rect.width)  * 2 - 1;
+                mouse.y = -((pt.clientY - rect.top)  / rect.height) * 2 + 1;
+                raycaster.setFromCamera(mouse, camera);
+                const hits = raycaster.intersectObjects(globeMarkerMeshes);
+                if (hits.length) {
+                    const idx = hits[0].object.userData.studyIndex;
+                    if (idx !== undefined) handleStudyMarkerTap(idx);
+                }
+            };
+            canvasEl.addEventListener('click', onInteract);
+            canvasEl.addEventListener('touchend', onInteract, { passive: true });
+
+            // アニメーションループ
+            const tick = () => {
+                globeScene.animFrameId = requestAnimationFrame(tick);
+                globeCurrentRotY += (globeTargetRotY - globeCurrentRotY) * 0.05;
+                globeCurrentRotX += (globeTargetRotX - globeCurrentRotX) * 0.05;
+                earthMesh.rotation.y = globeCurrentRotY;
+                earthMesh.rotation.x = globeCurrentRotX;
+                const zoomScale = camera.position.z / 3;
+                const t = Date.now() * 0.005;
+                // フォーカスマーカーは点滅、その他は固定サイズ
+                globeMarkerMeshes.forEach(m => {
+                    const isFocus = m.userData.studyIndex === mapStudyIndex;
+                    m.scale.setScalar(isFocus ? zoomScale * (1 + 0.25 * Math.sin(t)) : zoomScale);
+                });
+                // 日本参照マーカー（学習リスト外の場合）をスケール調整
+                earthMesh.children
+                    .filter(c => c.userData?.isJapan && c.userData?.studyIndex === undefined)
+                    .forEach(m => m.scale.setScalar(zoomScale));
+                updateMarkerLabels(camera);
+                renderer.render(scene, camera);
+            };
+            tick();
+        };
+
+        // ちずべんきょう 画面描画
+        const renderMapStudyMode = () => {
+            const n = mapStudyCountries.length;
+            if (n === 0) return;
+            const c = mapStudyCountries[mapStudyIndex];
+            container.innerHTML = `
+                <style>
+                    .map-study-container {
+                        width: 100%;
+                        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+                        display: flex;
+                        flex-direction: column;
+                        position: relative;
+                        overflow: hidden;
+                    }
+                    .map-study-header {
+                        background: rgba(255,255,255,0.95);
+                        padding: 10px 15px;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        box-shadow: 0 2px 15px rgba(0,0,0,0.3);
+                        flex-shrink: 0;
+                    }
+                    .map-study-back-btn {
+                        background: none; border: none; font-size: 14px;
+                        color: #666; font-weight: bold; cursor: pointer; padding: 4px 8px;
+                    }
+                    .map-study-title { font-size: 18px; font-weight: 900; color: #1a1a2e; }
+                    .map-study-progress {
+                        background: linear-gradient(135deg, #fbbf24, #f59e0b);
+                        color: white; padding: 5px 12px; border-radius: 15px;
+                        font-weight: bold; font-size: 14px; min-width: 56px; text-align: center;
+                    }
+                    .map-study-globe-wrap {
+                        flex: 1; display: flex; flex-direction: column;
+                        position: relative; min-height: 100px;
+                        overflow: hidden;
+                    }
+                    .map-study-panel {
+                        background: rgba(255,255,255,0.96);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 14px;
+                        padding: 10px 20px;
+                        flex-shrink: 0;
+                    }
+                    .study-flag-img {
+                        width: 64px; height: auto;
+                        border-radius: 6px; border: 2px solid #e5e7eb;
+                        box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+                        flex-shrink: 0;
+                    }
+                    .study-country-name {
+                        font-size: 26px; font-weight: 900;
+                        color: #1a1a2e; letter-spacing: 0.02em;
+                    }
+                    .map-study-nav {
+                        background: rgba(255,255,255,0.92);
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        padding: 8px 20px;
+                        flex-shrink: 0;
+                        border-top: 1px solid rgba(0,0,0,0.08);
+                    }
+                    .study-nav-btn {
+                        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+                        color: white; border: none; border-radius: 25px;
+                        font-size: 15px; font-weight: bold;
+                        padding: 10px 24px; cursor: pointer;
+                        box-shadow: 0 3px 10px rgba(59,130,246,0.4);
+                        transition: opacity 0.15s;
+                    }
+                    .study-nav-btn:disabled {
+                        background: #d1d5db; color: #9ca3af;
+                        box-shadow: none; cursor: default;
+                    }
+                    .study-nav-btn:not(:disabled):active { opacity: 0.75; }
+                    .map-study-legend {
+                        background: rgba(0,0,0,0.5); padding: 4px 14px;
+                        display: flex; gap: 16px; justify-content: center;
+                        font-size: 12px; color: white; font-weight: bold;
+                        flex-shrink: 0;
+                    }
+                </style>
+                <div class="map-study-container">
+                    <div class="map-study-header">
+                        <button class="map-study-back-btn" id="map-study-back-btn">✕ もどる</button>
+                        <span class="map-study-title">🗺 ちずべんきょう</span>
+                        <span class="map-study-progress" id="study-map-progress">${mapStudyIndex + 1} / ${n}</span>
+                    </div>
+                    <div class="map-study-globe-wrap">
+                        <canvas id="globe-canvas"
+                            style="flex:1; width:100%; display:block; touch-action:none; cursor:pointer;"></canvas>
+                        <div id="globe-label-container"
+                            style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:hidden;"></div>
+                    </div>
+                    <div class="map-study-panel">
+                        <img id="study-map-flag" src="${getFlagUrl(c.code)}" class="study-flag-img"
+                            onerror="this.style.display='none'" />
+                        <div id="study-map-name" class="study-country-name">${c.name}</div>
+                    </div>
+                    <div class="map-study-nav">
+                        <button class="study-nav-btn" id="study-prev-btn" ${mapStudyIndex === 0 ? 'disabled' : ''}>◀ まえ</button>
+                        <button class="study-nav-btn" id="study-next-btn" ${mapStudyIndex === n - 1 ? 'disabled' : ''}>つぎ ▶</button>
+                    </div>
+                    <div class="map-study-legend">
+                        <span style="color:#ffd700">● いまみてる くに</span>
+                        <span style="color:#44aaff">● ほかの くに（タップで いどう）</span>
+                    </div>
+                </div>
+            `;
+
+            container.querySelector('#map-study-back-btn').addEventListener('click', backToLevelSelect);
+            container.querySelector('#study-prev-btn').addEventListener('click', () => {
+                if (mapStudyIndex > 0) handleStudyMarkerTap(mapStudyIndex - 1);
+            });
+            container.querySelector('#study-next-btn').addEventListener('click', () => {
+                if (mapStudyIndex < mapStudyCountries.length - 1) handleStudyMarkerTap(mapStudyIndex + 1);
+            });
+
+            // 高さ調整（iOS Safariの100vhバグ対策）
+            const applyStudyHeight = () => {
+                const mc = container.querySelector('.map-study-container');
+                if (!mc) return;
+                const nav = document.querySelector('nav') || document.querySelector('header');
+                const navH = nav ? nav.getBoundingClientRect().height : 0;
+                const h = window.innerHeight - navH;
+                mc.style.height = h + 'px';
+                container.style.minHeight = h + 'px';
+                container.style.maxHeight = h + 'px';
+            };
+            applyStudyHeight();
+            if (mapResizeHandler) window.removeEventListener('resize', mapResizeHandler);
+            mapResizeHandler = applyStudyHeight;
+            window.addEventListener('resize', mapResizeHandler);
+        };
+
+        // ちずべんきょう モード起動
+        const startMapStudyMode = (level) => {
+            currentLevel = level;
+            mapStudyMode = true;
+            mapStudyIndex = 0;
+            mapStudyCountries = getCountriesForExactLevel(level);
+            showLevelSelect = false;
+            render();
+            mountMapStudyGlobe();
+        };
+
+        // ======= ちずべんきょう関連ここまで =======
+
         // 描画
         const render = () => {
+            if (mapStudyMode) { renderMapStudyMode(); return; }
             if (mapMode) { renderMapMode(); return; }
             container.innerHTML = `
                 <style>
@@ -1386,7 +1778,7 @@ export default {
 
                     .level-card-actions {
                         display: grid;
-                        grid-template-columns: 1fr 1fr 1fr;
+                        grid-template-columns: 1fr 1fr;
                         border-top: 1px solid #f3f4f6;
                     }
 
@@ -1410,6 +1802,7 @@ export default {
                         font-weight: bold;
                         color: #7c3aed;
                         cursor: pointer;
+                        border-top: 1px solid #f3f4f6;
                         border-right: 1px solid #f3f4f6;
                         transition: opacity 0.15s;
                     }
@@ -1423,9 +1816,23 @@ export default {
                         color: #1d4ed8;
                         cursor: pointer;
                         transition: opacity 0.15s;
+                        border-top: 1px solid #f3f4f6;
                     }
 
-                    .level-study-btn:active, .level-quiz-btn:active, .level-map-btn:active {
+                    .level-map-study-btn {
+                        background: linear-gradient(135deg, #fefce8, #fef9c3);
+                        border: none;
+                        padding: 11px 4px;
+                        font-size: 13px;
+                        font-weight: bold;
+                        color: #92400e;
+                        cursor: pointer;
+                        border-left: 1px solid #f3f4f6;
+                        border-top: 1px solid #f3f4f6;
+                        transition: opacity 0.15s;
+                    }
+
+                    .level-study-btn:active, .level-quiz-btn:active, .level-map-btn:active, .level-map-study-btn:active {
                         opacity: 0.7;
                     }
 
@@ -1768,8 +2175,9 @@ export default {
                                         </div>
                                         <div class="level-card-actions">
                                             <button class="level-study-btn" data-level="${i}">📖 べんきょう</button>
+                                            <button class="level-map-study-btn" data-level="${i}">🗺 ちずべんきょう</button>
                                             <button class="level-quiz-btn" data-level="${i}">🎮 クイズ</button>
-                                            <button class="level-map-btn" data-level="${i}">🌍 ちず</button>
+                                            <button class="level-map-btn" data-level="${i}">🌍 ちずクイズ</button>
                                         </div>
                                     </div>
                                 `).join('')}
@@ -1908,6 +2316,13 @@ export default {
                 btn.addEventListener('click', () => {
                     const level = parseInt(btn.dataset.level);
                     startMapMode(level);
+                });
+            });
+
+            container.querySelectorAll('.level-map-study-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const level = parseInt(btn.dataset.level);
+                    startMapStudyMode(level);
                 });
             });
 
