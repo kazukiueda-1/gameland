@@ -144,20 +144,26 @@ export default {
         const playCorrectSound = () => {
             try {
                 const ctx = getCtx();
-                // 明るい上昇アルペジオ C-E-G-C
-                [523.25, 659.25, 783.99, 1046.5].forEach((freq, i) => {
+                // ピンポン ピンポーン（高→低 高→低↓長め）
+                const notes = [
+                    { freq: 880,  t: 0.00, dur: 0.18 }, // ピン
+                    { freq: 587,  t: 0.22, dur: 0.18 }, // ポン
+                    { freq: 880,  t: 0.48, dur: 0.18 }, // ピン
+                    { freq: 587,  t: 0.70, dur: 0.55 }, // ポーン（余韻）
+                ];
+                notes.forEach(({ freq, t, dur }) => {
                     const osc = ctx.createOscillator();
                     const gain = ctx.createGain();
                     osc.connect(gain);
                     gain.connect(ctx.destination);
                     osc.type = 'sine';
                     osc.frequency.value = freq;
-                    const t = ctx.currentTime + i * 0.13;
-                    gain.gain.setValueAtTime(0, t);
-                    gain.gain.linearRampToValueAtTime(0.45, t + 0.03);
-                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
-                    osc.start(t);
-                    osc.stop(t + 0.3);
+                    const start = ctx.currentTime + t;
+                    gain.gain.setValueAtTime(0, start);
+                    gain.gain.linearRampToValueAtTime(0.55, start + 0.02);
+                    gain.gain.exponentialRampToValueAtTime(0.001, start + dur);
+                    osc.start(start);
+                    osc.stop(start + dur + 0.05);
                 });
             } catch (_) {}
         };
@@ -165,18 +171,18 @@ export default {
         const playWrongSound = () => {
             try {
                 const ctx = getCtx();
-                // 低い下降ブザー
+                // ブー（低い矩形波ブザー）
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
                 osc.connect(gain);
                 gain.connect(ctx.destination);
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(280, ctx.currentTime);
-                osc.frequency.linearRampToValueAtTime(130, ctx.currentTime + 0.45);
-                gain.gain.setValueAtTime(0.35, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+                osc.type = 'square';
+                osc.frequency.value = 160;
+                gain.gain.setValueAtTime(0.38, ctx.currentTime);
+                gain.gain.setValueAtTime(0.38, ctx.currentTime + 0.55);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.65);
                 osc.start(ctx.currentTime);
-                osc.stop(ctx.currentTime + 0.5);
+                osc.stop(ctx.currentTime + 0.68);
             } catch (_) {}
         };
 
@@ -392,13 +398,15 @@ export default {
                     const chosen = q.choices[parseInt(btn.dataset.cidx)];
                     const correct = chosen.en === q.word.en;
 
-                    // ① 選択肢の英語を読み上げ → 読み上げ終了後にサウンド
+                    // ① 選択肢の英語を読み上げ → 少し間を置いてサウンド
                     speakThen(chosen.en, () => {
-                        if (correct) {
-                            playCorrectSound();
-                        } else {
-                            playWrongSound();
-                        }
+                        setTimeout(() => {
+                            if (correct) {
+                                playCorrectSound();
+                            } else {
+                                playWrongSound();
+                            }
+                        }, 450); // 読み上げ完了後 450ms の間
                     });
 
                     // ② 即座にボーダー色フィードバック
