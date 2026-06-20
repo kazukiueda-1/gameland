@@ -106,5 +106,14 @@
         "file": "flag_quiz_v1.js",
         "color": "purple-400",
         "category": "study"
+    },
+    {
+        "id": "english_picture_01",
+        "title": "えいごえクイズ",
+        "desc": "えいごをきいて えをえらぼう！",
+        "icon": "🔤",
+        "file": "english_picture_v1.js",
+        "color": "violet-400",
+        "category": "study"
     }
 ]
