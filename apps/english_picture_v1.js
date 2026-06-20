@@ -117,6 +117,69 @@ export default {
             window.speechSynthesis.speak(utt);
         };
 
+        // 選択肢を読み上げてから callback を呼ぶ
+        const speakThen = (text, callback) => {
+            window.speechSynthesis.cancel();
+            const utt = new SpeechSynthesisUtterance(text);
+            utt.lang = 'en-US';
+            utt.rate = 0.75;
+            utt.pitch = 1.1;
+            const v = voices.find(v => v.lang === 'en-US') || voices.find(v => v.lang.startsWith('en'));
+            if (v) utt.voice = v;
+            let done = false;
+            const finish = () => { if (!done) { done = true; callback(); } };
+            utt.onend = finish;
+            // onend が発火しないブラウザ向けフォールバック
+            setTimeout(finish, Math.max(700, text.split(' ').length * 450));
+            window.speechSynthesis.speak(utt);
+        };
+
+        // ─── Web Audio サウンド ──────────────────────────────────────────────
+        let audioCtx = null;
+        const getCtx = () => {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            return audioCtx;
+        };
+
+        const playCorrectSound = () => {
+            try {
+                const ctx = getCtx();
+                // 明るい上昇アルペジオ C-E-G-C
+                [523.25, 659.25, 783.99, 1046.5].forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+                    const t = ctx.currentTime + i * 0.13;
+                    gain.gain.setValueAtTime(0, t);
+                    gain.gain.linearRampToValueAtTime(0.45, t + 0.03);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
+                    osc.start(t);
+                    osc.stop(t + 0.3);
+                });
+            } catch (_) {}
+        };
+
+        const playWrongSound = () => {
+            try {
+                const ctx = getCtx();
+                // 低い下降ブザー
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(280, ctx.currentTime);
+                osc.frequency.linearRampToValueAtTime(130, ctx.currentTime + 0.45);
+                gain.gain.setValueAtTime(0.35, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + 0.5);
+            } catch (_) {}
+        };
+
         // ─── Helpers ────────────────────────────────────────────────────────
         const shuffle = arr => [...arr].sort(() => Math.random() - 0.5);
 
@@ -329,39 +392,52 @@ export default {
                     const chosen = q.choices[parseInt(btn.dataset.cidx)];
                     const correct = chosen.en === q.word.en;
 
-                    // Visual feedback on all buttons
+                    // ① 選択肢の英語を読み上げ → 読み上げ終了後にサウンド
+                    speakThen(chosen.en, () => {
+                        if (correct) {
+                            playCorrectSound();
+                        } else {
+                            playWrongSound();
+                        }
+                    });
+
+                    // ② 即座にボーダー色フィードバック
                     choiceBtns.forEach((b, i) => {
                         const word = q.choices[i];
                         if (word.en === q.word.en) {
                             b.classList.add('correct');
-                        } else if (b === btn) {
+                        } else if (b === btn && !correct) {
                             b.classList.add('wrong');
                         }
                     });
 
+                    showFeedback(correct);
+
                     if (correct) {
                         score += 10;
                         system.addScore(10);
-                        system.playSound('correct');
+                        system.logQuizResult('えいごえクイズ', q.word.en, true, {
+                            genre: genre.id, chosen: chosen.en,
+                        });
+                        // ③ 正解 → 次の問題へ
+                        setTimeout(() => {
+                            qIdx++;
+                            locked = false;
+                            if (qIdx >= questions.length) phase = 'result';
+                            render();
+                        }, 1800);
                     } else {
-                        system.playSound('wrong');
+                        system.logQuizResult('えいごえクイズ', q.word.en, false, {
+                            genre: genre.id, chosen: chosen.en,
+                        });
+                        // ④ 不正解 → 正解を見せてからリトライ（同じ問題）
+                        setTimeout(() => {
+                            choiceBtns.forEach(b => b.classList.remove('correct', 'wrong'));
+                            locked = false;
+                            // 問題の英語をもう一度読み上げてリトライ促す
+                            setTimeout(() => speak(q.word.en), 200);
+                        }, 2000);
                     }
-
-                    system.logQuizResult('えいごえクイズ', q.word.en, correct, {
-                        genre: genre.id,
-                        chosen: chosen.en,
-                    });
-
-                    showFeedback(correct);
-
-                    setTimeout(() => {
-                        qIdx++;
-                        locked = false;
-                        if (qIdx >= questions.length) {
-                            phase = 'result';
-                        }
-                        render();
-                    }, 1500);
                 };
             });
         };
@@ -452,6 +528,7 @@ export default {
         return () => {
             window.speechSynthesis.cancel();
             window.speechSynthesis.onvoiceschanged = null;
+            audioCtx?.close();
         };
     }
 };
