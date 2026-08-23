@@ -1,5 +1,14 @@
 [
     {
+        "id": "nutrition_01",
+        "title": "もぐもぐえいよう",
+        "desc": "たべものは からだで はたらくよ",
+        "icon": "🍱",
+        "file": "nutrition_v1.js",
+        "color": "red-400",
+        "category": "study"
+    },
+    {
         "id": "animal_food_01",
         "title": "どうぶつのごはん",
         "desc": "どうぶつは なにをたべる？",
