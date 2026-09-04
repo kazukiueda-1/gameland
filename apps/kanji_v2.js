@@ -41,7 +41,7 @@ export default {
         // 1b. 二字熟語データ (1年生の漢字のみで構成 / 全80語)
         //     j: 熟語, r: 読み
         // ---------------------------------------------------------
-        const jukugoData = [
+        const jukugoData1 = [
             // レベル1: しぜん
             {j:"天気", r:"てんき", m:"はれやくもりなど そらのようす"},
             {j:"空気", r:"くうき", m:"めにみえないけど まわりにあるもの"},
@@ -133,6 +133,100 @@ export default {
         ];
 
         // ---------------------------------------------------------
+        // 1d. 二字熟語データ (2年生) / 1・2年生の漢字のみで構成 / 全80語
+        // ---------------------------------------------------------
+        const jukugoData2 = [
+            // レベル1: じかん
+            {j:"今日", r:"きょう", m:"いま すごしている この ひ"},
+            {j:"明日", r:"あした", m:"きょうの つぎの ひ"},
+            {j:"毎日", r:"まいにち", m:"どの ひも いつも"},
+            {j:"毎朝", r:"まいあさ", m:"どの あさも いつも"},
+            {j:"午前", r:"ごぜん", m:"よるの12じから ひるの12じまで"},
+            {j:"午後", r:"ごご", m:"ひるの12じから よるの12じまで"},
+            {j:"時間", r:"じかん", m:"とけいで はかる ながさ"},
+            {j:"曜日", r:"ようび", m:"げつ・か・すい…などの ひの なまえ"},
+            {j:"今週", r:"こんしゅう", m:"いま すごしている しゅう"},
+            {j:"来週", r:"らいしゅう", m:"こんしゅうの つぎの しゅう"},
+            // レベル2: しぜん・てんき
+            {j:"星空", r:"ほしぞら", m:"ほしが たくさん みえる そら"},
+            {j:"夜空", r:"よぞら", m:"よるの そら"},
+            {j:"雨雲", r:"あまぐも", m:"あめを ふらせる くろい くも"},
+            {j:"大雪", r:"おおゆき", m:"たくさん ふる ゆき"},
+            {j:"台風", r:"たいふう", m:"つよい かぜと あめを つれてくるもの"},
+            {j:"北風", r:"きたかぜ", m:"きたから ふく つめたい かぜ"},
+            {j:"春風", r:"はるかぜ", m:"はるに ふく あたたかい かぜ"},
+            {j:"野原", r:"のはら", m:"くさが はえた ひろい ところ"},
+            {j:"山道", r:"やまみち", m:"やまの なかの みち"},
+            {j:"日光", r:"にっこう", m:"おひさまの ひかり"},
+            // レベル3: ばしょ・ほうがく
+            {j:"東西", r:"とうざい", m:"ひがしと にし"},
+            {j:"南北", r:"なんぼく", m:"みなみと きた"},
+            {j:"東京", r:"とうきょう", m:"にほんの しゅと おおきな まち"},
+            {j:"方角", r:"ほうがく", m:"ひがし・にし・みなみ・きた の むき"},
+            {j:"近道", r:"ちかみち", m:"はやく つく ちかい みち"},
+            {j:"遠足", r:"えんそく", m:"がっこうから みんなで でかける ぎょうじ"},
+            {j:"公園", r:"こうえん", m:"みんなで あそべる ひろい ところ"},
+            {j:"会社", r:"かいしゃ", m:"おとなが はたらく ところ"},
+            {j:"市場", r:"いちば", m:"やさいや さかなを うる ところ"},
+            {j:"歩道", r:"ほどう", m:"ひとが あるく ための みち"},
+            // レベル4: かぞく・ひと
+            {j:"親子", r:"おやこ", m:"おやと こども"},
+            {j:"兄弟", r:"きょうだい", m:"おにいさんと おとうと"},
+            {j:"姉妹", r:"しまい", m:"おねえさんと いもうと"},
+            {j:"親友", r:"しんゆう", m:"とても なかの よい ともだち"},
+            {j:"父親", r:"ちちおや", m:"おとうさん"},
+            {j:"母親", r:"ははおや", m:"おかあさん"},
+            {j:"少年", r:"しょうねん", m:"おとこの こども"},
+            {j:"少女", r:"しょうじょ", m:"おんなの こども"},
+            {j:"自分", r:"じぶん", m:"わたし じぶん じしん"},
+            {j:"一家", r:"いっか", m:"ひとつの かぞく みんな"},
+            // レベル5: からだ・きもち
+            {j:"元気", r:"げんき", m:"からだも こころも つよく あかるいこと"},
+            {j:"体力", r:"たいりょく", m:"からだの つよさ ちから"},
+            {j:"手首", r:"てくび", m:"てと うでの あいだの ほそいところ"},
+            {j:"大声", r:"おおごえ", m:"おおきな こえ"},
+            {j:"小声", r:"こごえ", m:"ちいさな こえ"},
+            {j:"音楽", r:"おんがく", m:"うたや がっきの おと"},
+            {j:"気分", r:"きぶん", m:"そのときの こころの ようす"},
+            {j:"先頭", r:"せんとう", m:"いちばん まえ"},
+            {j:"顔色", r:"かおいろ", m:"かおの いろ げんきかどうか わかる"},
+            {j:"中心", r:"ちゅうしん", m:"まんなかの ところ"},
+            // レベル6: がっこう・べんきょう
+            {j:"教室", r:"きょうしつ", m:"べんきょうを する へや"},
+            {j:"国語", r:"こくご", m:"ことばや ぶんしょうの べんきょう"},
+            {j:"算数", r:"さんすう", m:"かずや けいさんの べんきょう"},
+            {j:"理科", r:"りか", m:"しぜんや いきものの べんきょう"},
+            {j:"図工", r:"ずこう", m:"えを かいたり ものを つくる べんきょう"},
+            {j:"生活", r:"せいかつ", m:"まいにちの くらし"},
+            {j:"読書", r:"どくしょ", m:"ほんを よむこと"},
+            {j:"作文", r:"さくぶん", m:"じぶんで ぶんしょうを かくこと"},
+            {j:"日記", r:"にっき", m:"そのひの できごとを かくもの"},
+            {j:"計算", r:"けいさん", m:"たしざんや ひきざんを すること"},
+            // レベル7: たべもの・どうぶつ
+            {j:"牛肉", r:"ぎゅうにく", m:"うしの おにく"},
+            {j:"麦茶", r:"むぎちゃ", m:"むぎで つくった おちゃ"},
+            {j:"白米", r:"はくまい", m:"しろく した おこめ ごはん"},
+            {j:"朝食", r:"ちょうしょく", m:"あさごはん"},
+            {j:"昼食", r:"ちゅうしょく", m:"ひるごはん"},
+            {j:"夕食", r:"ゆうしょく", m:"ばんごはん"},
+            {j:"金魚", r:"きんぎょ", m:"あかくて きれいな かいやすい さかな"},
+            {j:"小鳥", r:"ことり", m:"ちいさな とり"},
+            {j:"白鳥", r:"はくちょう", m:"しろくて おおきな とり"},
+            {j:"子馬", r:"こうま", m:"うまの こども"},
+            // レベル8: のりもの・どうぐ・そのほか
+            {j:"電車", r:"でんしゃ", m:"せんろを はしる のりもの"},
+            {j:"汽車", r:"きしゃ", m:"けむりを だして はしる むかしの でんしゃ"},
+            {j:"電話", r:"でんわ", m:"とおくの ひとと はなす どうぐ"},
+            {j:"風船", r:"ふうせん", m:"くうきを いれて ふくらます おもちゃ"},
+            {j:"新聞", r:"しんぶん", m:"まいにちの ニュースが のっている かみ"},
+            {j:"絵本", r:"えほん", m:"えが たくさん ある ほん"},
+            {j:"工作", r:"こうさく", m:"かみや きで ものを つくること"},
+            {j:"交通", r:"こうつう", m:"くるまや でんしゃの ゆきき"},
+            {j:"売店", r:"ばいてん", m:"おかしなどを うる ちいさな おみせ"},
+            {j:"半分", r:"はんぶん", m:"ふたつに わけた かたほう"}
+        ];
+
+        // ---------------------------------------------------------
         // 1c. 小学2年生の漢字 160字
         // ---------------------------------------------------------
         const kanjiData2 = [
@@ -206,19 +300,35 @@ export default {
         // 2. 状態管理
         // ---------------------------------------------------------
         const QUESTIONS_PER_LEVEL = 10;
-        const NUM_JUKUGO_LEVELS = Math.ceil(jukugoData.length / QUESTIONS_PER_LEVEL);
 
         const getKanjiData = () => grade === '1' ? kanjiData : kanjiData2;
+        const getJukugoData = () => grade === '1' ? jukugoData1 : jukugoData2;
         const getNumLevels = () => Math.ceil(getKanjiData().length / QUESTIONS_PER_LEVEL);
+        const getNumJukugoLevels = () => Math.ceil(getJukugoData().length / QUESTIONS_PER_LEVEL);
 
         let currentLevel = 0;
         let grade = '1'; // '1' or '2'
-        let category = 'kanji'; // 'kanji' or 'jukugo'
-        let quizMode = 'reading'; // 'reading', 'kanji', or 'jukugo'
+        let category = 'kanji'; // 'kanji' | 'jukugo' | 'write'
+        let quizMode = 'reading'; // 'reading' | 'kanji' | 'jukugo' | 'trace' | 'write'
+        let jukugoInputMode = 'choice'; // 'choice'(せんたくしあり) | 'input'(せんたくしなし)
         let quizQuestions = [];
         let quizIndex = 0;
         let score = 0;
         let hasMistaken = false;
+
+        // かきとり用の状態
+        let strokeLib = null;    // 筆順データ (遅延読み込み)
+        let writeQuestions = []; // かきとりの出題リスト
+        let writeIndex = 0;
+        let padStrokes = [];     // 書いた線 (0〜1 に正規化した座標)
+        let padRelayout = null;  // { el, fn } 画面リサイズ時にキャンバスを描き直す
+
+        // 画面サイズが変わったらキャンバスを作り直す
+        const onResize = () => {
+            if (padRelayout && container.contains(padRelayout.el)) padRelayout.fn();
+            else padRelayout = null;
+        };
+        window.addEventListener('resize', onResize);
 
         // ---------------------------------------------------------
         // 3. ユーティリティ関数
@@ -366,7 +476,7 @@ export default {
         const generateJukugoChoices = (q) => {
             const usedReadings = new Set([q.r]);
             const distractors = [];
-            const cands = shuffle(jukugoData.filter(j => j.r !== q.r));
+            const cands = shuffle(getJukugoData().filter(j => j.r !== q.r));
             for (const c of cands) {
                 if (!usedReadings.has(c.r)) {
                     distractors.push(c);
@@ -383,9 +493,14 @@ export default {
 
         // ★ レベル選択画面
         const renderLevelSelect = () => {
+            padRelayout = null;
             const isJukugo = category === 'jukugo';
-            const numLevels = isJukugo ? NUM_JUKUGO_LEVELS : getNumLevels();
-            const btnColor = isJukugo ? 'bg-pink-400 hover:bg-pink-500' : (grade === '2' ? 'bg-blue-400 hover:bg-blue-500' : 'bg-orange-400 hover:bg-orange-500');
+            const isWrite = category === 'write';
+            const numLevels = isJukugo ? getNumJukugoLevels() : getNumLevels();
+            const btnColor = isJukugo ? 'bg-pink-400 hover:bg-pink-500'
+                : isWrite ? 'bg-teal-400 hover:bg-teal-500'
+                : (grade === '2' ? 'bg-blue-400 hover:bg-blue-500' : 'bg-orange-400 hover:bg-orange-500');
+            const activeGradeCls = isJukugo ? 'bg-pink-400' : isWrite ? 'bg-teal-400' : 'bg-orange-400';
 
             let buttonsHtml = '';
             for (let i = 0; i < numLevels; i++) {
@@ -396,22 +511,8 @@ export default {
                 `;
             }
 
-            const gradeTabsHtml = !isJukugo ? `
-                <div class="flex gap-2 mb-2">
-                    <button class="grade-tab px-3 py-1 rounded-full font-bold text-sm transition ${grade === '1' ? 'bg-orange-400 text-white shadow' : 'bg-gray-200 text-gray-400'}" data-grade="1">
-                        1ねんせい
-                    </button>
-                    <button class="grade-tab px-3 py-1 rounded-full font-bold text-sm transition ${grade === '2' ? 'bg-blue-400 text-white shadow' : 'bg-gray-200 text-gray-400'}" data-grade="2">
-                        2ねんせい
-                    </button>
-                </div>
-            ` : `
-                <div class="flex gap-2 mb-2">
-                    <span class="px-3 py-1 rounded-full font-bold text-sm bg-pink-400 text-white shadow">
-                        1ねんせい
-                    </span>
-                </div>
-            `;
+            const gradeCls = (g) => grade === g ? `${activeGradeCls} text-white shadow` : 'bg-gray-200 text-gray-400';
+            const catCls = (c, color) => category === c ? `${color} text-white shadow` : 'bg-gray-200 text-gray-400';
 
             container.innerHTML = `
                 <div class="h-full flex flex-col items-center justify-center p-3">
@@ -420,20 +521,32 @@ export default {
                     <h2 class="text-xl md:text-2xl font-black text-blue-500 mb-1 text-center">かんじマスター</h2>
 
                     <div class="flex gap-2 mb-2">
-                        <button class="cat-tab px-4 py-1.5 rounded-full font-bold text-sm transition ${category === 'kanji' ? 'bg-orange-400 text-white shadow' : 'bg-gray-200 text-gray-400'}" data-cat="kanji">
+                        <button class="cat-tab px-4 py-1.5 rounded-full font-bold text-sm transition ${catCls('kanji', 'bg-orange-400')}" data-cat="kanji">
                             かんじ
                         </button>
-                        <button class="cat-tab px-4 py-1.5 rounded-full font-bold text-sm transition ${category === 'jukugo' ? 'bg-pink-400 text-white shadow' : 'bg-gray-200 text-gray-400'}" data-cat="jukugo">
+                        <button class="cat-tab px-4 py-1.5 rounded-full font-bold text-sm transition ${catCls('jukugo', 'bg-pink-400')}" data-cat="jukugo">
                             じゅくご
+                        </button>
+                        <button class="cat-tab px-4 py-1.5 rounded-full font-bold text-sm transition ${catCls('write', 'bg-teal-400')}" data-cat="write">
+                            かきとり
                         </button>
                     </div>
 
-                    ${gradeTabsHtml}
+                    <div class="flex gap-2 mb-2">
+                        <button class="grade-tab px-3 py-1 rounded-full font-bold text-sm transition ${gradeCls('1')}" data-grade="1">
+                            1ねんせい
+                        </button>
+                        <button class="grade-tab px-3 py-1 rounded-full font-bold text-sm transition ${gradeCls('2')}" data-grade="2">
+                            2ねんせい
+                        </button>
+                    </div>
 
                     <p class="text-gray-500 font-bold mb-3 text-xs">どの レベル に チャレンジ する？</p>
 
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 w-full max-w-2xl">
-                        ${buttonsHtml}
+                    <div class="w-full max-w-2xl overflow-y-auto min-h-0">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 pb-2">
+                            ${buttonsHtml}
+                        </div>
                     </div>
                 </div>
             `;
@@ -442,12 +555,14 @@ export default {
             container.querySelectorAll('.cat-tab').forEach(btn => {
                 btn.onclick = () => {
                     category = btn.dataset.cat;
+                    currentLevel = 0;
                     renderLevelSelect();
                 };
             });
             container.querySelectorAll('.grade-tab').forEach(btn => {
                 btn.onclick = () => {
                     grade = btn.dataset.grade;
+                    currentLevel = 0;
                     renderLevelSelect();
                 };
             });
@@ -461,16 +576,45 @@ export default {
 
         // ★ モード選択画面
         const renderModeSelect = () => {
+            padRelayout = null;
             const isJukugo = category === 'jukugo';
-            const titleColor = isJukugo ? 'text-pink-400' : 'text-orange-400';
+            const isWrite = category === 'write';
+            const titleColor = isJukugo ? 'text-pink-400' : isWrite ? 'text-teal-500' : 'text-orange-400';
+
+            const jmodeCls = (m) => jukugoInputMode === m
+                ? 'bg-pink-400 text-white shadow'
+                : 'bg-white text-gray-400 border border-gray-200';
 
             const buttonsHtml = isJukugo ? `
                 <button id="btn-study" class="bg-green-400 hover:bg-green-500 text-white text-lg md:text-xl font-bold py-3 md:py-4 px-5 rounded-xl shadow-lg active:scale-95 transition">
                     📖 べんきょう
                 </button>
-                <button id="btn-jukugo-quiz" class="bg-pink-400 hover:bg-pink-500 text-white text-lg md:text-xl font-bold py-3 md:py-4 px-5 rounded-xl shadow-lg active:scale-95 transition">
-                    📚 じゅくごクイズ
+                <div class="bg-pink-50 border-2 border-pink-200 rounded-xl p-2.5">
+                    <p class="text-center text-xs font-bold text-gray-500 mb-1.5">こたえかた を えらぶ</p>
+                    <div class="flex gap-2 justify-center mb-2">
+                        <button class="jmode-tab px-3 py-1.5 rounded-full font-bold text-sm transition ${jmodeCls('choice')}" data-jmode="choice">
+                            せんたくし あり
+                        </button>
+                        <button class="jmode-tab px-3 py-1.5 rounded-full font-bold text-sm transition ${jmodeCls('input')}" data-jmode="input">
+                            せんたくし なし
+                        </button>
+                    </div>
+                    <button id="btn-jukugo-quiz" class="w-full bg-pink-400 hover:bg-pink-500 text-white text-lg md:text-xl font-bold py-3 rounded-xl shadow-lg active:scale-95 transition">
+                        📚 じゅくごクイズ
+                    </button>
+                    <p class="text-center text-xs text-gray-400 font-bold mt-1.5">
+                        ${jukugoInputMode === 'choice' ? '4つ の なかから えらぶよ' : 'ひらがなキーボード で よみ を うつよ'}
+                    </p>
+                </div>
+            ` : isWrite ? `
+                <button id="btn-trace" class="bg-teal-400 hover:bg-teal-500 text-white text-lg md:text-xl font-bold py-3 md:py-4 px-5 rounded-xl shadow-lg active:scale-95 transition">
+                    📖 なぞりれんしゅう
                 </button>
+                <button id="btn-write-quiz" class="bg-amber-400 hover:bg-amber-500 text-white text-lg md:text-xl font-bold py-3 md:py-4 px-5 rounded-xl shadow-lg active:scale-95 transition">
+                    ✏️ かきとりクイズ
+                </button>
+                <p class="text-center text-xs text-gray-400 font-bold">ゆび か タッチペン で かこう</p>
+                <p class="text-center text-xs text-gray-300">ひつじゅんデータ: KanjiVG (CC BY-SA 3.0)</p>
             ` : `
                 <button id="btn-study" class="bg-green-400 hover:bg-green-500 text-white text-lg md:text-xl font-bold py-3 md:py-4 px-5 rounded-xl shadow-lg active:scale-95 transition">
                     📖 べんきょう
@@ -485,7 +629,7 @@ export default {
 
             container.innerHTML = `
                 <div class="h-full flex flex-col items-center justify-center p-3 animate-pop">
-                    <h2 class="text-xl md:text-2xl font-black ${titleColor} mb-1">${!isJukugo ? `${grade}ねんせい ` : ''}レベル ${currentLevel + 1}</h2>
+                    <h2 class="text-xl md:text-2xl font-black ${titleColor} mb-1">${grade}ねんせい レベル ${currentLevel + 1}</h2>
                     <p class="text-gray-500 font-bold mb-3 text-xs">なに を する？</p>
 
                     <div class="flex flex-col gap-3 w-full max-w-lg justify-center">
@@ -500,7 +644,16 @@ export default {
 
             if (isJukugo) {
                 container.querySelector('#btn-study').onclick = renderJukugoStudy;
+                container.querySelectorAll('.jmode-tab').forEach(btn => {
+                    btn.onclick = () => {
+                        jukugoInputMode = btn.dataset.jmode;
+                        renderModeSelect();
+                    };
+                });
                 container.querySelector('#btn-jukugo-quiz').onclick = () => { quizMode = 'jukugo'; startJukugoQuiz(); };
+            } else if (isWrite) {
+                container.querySelector('#btn-trace').onclick = () => startTrace();
+                container.querySelector('#btn-write-quiz').onclick = () => startWriteQuiz();
             } else {
                 container.querySelector('#btn-study').onclick = renderStudyMode;
                 container.querySelector('#btn-reading-quiz').onclick = () => { quizMode = 'reading'; startQuiz(); };
@@ -557,13 +710,13 @@ export default {
         // ★ じゅくご べんきょうモード
         const renderJukugoStudy = () => {
             const start = currentLevel * QUESTIONS_PER_LEVEL;
-            const end = Math.min(start + QUESTIONS_PER_LEVEL, jukugoData.length);
-            const targetJukugo = jukugoData.slice(start, end);
+            const end = Math.min(start + QUESTIONS_PER_LEVEL, getJukugoData().length);
+            const targetJukugo = getJukugoData().slice(start, end);
 
             const cardsHtml = targetJukugo.map(item => `
                 <div class="bg-white border-4 border-pink-200 rounded-3xl p-3 flex flex-col items-center justify-center aspect-square shadow-sm">
                     <div class="text-5xl md:text-6xl font-black text-gray-800 mb-1 tracking-wider">${item.j}</div>
-                    <div class="inline-block bg-pink-100 text-pink-700 border border-pink-200 px-3 py-0.5 rounded-lg font-bold text-lg md:text-xl mb-1">
+                    <div class="inline-block bg-pink-100 text-pink-700 border border-pink-200 px-2 py-0.5 rounded-lg font-bold mb-1 whitespace-nowrap ${item.r.length >= 6 ? 'text-sm md:text-base' : item.r.length >= 5 ? 'text-base md:text-lg' : 'text-lg md:text-xl'}">
                         ${item.r}
                     </div>
                     <div class="text-xs text-gray-400 font-bold text-center leading-tight px-1">${item.m}</div>
@@ -589,6 +742,650 @@ export default {
             container.querySelector('#btn-back-mode').onclick = renderModeSelect;
         };
 
+        // =========================================================
+        //  かきとり (なぞりれんしゅう / かきとりクイズ)
+        //  筆順データ: KanjiVG (CC BY-SA 3.0)
+        // =========================================================
+
+        // 筆順データの遅延読み込み (170KB あるので かきとり を開いたときだけ読む)
+        const loadStrokes = async () => {
+            if (!strokeLib) strokeLib = await import('./kanji_strokes.js');
+            return strokeLib;
+        };
+
+        const loadingHtml = `
+            <div class="h-full flex flex-col items-center justify-center gap-2 text-gray-400 font-bold">
+                <div class="text-5xl animate-bounce">✏️</div>
+                <div>じゅんび ちゅう...</div>
+            </div>`;
+
+        // --- お手本(筆順データ)を1画ずつ線で描く ---
+        const drawGuide = (ctx, char, size, opt = {}) => {
+            const data = strokeLib && strokeLib.STROKES[char];
+            if (!data) {
+                // 筆順データが無い場合はフォントで代用
+                ctx.save();
+                ctx.fillStyle = opt.color || '#d4d4d8';
+                ctx.font = `${Math.round(size * 0.85)}px sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(char, size / 2, size * 0.54);
+                ctx.restore();
+                return false;
+            }
+            const s = size / strokeLib.VIEW;
+            ctx.save();
+            ctx.scale(s, s);
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.strokeStyle = opt.color || '#d4d4d8';
+            ctx.lineWidth = (opt.width || size * 0.075) / s;
+            if (opt.alpha != null) ctx.globalAlpha = opt.alpha;
+            data.d.forEach(d => ctx.stroke(new Path2D(d)));
+            ctx.restore();
+
+            if (opt.numbers) {
+                ctx.save();
+                ctx.font = `bold ${Math.round(size * 0.09)}px sans-serif`;
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'alphabetic';
+                ctx.lineWidth = Math.max(2, size * 0.022);
+                ctx.lineJoin = 'round';
+                ctx.strokeStyle = '#ffffff';
+                ctx.fillStyle = opt.numberColor || '#0ea5e9';
+                data.n.forEach((p, i) => {
+                    const x = p[0] * s, y = p[1] * s;
+                    ctx.strokeText(String(i + 1), x, y);
+                    ctx.fillText(String(i + 1), x, y);
+                });
+                ctx.restore();
+            }
+            return true;
+        };
+
+        // --- 田の字の補助線 ---
+        const drawGrid = (ctx, size) => {
+            ctx.save();
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([size * 0.035, size * 0.035]);
+            ctx.beginPath();
+            ctx.moveTo(size / 2, 0); ctx.lineTo(size / 2, size);
+            ctx.moveTo(0, size / 2); ctx.lineTo(size, size / 2);
+            ctx.stroke();
+            ctx.restore();
+        };
+
+        // --- 子どもが書いた線を描く (座標は 0〜1 に正規化して保持) ---
+        const drawUserStrokes = (ctx, strokes, size, width, color) => {
+            ctx.save();
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.strokeStyle = color;
+            ctx.lineWidth = width;
+            strokes.forEach(st => {
+                if (!st.length) return;
+                ctx.beginPath();
+                ctx.moveTo(st[0].x * size, st[0].y * size);
+                if (st.length === 1) ctx.lineTo(st[0].x * size + 0.1, st[0].y * size);
+                else for (let i = 1; i < st.length; i++) ctx.lineTo(st[i].x * size, st[i].y * size);
+                ctx.stroke();
+            });
+            ctx.restore();
+        };
+
+        // --- なぞりの採点 ---
+        //   なぞれた率 : お手本の線のうち、なぞれた割合
+        //   はみだし率 : 書いた線のうち、お手本から外れた割合
+        const scoreTrace = (char) => {
+            if (!padStrokes.length) return 0;
+            const S = 180;
+            const mask = (drawFn) => {
+                const c = document.createElement('canvas');
+                c.width = c.height = S;
+                const x = c.getContext('2d');
+                drawFn(x);
+                return x.getImageData(0, 0, S, S).data;
+            };
+            const core = mask(x => drawGuide(x, char, S, { color: '#000', width: S * 0.075 }));
+            const tol  = mask(x => drawGuide(x, char, S, { color: '#000', width: S * 0.24 }));
+            const ink  = mask(x => drawUserStrokes(x, padStrokes, S, S * 0.075, '#000'));
+            const fat  = mask(x => drawUserStrokes(x, padStrokes, S, S * 0.24, '#000'));
+
+            let coreN = 0, coreHit = 0, inkN = 0, inkOut = 0;
+            for (let i = 3; i < core.length; i += 4) {
+                if (core[i] > 100) { coreN++; if (fat[i] > 100) coreHit++; }
+                if (ink[i]  > 100) { inkN++;  if (tol[i] <= 100) inkOut++; }
+            }
+            if (!coreN || !inkN) return 0;
+            const coverage = coreHit / coreN;
+            const overflow = inkOut / inkN;
+            return Math.max(0, Math.min(100, Math.round(coverage * 100 - overflow * 60)));
+        };
+
+        // --- キャンバスと枠を、使える場所いっぱいの正方形にして描き直す ---
+        //   area   : 場所を決める外側の箱 (flex で中央ぞろえ)
+        //   box    : わく (border) を持つ箱
+        //   canvas : 実際に描くところ
+        //   reserve: area の中で キャンバス以外に使う高さ (よみの表示など)
+        const mountCanvas = (area, box, canvas, draw, reserve = 0) => {
+            const apply = () => {
+                const avail = Math.min(area.clientWidth, area.clientHeight - reserve);
+                const size = Math.max(110, Math.floor(avail) - 10);
+                box.style.width = (size + 8) + 'px';
+                box.style.height = (size + 8) + 'px';
+                canvas.style.width = size + 'px';
+                canvas.style.height = size + 'px';
+                const dpr = window.devicePixelRatio || 1;
+                canvas.width = Math.round(size * dpr);
+                canvas.height = Math.round(size * dpr);
+                const ctx = canvas.getContext('2d');
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                ctx.clearRect(0, 0, size, size);
+                draw(ctx, size);
+            };
+            apply();                       // まず今すぐ描く
+            requestAnimationFrame(apply);  // レイアウト確定後にもう一度
+            return apply;
+        };
+
+        // --- 指/ペンで書けるようにする ---
+        const setupPad = (canvas, redraw) => {
+            canvas.style.touchAction = 'none';
+            let cur = null;
+            const clamp = v => Math.max(0, Math.min(1, v));
+            const pos = (e) => {
+                const r = canvas.getBoundingClientRect();
+                return { x: clamp((e.clientX - r.left) / r.width), y: clamp((e.clientY - r.top) / r.height) };
+            };
+            canvas.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
+                try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+                cur = [pos(e)];
+                padStrokes.push(cur);
+                redraw();
+            });
+            canvas.addEventListener('pointermove', (e) => {
+                if (!cur) return;
+                e.preventDefault();
+                cur.push(pos(e));
+                redraw();
+            });
+            const end = () => { cur = null; };
+            canvas.addEventListener('pointerup', end);
+            canvas.addEventListener('pointercancel', end);
+        };
+
+        // ★ なぞりれんしゅう 開始
+        const startTrace = async () => {
+            container.innerHTML = loadingHtml;
+            await loadStrokes();
+            const start = currentLevel * QUESTIONS_PER_LEVEL;
+            writeQuestions = getKanjiData().slice(start, start + QUESTIONS_PER_LEVEL);
+            writeIndex = 0;
+            score = 0;
+            quizMode = 'trace';
+            renderTraceStep();
+        };
+
+        // ★ なぞりれんしゅう 1文字ぶん
+        const renderTraceStep = () => {
+            if (writeIndex >= writeQuestions.length) { renderResult(); return; }
+            const item = writeQuestions[writeIndex];
+            padStrokes = [];
+
+            container.innerHTML = `
+                <div class="h-full flex flex-col p-2 md:p-3">
+                    <div class="flex justify-between items-center mb-1">
+                        <button id="btn-quit-write" class="bg-gray-100 text-gray-400 font-bold py-1.5 px-3 rounded-full text-sm">やめる</button>
+                        <div class="bg-teal-100 text-teal-600 px-3 py-1 rounded-full font-bold text-sm">
+                            ${writeIndex + 1} / ${writeQuestions.length}
+                        </div>
+                        <div class="font-bold text-orange-400 text-sm">てんすう: ${score}</div>
+                    </div>
+
+                    <div class="flex-1 flex gap-2 min-h-0 relative">
+                        <!-- おてほん -->
+                        <div class="w-[30%] max-w-[200px] flex flex-col min-h-0">
+                            <div class="text-center text-xs font-bold text-gray-400 mb-1">おてほん</div>
+                            <div id="model-area" class="flex-1 flex items-center justify-center min-h-0">
+                                <div class="flex flex-col items-center gap-1">
+                                    <div id="model-box" class="bg-white border-4 border-teal-200 rounded-2xl overflow-hidden">
+                                        <canvas id="model-canvas" class="block"></canvas>
+                                    </div>
+                                    <div class="text-center flex items-baseline justify-center gap-0.5 flex-wrap">
+                                        ${readingHtml(item,
+                                            'inline-block bg-sky-100 text-sky-700 border border-sky-200 px-1.5 py-0.5 rounded font-bold text-sm',
+                                            'inline-block bg-orange-100 text-orange-600 border border-orange-200 px-1.5 py-0.5 rounded font-bold text-sm',
+                                            'text-sm font-bold text-gray-500'
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- なぞりマス -->
+                        <div class="flex-1 flex flex-col min-w-0 min-h-0">
+                            <div class="text-center text-xs font-bold text-gray-400 mb-1">ばんごうの じゅんに なぞろう</div>
+                            <div id="pad-area" class="flex-1 flex items-center justify-center min-h-0">
+                                <div id="pad-box" class="bg-white border-4 border-orange-200 rounded-2xl overflow-hidden">
+                                    <canvas id="pad-canvas" class="block"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- けっか オーバーレイ -->
+                        <div id="trace-overlay" class="absolute inset-0 bg-white/95 rounded-2xl z-50 hidden flex-col items-center justify-center animate-pop">
+                            <div id="tr-mark" class="text-8xl font-black"></div>
+                            <div id="tr-text" class="text-lg font-bold text-gray-600 mb-3"></div>
+                            <div class="flex gap-2">
+                                <button id="tr-retry" class="bg-gray-200 text-gray-600 font-bold py-2 px-5 rounded-full text-sm">もういちど</button>
+                                <button id="tr-next" class="bg-teal-400 text-white font-bold py-2 px-6 rounded-full text-sm">つぎへ ▶</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2 mt-2">
+                        <button id="btn-clear" class="bg-gray-200 text-gray-600 font-bold py-3 px-5 rounded-xl text-base">けす</button>
+                        <button id="btn-done" class="flex-1 bg-teal-400 hover:bg-teal-500 text-white font-bold py-3 rounded-xl text-lg shadow-md active:scale-95 transition">できた！</button>
+                    </div>
+                </div>
+            `;
+
+            const modelCanvas = container.querySelector('#model-canvas');
+            mountCanvas(container.querySelector('#model-area'), container.querySelector('#model-box'), modelCanvas, (ctx, size) => {
+                drawGrid(ctx, size);
+                drawGuide(ctx, item.k, size, { color: '#334155', width: size * 0.08, numbers: true });
+            }, 32);
+
+            const padCanvas = container.querySelector('#pad-canvas');
+            const drawPad = (ctx, size) => {
+                ctx.clearRect(0, 0, size, size);
+                drawGrid(ctx, size);
+                drawGuide(ctx, item.k, size, { color: '#e5e7eb', width: size * 0.085, numbers: true, numberColor: '#93c5fd' });
+                drawUserStrokes(ctx, padStrokes, size, size * 0.075, '#1f2937');
+            };
+            const relayout = mountCanvas(container.querySelector('#pad-area'), container.querySelector('#pad-box'), padCanvas, drawPad);
+            padRelayout = { el: padCanvas, fn: relayout };
+            setupPad(padCanvas, () => {
+                drawPad(padCanvas.getContext('2d'), parseFloat(padCanvas.style.width));
+            });
+
+            container.querySelector('#btn-quit-write').onclick = renderModeSelect;
+            container.querySelector('#btn-clear').onclick = () => {
+                padStrokes = [];
+                drawPad(padCanvas.getContext('2d'), parseFloat(padCanvas.style.width));
+            };
+            container.querySelector('#btn-done').onclick = () => judgeTrace(item);
+        };
+
+        // ★ なぞりの答え合わせ
+        const judgeTrace = (item) => {
+            const overlay = container.querySelector('#trace-overlay');
+            if (!overlay || overlay.style.display === 'flex') return;
+
+            const s = scoreTrace(item.k);
+            const mark = container.querySelector('#tr-mark');
+            const text = container.querySelector('#tr-text');
+            const btnRetry = container.querySelector('#tr-retry');
+            const btnNext = container.querySelector('#tr-next');
+            overlay.style.display = 'flex';
+
+            let gained = 0;
+            if (s >= 70) {
+                mark.textContent = '◎';
+                mark.className = 'text-8xl font-black text-red-500';
+                text.textContent = `はなまる！  ${s}てん`;
+                gained = 10;
+                system.playSound('correct');
+            } else if (s >= 45) {
+                mark.textContent = '○';
+                mark.className = 'text-8xl font-black text-orange-400';
+                text.textContent = `いいかんじ！  ${s}てん`;
+                gained = 5;
+                system.playSound('correct');
+            } else {
+                mark.textContent = '△';
+                mark.className = 'text-8xl font-black text-blue-400';
+                text.textContent = `うすい じ を なぞってみよう  ${s}てん`;
+                system.playSound('wrong');
+            }
+            score += gained;
+
+            if (system.logQuizResult) {
+                system.logQuizResult('かんじマスター', item.k, s >= 70, {
+                    reading: fullR(item), level: currentLevel + 1, mode: 'trace', traceScore: s
+                });
+            }
+
+            btnRetry.onclick = () => { renderTraceStep(); };
+            btnNext.onclick = () => { writeIndex++; renderTraceStep(); };
+            if (s >= 45) setTimeout(() => { if (container.contains(btnNext)) btnNext.click(); }, 1300);
+        };
+
+        // ★ かきとりクイズ 開始
+        const startWriteQuiz = async () => {
+            container.innerHTML = loadingHtml;
+            await loadStrokes();
+            const start = currentLevel * QUESTIONS_PER_LEVEL;
+            writeQuestions = shuffle(getKanjiData().slice(start, start + QUESTIONS_PER_LEVEL));
+            writeIndex = 0;
+            score = 0;
+            quizMode = 'write';
+            renderWriteQuizStep();
+        };
+
+        // ★ かきとりクイズ (よみだけ見て、なにも見ずに書く)
+        const renderWriteQuizStep = () => {
+            if (writeIndex >= writeQuestions.length) { renderResult(); return; }
+            const item = writeQuestions[writeIndex];
+            padStrokes = [];
+
+            container.innerHTML = `
+                <div class="h-full flex flex-col p-2 md:p-3">
+                    <div class="flex justify-between items-center mb-1">
+                        <button id="btn-quit-write" class="bg-gray-100 text-gray-400 font-bold py-1.5 px-3 rounded-full text-sm">やめる</button>
+                        <div class="bg-amber-100 text-amber-600 px-3 py-1 rounded-full font-bold text-sm">
+                            あと ${writeQuestions.length - writeIndex} もん
+                        </div>
+                        <div class="font-bold text-orange-400 text-sm">てんすう: ${score}</div>
+                    </div>
+
+                    <div class="bg-amber-50 border-4 border-amber-200 rounded-2xl px-3 py-2 text-center mb-2">
+                        <p class="text-gray-500 font-bold text-xs">この よみかた の かんじ を かこう</p>
+                        <div class="mt-1 flex items-baseline justify-center gap-1 flex-wrap">
+                            ${readingHtml(item,
+                                'inline-block bg-sky-100 text-sky-700 border border-sky-300 px-3 py-0.5 rounded-xl font-black text-3xl md:text-4xl',
+                                'inline-block bg-orange-100 text-orange-600 border border-orange-300 px-2 py-0.5 rounded-xl font-bold text-xl md:text-2xl',
+                                'text-4xl md:text-5xl font-black text-gray-800'
+                            )}
+                        </div>
+                    </div>
+
+                    <div id="pad-area" class="flex-1 flex items-center justify-center min-h-0">
+                        <div id="pad-box" class="bg-white border-4 border-amber-200 rounded-2xl overflow-hidden">
+                            <canvas id="pad-canvas" class="block"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2 mt-2">
+                        <button id="btn-clear" class="bg-gray-200 text-gray-600 font-bold py-3 px-5 rounded-xl text-base">けす</button>
+                        <button id="btn-done" class="flex-1 bg-amber-400 hover:bg-amber-500 text-white font-bold py-3 rounded-xl text-lg shadow-md active:scale-95 transition">かけた！</button>
+                    </div>
+                </div>
+            `;
+
+            const padCanvas = container.querySelector('#pad-canvas');
+            const drawPad = (ctx, size) => {
+                ctx.clearRect(0, 0, size, size);
+                drawGrid(ctx, size);
+                drawUserStrokes(ctx, padStrokes, size, size * 0.075, '#1f2937');
+            };
+            const relayout = mountCanvas(container.querySelector('#pad-area'), container.querySelector('#pad-box'), padCanvas, drawPad);
+            padRelayout = { el: padCanvas, fn: relayout };
+            setupPad(padCanvas, () => drawPad(padCanvas.getContext('2d'), parseFloat(padCanvas.style.width)));
+
+            container.querySelector('#btn-quit-write').onclick = renderModeSelect;
+            container.querySelector('#btn-clear').onclick = () => {
+                padStrokes = [];
+                drawPad(padCanvas.getContext('2d'), parseFloat(padCanvas.style.width));
+            };
+            container.querySelector('#btn-done').onclick = () => renderWriteCompare(item);
+        };
+
+        // ★ かきとりクイズ 見くらべ & じぶんで まるつけ
+        const renderWriteCompare = (item) => {
+            let view = 'both'; // 'mine' | 'model' | 'both'
+            const myStrokes = padStrokes;
+
+            container.innerHTML = `
+                <div class="h-full flex flex-col p-2 md:p-3">
+                    <div class="flex justify-between items-center mb-1">
+                        <div class="bg-amber-100 text-amber-600 px-3 py-1 rounded-full font-bold text-sm">みくらべよう</div>
+                        <div class="font-bold text-orange-400 text-sm">てんすう: ${score}</div>
+                    </div>
+
+                    <div class="text-center mb-1">
+                        <span class="text-gray-400 font-bold text-xs">こたえ</span>
+                        <span class="text-3xl font-black text-gray-800 mx-1">${item.k}</span>
+                        <span class="inline-flex items-baseline gap-0.5">
+                            ${readingHtml(item,
+                                'inline-block bg-sky-100 text-sky-700 px-2 py-0.5 rounded font-bold text-base',
+                                'inline-block bg-orange-100 text-orange-600 px-2 py-0.5 rounded font-bold text-sm',
+                                'text-base font-bold text-gray-500'
+                            )}
+                        </span>
+                    </div>
+
+                    <div class="flex justify-center gap-1.5 mb-1">
+                        <button class="view-btn" data-view="mine">じぶんの じ</button>
+                        <button class="view-btn" data-view="model">おてほん</button>
+                        <button class="view-btn" data-view="both">かさねる</button>
+                    </div>
+
+                    <div id="cmp-area" class="flex-1 flex items-center justify-center min-h-0">
+                        <div id="cmp-box" class="bg-white border-4 border-amber-200 rounded-2xl overflow-hidden">
+                            <canvas id="cmp-canvas" class="block"></canvas>
+                        </div>
+                    </div>
+
+                    <p class="text-center text-gray-400 font-bold text-xs mt-2">じぶんで まるつけ しよう！</p>
+                    <div class="flex gap-2 mt-1">
+                        <button class="mark-btn flex-1 bg-red-400 hover:bg-red-500 text-white font-black py-3 rounded-xl text-base shadow-md active:scale-95 transition" data-pt="10">◎ かけた</button>
+                        <button class="mark-btn flex-1 bg-orange-300 hover:bg-orange-400 text-white font-black py-3 rounded-xl text-base shadow-md active:scale-95 transition" data-pt="5">△ おしい</button>
+                        <button class="mark-btn flex-1 bg-blue-300 hover:bg-blue-400 text-white font-black py-3 rounded-xl text-base shadow-md active:scale-95 transition" data-pt="0">× まだまだ</button>
+                    </div>
+                </div>
+            `;
+
+            const canvas = container.querySelector('#cmp-canvas');
+            const draw = (ctx, size) => {
+                ctx.clearRect(0, 0, size, size);
+                drawGrid(ctx, size);
+                if (view === 'model') {
+                    drawGuide(ctx, item.k, size, { color: '#0d9488', width: size * 0.08, numbers: true });
+                } else if (view === 'mine') {
+                    drawUserStrokes(ctx, myStrokes, size, size * 0.075, '#1f2937');
+                } else {
+                    drawGuide(ctx, item.k, size, { color: '#fb923c', width: size * 0.09, alpha: 0.55 });
+                    drawUserStrokes(ctx, myStrokes, size, size * 0.07, '#1f2937');
+                }
+            };
+            const relayout = mountCanvas(container.querySelector('#cmp-area'), container.querySelector('#cmp-box'), canvas, draw);
+            padRelayout = { el: canvas, fn: relayout };
+
+            const paintTabs = () => {
+                container.querySelectorAll('.view-btn').forEach(b => {
+                    b.className = 'view-btn px-3 py-1 rounded-full font-bold text-xs transition ' +
+                        (b.dataset.view === view ? 'bg-amber-400 text-white shadow' : 'bg-gray-200 text-gray-400');
+                });
+            };
+            paintTabs();
+            container.querySelectorAll('.view-btn').forEach(b => {
+                b.onclick = () => {
+                    view = b.dataset.view;
+                    paintTabs();
+                    draw(canvas.getContext('2d'), parseFloat(canvas.style.width));
+                };
+            });
+
+            container.querySelectorAll('.mark-btn').forEach(b => {
+                b.onclick = () => {
+                    const pt = parseInt(b.dataset.pt);
+                    score += pt;
+                    system.playSound(pt >= 5 ? 'correct' : 'wrong');
+                    if (system.logQuizResult) {
+                        system.logQuizResult('かんじマスター', item.k, pt === 10, {
+                            reading: fullR(item), level: currentLevel + 1, mode: 'write', selfMark: pt
+                        });
+                    }
+                    writeIndex++;
+                    renderWriteQuizStep();
+                };
+            });
+        };
+
+        // =========================================================
+        //  じゅくごクイズ (せんたくし なし / ひらがな キーボード入力)
+        // =========================================================
+        const KANA_ROWS = [
+            ['あ','か','さ','た','な','は','ま','や','ら','わ'],
+            ['い','き','し','ち','に','ひ','み','',  'り','を'],
+            ['う','く','す','つ','ぬ','ふ','む','ゆ','る','ん'],
+            ['え','け','せ','て','ね','へ','め','',  'れ','ー'],
+            ['お','こ','そ','と','の','ほ','も','よ','ろ','']
+        ];
+        const DAKUTEN = {か:'が',き:'ぎ',く:'ぐ',け:'げ',こ:'ご',さ:'ざ',し:'じ',す:'ず',せ:'ぜ',そ:'ぞ',
+                         た:'だ',ち:'ぢ',つ:'づ',て:'で',と:'ど',は:'ば',ひ:'び',ふ:'ぶ',へ:'べ',ほ:'ぼ'};
+        const HANDAKUTEN = {は:'ぱ',ひ:'ぴ',ふ:'ぷ',へ:'ぺ',ほ:'ぽ'};
+
+        let kanaInput = '';
+
+        // ★ じゅくごクイズ (入力式)
+        const renderJukugoInputQuiz = () => {
+            if (quizIndex >= quizQuestions.length) { renderResult(); return; }
+
+            hasMistaken = false;
+            kanaInput = '';
+            const q = quizQuestions[quizIndex];
+
+            const keyCls = 'kana-key bg-white border-b-2 border-gray-200 rounded-lg font-bold text-gray-700 text-base md:text-xl py-1.5 active:bg-pink-50 active:border-b-0 active:translate-y-0.5 transition-all';
+            const subCls = 'bg-pink-100 border-b-2 border-pink-200 rounded-lg font-black text-pink-500 text-2xl md:text-3xl leading-none py-1 active:border-b-0 active:translate-y-0.5 transition-all';
+            const rowsHtml = KANA_ROWS.map(row => row.map(k => k
+                ? `<button class="${keyCls}" data-kana="${k}">${k}</button>`
+                : `<div></div>`
+            ).join('')).join('');
+
+            container.innerHTML = `
+                <div class="h-full flex flex-col p-2 md:p-3 relative">
+                    <div class="flex justify-between items-center mb-1">
+                        <button id="btn-quit-quiz" class="bg-gray-100 text-gray-400 font-bold py-1.5 px-3 rounded-full text-sm">やめる</button>
+                        <div class="bg-pink-100 text-pink-500 px-3 py-1 rounded-full font-bold text-sm">
+                            あと ${quizQuestions.length - quizIndex} もん
+                        </div>
+                        <div class="font-bold text-orange-400 text-sm">てんすう: ${score}</div>
+                    </div>
+
+                    <!-- もんだい -->
+                    <div class="bg-pink-50 border-4 border-pink-200 rounded-2xl py-2 px-3 text-center mb-1.5">
+                        <p class="font-bold text-xs text-gray-500">この じゅくご の よみかた を うとう</p>
+                        <div class="text-5xl md:text-6xl font-black text-gray-800 tracking-wider">${q.j}</div>
+                    </div>
+
+                    <!-- にゅうりょくらん -->
+                    <div class="bg-white border-4 border-sky-200 rounded-2xl h-14 md:h-16 flex items-center justify-center mb-1.5 px-2">
+                        <span id="kana-display" class="text-3xl md:text-4xl font-black text-sky-700 tracking-widest">&nbsp;</span>
+                    </div>
+
+                    <!-- キーボード -->
+                    <div class="grid grid-cols-10 gap-1 mb-1">
+                        ${rowsHtml}
+                    </div>
+                    <div class="grid grid-cols-10 gap-1 mb-1.5">
+                        <button class="${subCls}" data-sub="daku">゛</button>
+                        <button class="${subCls}" data-sub="handaku">゜</button>
+                        <button class="${keyCls}" data-kana="っ">っ</button>
+                        <button class="${keyCls}" data-kana="ゃ">ゃ</button>
+                        <button class="${keyCls}" data-kana="ゅ">ゅ</button>
+                        <button class="${keyCls}" data-kana="ょ">ょ</button>
+                        <button id="btn-back-key" class="col-span-2 bg-gray-200 border-b-2 border-gray-300 rounded-lg font-bold text-gray-600 text-sm py-1.5 active:border-b-0 active:translate-y-0.5">← けす</button>
+                        <button id="btn-giveup" class="col-span-2 bg-gray-100 border-b-2 border-gray-200 rounded-lg font-bold text-gray-400 text-xs py-1.5 active:border-b-0 active:translate-y-0.5">わからない</button>
+                    </div>
+
+                    <button id="btn-check" class="bg-pink-400 hover:bg-pink-500 text-white font-bold py-3 rounded-xl text-lg shadow-md active:scale-95 transition">
+                        こたえあわせ
+                    </button>
+
+                    <!-- オーバーレイ -->
+                    <div id="feedback-overlay" class="absolute inset-0 bg-white/95 rounded-2xl z-50 hidden flex-col items-center justify-center animate-pop">
+                        <div id="fb-mark" class="text-8xl font-black mb-2"></div>
+                        <div id="fb-text" class="text-xl font-bold text-gray-700 text-center px-4"></div>
+                    </div>
+                </div>
+            `;
+
+            const display = container.querySelector('#kana-display');
+            const paint = () => { display.textContent = kanaInput || ' '; };
+
+            container.querySelectorAll('[data-kana]').forEach(b => {
+                b.onclick = () => { if (kanaInput.length < 12) { kanaInput += b.dataset.kana; paint(); } };
+            });
+            container.querySelectorAll('[data-sub]').forEach(b => {
+                b.onclick = () => {
+                    const last = kanaInput.slice(-1);
+                    const map = b.dataset.sub === 'daku' ? DAKUTEN : HANDAKUTEN;
+                    if (map[last]) { kanaInput = kanaInput.slice(0, -1) + map[last]; paint(); }
+                };
+            });
+            container.querySelector('#btn-back-key').onclick = () => { kanaInput = kanaInput.slice(0, -1); paint(); };
+            container.querySelector('#btn-quit-quiz').onclick = renderModeSelect;
+            container.querySelector('#btn-check').onclick = () => checkJukugoInput(q);
+            container.querySelector('#btn-giveup').onclick = () => {
+                hasMistaken = true;
+                if (system.logQuizResult) {
+                    system.logQuizResult('かんじマスター', q.j, false, {
+                        reading: q.r, selected: '(わからない)', level: currentLevel + 1, mode: 'jukugo_input'
+                    });
+                }
+                showJukugoAnswer(q);
+            };
+        };
+
+        // ★ 入力式じゅくごクイズの答え合わせ
+        const checkJukugoInput = (q) => {
+            const overlay = container.querySelector('#feedback-overlay');
+            if (!overlay || overlay.style.display === 'flex') return;
+            if (!kanaInput) return;
+
+            const fbMark = container.querySelector('#fb-mark');
+            const fbText = container.querySelector('#fb-text');
+            const isCorrect = kanaInput === q.r;
+            overlay.style.display = 'flex';
+
+            if (system.logQuizResult) {
+                system.logQuizResult('かんじマスター', q.j, isCorrect, {
+                    reading: q.r, selected: kanaInput, level: currentLevel + 1, mode: 'jukugo_input'
+                });
+            }
+
+            if (isCorrect) {
+                fbMark.textContent = '◎';
+                fbMark.className = 'text-9xl font-black mb-4 text-red-500';
+                fbText.innerHTML = '';
+                system.playSound('correct');
+                if (!hasMistaken) score += 10;
+                setTimeout(() => { quizIndex++; renderQuizQuestion(); }, 1200);
+            } else {
+                hasMistaken = true;
+                fbMark.textContent = '×';
+                fbMark.className = 'text-9xl font-black mb-4 text-blue-500';
+                fbText.innerHTML = `ちがうよ<br><span class="text-sm text-gray-400">${q.r.length}もじ だよ</span>`;
+                system.playSound('wrong');
+                setTimeout(() => {
+                    if (!container.contains(overlay)) return;
+                    overlay.style.display = 'none';
+                    kanaInput = '';
+                    const d = container.querySelector('#kana-display');
+                    if (d) d.textContent = ' ';
+                }, 1800);
+            }
+        };
+
+        // ★ こたえを見せて つぎの もんだいへ
+        const showJukugoAnswer = (q) => {
+            const overlay = container.querySelector('#feedback-overlay');
+            if (!overlay) return;
+            overlay.style.display = 'flex';
+            const fbMark = container.querySelector('#fb-mark');
+            const fbText = container.querySelector('#fb-text');
+            fbMark.textContent = '💡';
+            fbMark.className = 'text-7xl font-black mb-2';
+            fbText.innerHTML = `<span class="text-4xl font-black text-pink-500">${q.j}</span> は<br>
+                <span class="inline-block bg-pink-100 text-pink-700 px-3 py-1 rounded-lg font-bold text-2xl mt-1">${q.r}</span> だよ`;
+            system.playSound('wrong');
+            setTimeout(() => { quizIndex++; renderQuizQuestion(); }, 2600);
+        };
+
         // ★ クイズ開始処理
         const startQuiz = () => {
             const start = currentLevel * QUESTIONS_PER_LEVEL;
@@ -604,8 +1401,8 @@ export default {
         // ★ じゅくごクイズ開始処理
         const startJukugoQuiz = () => {
             const start = currentLevel * QUESTIONS_PER_LEVEL;
-            const end = Math.min(start + QUESTIONS_PER_LEVEL, jukugoData.length);
-            const targetJukugo = jukugoData.slice(start, end);
+            const end = Math.min(start + QUESTIONS_PER_LEVEL, getJukugoData().length);
+            const targetJukugo = getJukugoData().slice(start, end);
 
             quizQuestions = shuffle([...targetJukugo]);
             quizIndex = 0;
@@ -617,6 +1414,7 @@ export default {
         const renderQuizQuestion = () => {
             if (quizMode === 'reading') renderReadingQuiz();
             else if (quizMode === 'kanji') renderKanjiQuiz();
+            else if (jukugoInputMode === 'input') renderJukugoInputQuiz();
             else renderJukugoQuiz();
         };
 
@@ -825,7 +1623,7 @@ export default {
                 hasMistaken = true;
                 fbMark.textContent = '×';
                 fbMark.className = 'text-9xl font-black mb-4 text-blue-500';
-                const selItem = kanjiData.find(k => k.k === selectedKanji);
+                const selItem = getKanjiData().find(k => k.k === selectedKanji);
                 const realOku = selItem?.o || '';
                 const okuPart = realOku
                     ? `<span class="text-2xl font-bold text-orange-500 bg-orange-100 rounded px-1">${realOku}</span>`
@@ -865,7 +1663,7 @@ export default {
                 hasMistaken = true;
                 fbMark.textContent = '×';
                 fbMark.className = 'text-9xl font-black mb-4 text-blue-500';
-                const selItem = kanjiData.find(k => k.k === selectedKanji);
+                const selItem = getKanjiData().find(k => k.k === selectedKanji);
                 if (selItem) {
                     const selKanjiOku = selItem.o
                         ? `<span class="text-2xl font-bold text-orange-500 bg-orange-100 rounded px-1">${selItem.o}</span>`
@@ -920,19 +1718,23 @@ export default {
 
         // ★ 結果画面
         const renderResult = () => {
+            padRelayout = null;
             const isJukugo = quizMode === 'jukugo';
+            const isKakitori = quizMode === 'trace' || quizMode === 'write';
             let comment = "";
             let emoji = "";
             if (score === 100) {
-                comment = isJukugo
-                    ? "パーフェクト！<br>じゅくごは バッチリだね！"
+                comment = isJukugo ? "パーフェクト！<br>じゅくごは バッチリだね！"
+                    : isKakitori ? "パーフェクト！<br>かきとりは バッチリだね！"
                     : "パーフェクト！<br>かんじは バッチリだね！";
                 emoji = "🏆";
             } else if (score >= 80) {
                 comment = "すごい！<br>そのちょうし！";
                 emoji = "🥈";
             } else {
-                comment = "がんばったね！<br>べんきょうモードで<br>ふくしゅう しよう！";
+                comment = isKakitori
+                    ? "がんばったね！<br>なぞりれんしゅうで<br>ふくしゅう しよう！"
+                    : "がんばったね！<br>べんきょうモードで<br>ふくしゅう しよう！";
                 emoji = "🍀";
             }
 
@@ -957,7 +1759,11 @@ export default {
 
             if(score >= 80) system.playSound('correct');
 
-            container.querySelector('#btn-retry').onclick = isJukugo ? startJukugoQuiz : startQuiz;
+            const retryFn = quizMode === 'jukugo' ? startJukugoQuiz
+                : quizMode === 'trace' ? startTrace
+                : quizMode === 'write' ? startWriteQuiz
+                : startQuiz;
+            container.querySelector('#btn-retry').onclick = () => retryFn();
             container.querySelector('#btn-home').onclick = () => {
                 system.addScore(score);
                 renderLevelSelect();
@@ -969,6 +1775,9 @@ export default {
         // ---------------------------------------------------------
         renderLevelSelect();
 
-        return () => {};
+        return () => {
+            window.removeEventListener('resize', onResize);
+            padRelayout = null;
+        };
     }
 };

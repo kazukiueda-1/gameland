@@ -38,7 +38,7 @@
     {
         "id": "kanji_master_01",
         "title": "かんじマスター",
-        "desc": "1ねんせいの かんじ 80もん",
+        "desc": "かんじ・じゅくご・かきとり",
         "icon": "💮",
         "file": "kanji_v2.js",
         "color": "orange-400",
