@@ -322,6 +322,9 @@ export default {
         let writeIndex = 0;
         let padStrokes = [];     // 書いた線 (0〜1 に正規化した座標)
         let padRelayout = null;  // { el, fn } 画面リサイズ時にキャンバスを描き直す
+        let traceMode = 'all';   // なぞり: 'all'(ぜんぶ じゅんばんに) | 'single'(えらんだ1もじ)
+        let traceMarks = {};     // 漢字 -> そのレベルで いちばん よかった けっか ('◎'|'○'|'△')
+        let maxScore = 0;        // その回の まんてん (結果画面の判定に使う)
 
         // 画面サイズが変わったらキャンバスを作り直す
         const onResize = () => {
@@ -652,7 +655,7 @@ export default {
                 });
                 container.querySelector('#btn-jukugo-quiz').onclick = () => { quizMode = 'jukugo'; startJukugoQuiz(); };
             } else if (isWrite) {
-                container.querySelector('#btn-trace').onclick = () => startTrace();
+                container.querySelector('#btn-trace').onclick = () => openTracePicker();
                 container.querySelector('#btn-write-quiz').onclick = () => startWriteQuiz();
             } else {
                 container.querySelector('#btn-study').onclick = renderStudyMode;
@@ -916,30 +919,123 @@ export default {
             canvas.addEventListener('pointercancel', end);
         };
 
-        // ★ なぞりれんしゅう 開始
-        const startTrace = async () => {
+        // --- なぞりの けっかを記録する (よい けっかだけ のこす) ---
+        const MARK_RANK = { '△': 0, '○': 1, '◎': 2 };
+        const recordTraceMark = (char, sym) => {
+            if (!traceMarks[char] || MARK_RANK[sym] > MARK_RANK[traceMarks[char]]) traceMarks[char] = sym;
+        };
+
+        // ★ なぞりれんしゅう に入る (筆順データを読んでから もじ選び画面へ)
+        const openTracePicker = async () => {
             container.innerHTML = loadingHtml;
             await loadStrokes();
-            const start = currentLevel * QUESTIONS_PER_LEVEL;
-            writeQuestions = getKanjiData().slice(start, start + QUESTIONS_PER_LEVEL);
-            writeIndex = 0;
+            traceMarks = {};
             score = 0;
+            maxScore = 0;
+            renderTracePicker();
+        };
+
+        // ★ どの じ を なぞるか えらぶ画面
+        const renderTracePicker = () => {
+            padRelayout = null;
+            const start = currentLevel * QUESTIONS_PER_LEVEL;
+            const items = getKanjiData().slice(start, start + QUESTIONS_PER_LEVEL);
+
+            const cardsHtml = items.map((item, i) => {
+                const mark = traceMarks[item.k];
+                const markColor = mark === '◎' ? 'text-red-500' : mark === '○' ? 'text-orange-400' : 'text-blue-300';
+                const markHtml = mark
+                    ? `<span class="absolute top-0.5 right-1.5 text-xl font-black ${markColor}">${mark}</span>`
+                    : '';
+                const doneCls = mark ? 'border-teal-400 bg-teal-50' : 'border-teal-200 bg-white';
+                return `
+                    <button class="char-btn relative ${doneCls} border-4 rounded-2xl py-2 flex flex-col items-center justify-center shadow-sm active:scale-95 transition" data-idx="${i}">
+                        ${markHtml}
+                        <span class="text-4xl md:text-5xl font-black text-gray-800 leading-none">${item.k}</span>
+                        <span class="text-xs font-bold text-gray-400 mt-1">${fullR(item)}</span>
+                    </button>`;
+            }).join('');
+
+            const finishHtml = maxScore > 0 ? `
+                <button id="btn-trace-finish" class="mt-2 bg-orange-400 hover:bg-orange-500 text-white font-bold py-2.5 rounded-xl text-base shadow-md active:scale-95 transition">
+                    おしまい
+                </button>
+            ` : '';
+
+            container.innerHTML = `
+                <div class="h-full flex flex-col p-3">
+                    <div class="flex justify-between items-center mb-1 gap-2">
+                        <button id="btn-back-mode" class="bg-gray-200 text-gray-600 font-bold py-2 px-4 rounded-full text-sm shrink-0">◀ もどる</button>
+                        <h2 class="text-base md:text-lg font-black text-teal-500 text-center">${grade}ねんせい レベル ${currentLevel + 1}</h2>
+                        <div class="font-bold text-orange-400 text-sm shrink-0 w-20 text-right">${maxScore > 0 ? 'てんすう: ' + score : ''}</div>
+                    </div>
+
+                    <p class="text-center text-gray-500 font-bold text-xs mb-2">どの じ を れんしゅう する？</p>
+
+                    <div class="flex-1 overflow-y-auto min-h-0">
+                        <div class="grid grid-cols-3 md:grid-cols-5 gap-2 pb-2">
+                            ${cardsHtml}
+                        </div>
+                    </div>
+
+                    <button id="btn-trace-all" class="mt-2 bg-teal-400 hover:bg-teal-500 text-white font-bold py-3 rounded-xl text-base shadow-md active:scale-95 transition">
+                        ▶ ぜんぶ じゅんばんに
+                    </button>
+                    ${finishHtml}
+                </div>
+            `;
+
+            container.querySelector('#btn-back-mode').onclick = renderModeSelect;
+            container.querySelector('#btn-trace-all').onclick = () => startTrace();
+            const finishBtn = container.querySelector('#btn-trace-finish');
+            if (finishBtn) finishBtn.onclick = () => renderResult();
+            container.querySelectorAll('.char-btn').forEach(btn => {
+                btn.onclick = () => startTraceOne(parseInt(btn.dataset.idx));
+            });
+        };
+
+        // ★ えらんだ1もじ だけ なぞる
+        const startTraceOne = (index) => {
+            const start = currentLevel * QUESTIONS_PER_LEVEL;
+            const items = getKanjiData().slice(start, start + QUESTIONS_PER_LEVEL);
+            traceMode = 'single';
+            writeQuestions = [items[index]];
+            writeIndex = 0;
             quizMode = 'trace';
             renderTraceStep();
         };
 
+        // ★ なぞりれんしゅう ぜんぶ じゅんばんに
+        const startTrace = async () => {
+            container.innerHTML = loadingHtml;
+            await loadStrokes();
+            const start = currentLevel * QUESTIONS_PER_LEVEL;
+            traceMode = 'all';
+            writeQuestions = getKanjiData().slice(start, start + QUESTIONS_PER_LEVEL);
+            writeIndex = 0;
+            score = 0;
+            maxScore = 10 * writeQuestions.length;
+            quizMode = 'trace';
+            renderTraceStep();
+        };
+
+
         // ★ なぞりれんしゅう 1文字ぶん
         const renderTraceStep = () => {
-            if (writeIndex >= writeQuestions.length) { renderResult(); return; }
+            if (writeIndex >= writeQuestions.length) {
+                // ぜんぶ やったら 結果画面、1もじ だけなら もじ選びに もどる
+                if (traceMode === 'all') renderResult(); else renderTracePicker();
+                return;
+            }
             const item = writeQuestions[writeIndex];
             padStrokes = [];
 
             container.innerHTML = `
                 <div class="h-full flex flex-col p-2 md:p-3">
                     <div class="flex justify-between items-center mb-1">
-                        <button id="btn-quit-write" class="bg-gray-100 text-gray-400 font-bold py-1.5 px-3 rounded-full text-sm">やめる</button>
+                        <button id="btn-quit-write" class="bg-gray-100 text-gray-400 font-bold py-1.5 px-3 rounded-full text-sm">もじをえらぶ</button>
                         <div class="bg-teal-100 text-teal-600 px-3 py-1 rounded-full font-bold text-sm">
-                            ${writeIndex + 1} / ${writeQuestions.length}
+                            ${traceMode === 'all' ? `${writeIndex + 1} / ${writeQuestions.length}` : `${item.k} の れんしゅう`}
                         </div>
                         <div class="font-bold text-orange-400 text-sm">てんすう: ${score}</div>
                     </div>
@@ -1011,7 +1107,7 @@ export default {
                 drawPad(padCanvas.getContext('2d'), parseFloat(padCanvas.style.width));
             });
 
-            container.querySelector('#btn-quit-write').onclick = renderModeSelect;
+            container.querySelector('#btn-quit-write').onclick = renderTracePicker;
             container.querySelector('#btn-clear').onclick = () => {
                 padStrokes = [];
                 drawPad(padCanvas.getContext('2d'), parseFloat(padCanvas.style.width));
@@ -1032,17 +1128,20 @@ export default {
             overlay.style.display = 'flex';
 
             let gained = 0;
+            let sym = '△';
             if (s >= 70) {
                 mark.textContent = '◎';
                 mark.className = 'text-8xl font-black text-red-500';
                 text.textContent = `はなまる！  ${s}てん`;
                 gained = 10;
+                sym = '◎';
                 system.playSound('correct');
             } else if (s >= 45) {
                 mark.textContent = '○';
                 mark.className = 'text-8xl font-black text-orange-400';
                 text.textContent = `いいかんじ！  ${s}てん`;
                 gained = 5;
+                sym = '○';
                 system.playSound('correct');
             } else {
                 mark.textContent = '△';
@@ -1050,16 +1149,21 @@ export default {
                 text.textContent = `うすい じ を なぞってみよう  ${s}てん`;
                 system.playSound('wrong');
             }
-            score += gained;
-
             if (system.logQuizResult) {
                 system.logQuizResult('かんじマスター', item.k, s >= 70, {
                     reading: fullR(item), level: currentLevel + 1, mode: 'trace', traceScore: s
                 });
             }
 
+            // もういちど なら点は入らない。つぎへ で はじめて 点が入る
             btnRetry.onclick = () => { renderTraceStep(); };
-            btnNext.onclick = () => { writeIndex++; renderTraceStep(); };
+            btnNext.onclick = () => {
+                score += gained;
+                recordTraceMark(item.k, sym);
+                if (traceMode === 'single') maxScore += 10;
+                writeIndex++;
+                renderTraceStep();
+            };
             if (s >= 45) setTimeout(() => { if (container.contains(btnNext)) btnNext.click(); }, 1300);
         };
 
@@ -1071,6 +1175,7 @@ export default {
             writeQuestions = shuffle(getKanjiData().slice(start, start + QUESTIONS_PER_LEVEL));
             writeIndex = 0;
             score = 0;
+            maxScore = 10 * writeQuestions.length;
             quizMode = 'write';
             renderWriteQuizStep();
         };
@@ -1395,6 +1500,7 @@ export default {
             quizQuestions = shuffle([...targetKanji]);
             quizIndex = 0;
             score = 0;
+            maxScore = 10 * quizQuestions.length;
             renderQuizQuestion();
         };
 
@@ -1407,6 +1513,7 @@ export default {
             quizQuestions = shuffle([...targetJukugo]);
             quizIndex = 0;
             score = 0;
+            maxScore = 10 * quizQuestions.length;
             renderQuizQuestion();
         };
 
@@ -1721,14 +1828,15 @@ export default {
             padRelayout = null;
             const isJukugo = quizMode === 'jukugo';
             const isKakitori = quizMode === 'trace' || quizMode === 'write';
+            const ratio = maxScore > 0 ? score / maxScore : 0;
             let comment = "";
             let emoji = "";
-            if (score === 100) {
+            if (ratio >= 1) {
                 comment = isJukugo ? "パーフェクト！<br>じゅくごは バッチリだね！"
                     : isKakitori ? "パーフェクト！<br>かきとりは バッチリだね！"
                     : "パーフェクト！<br>かんじは バッチリだね！";
                 emoji = "🏆";
-            } else if (score >= 80) {
+            } else if (ratio >= 0.8) {
                 comment = "すごい！<br>そのちょうし！";
                 emoji = "🥈";
             } else {
@@ -1757,7 +1865,7 @@ export default {
                 </div>
             `;
 
-            if(score >= 80) system.playSound('correct');
+            if (ratio >= 0.8) system.playSound('correct');
 
             const retryFn = quizMode === 'jukugo' ? startJukugoQuiz
                 : quizMode === 'trace' ? startTrace
